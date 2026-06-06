@@ -1,0 +1,283 @@
+import 'package:drift/drift.dart';
+
+import '../app_database.dart';
+
+/// A single bilingual reference entry: stable English key plus display names.
+typedef _Ref = ({String key, String nameAr, String nameEn});
+
+/// Seeds the finalized bilingual reference data.
+///
+/// Lives in the data/database layer (never presentation). Seeding is:
+/// - **idempotent**: re-running it never duplicates rows;
+/// - **transactional**: all reference sets are written in one transaction;
+/// - **safe to re-run**: existing keys are updated in place if their display
+///   names / sort order change.
+///
+/// Only keys explicitly finalized in the specifications are seeded here.
+/// Subcategories, languages, and countries are intentionally NOT seeded yet.
+/// This is not wired into app startup — callers invoke [seedAll] explicitly.
+class ReferenceSeeder {
+  ReferenceSeeder(this._db);
+
+  final AppDatabase _db;
+
+  Future<void> seedAll() {
+    return _db.transaction(() async {
+      await _seedDocumentTypes();
+      await _seedMainCategories();
+      await _seedWorkflowStatuses();
+      await _seedFileRoles();
+      await _seedFileHealthStatuses();
+      await _seedTrustLevels();
+      await _seedUsageRights();
+      await _seedMetadataQualities();
+    });
+  }
+
+  // --- Tables with an integer id + unique `key` (upsert on the key column). ---
+
+  Future<void> _seedDocumentTypes() async {
+    const List<_Ref> data = [
+      (key: 'book', nameAr: 'كتاب', nameEn: 'Book'),
+      (key: 'thesis', nameAr: 'رسالة ماجستير أو دكتوراه', nameEn: 'Thesis'),
+      (key: 'research_paper', nameAr: 'بحث علمي', nameEn: 'Research Paper'),
+      (key: 'legislation', nameAr: 'تشريع', nameEn: 'Legislation'),
+      (
+        key: 'court_precedent',
+        nameAr: 'سابقة قضائية',
+        nameEn: 'Court Precedent',
+      ),
+      (
+        key: 'institutional_report',
+        nameAr: 'تقرير صادر عن مؤسسة قانونية',
+        nameEn: 'Institutional Report',
+      ),
+      (key: 'other', nameAr: 'أخرى', nameEn: 'Other'),
+    ];
+    for (int i = 0; i < data.length; i++) {
+      final _Ref r = data[i];
+      final int order = i + 1;
+      await _db
+          .into(_db.documentTypes)
+          .insert(
+            DocumentTypesCompanion.insert(
+              key: r.key,
+              nameAr: r.nameAr,
+              nameEn: r.nameEn,
+              sortOrder: order,
+              isActive: true,
+            ),
+            onConflict: DoUpdate(
+              (_) => DocumentTypesCompanion(
+                nameAr: Value(r.nameAr),
+                nameEn: Value(r.nameEn),
+                sortOrder: Value(order),
+                isActive: const Value(true),
+              ),
+              target: [_db.documentTypes.key],
+            ),
+          );
+    }
+  }
+
+  Future<void> _seedMainCategories() async {
+    const List<_Ref> data = [
+      (key: 'public_law', nameAr: 'القانون العام', nameEn: 'Public Law'),
+      (key: 'private_law', nameAr: 'القانون الخاص', nameEn: 'Private Law'),
+      (
+        key: 'international_law',
+        nameAr: 'القانون الدولي',
+        nameEn: 'International Law',
+      ),
+      (
+        key: 'islamic_jurisprudence',
+        nameAr: 'الفقه الإسلامي',
+        nameEn: 'Islamic Jurisprudence',
+      ),
+    ];
+    for (int i = 0; i < data.length; i++) {
+      final _Ref r = data[i];
+      final int order = i + 1;
+      await _db
+          .into(_db.mainCategories)
+          .insert(
+            MainCategoriesCompanion.insert(
+              key: r.key,
+              nameAr: r.nameAr,
+              nameEn: r.nameEn,
+              sortOrder: order,
+              isActive: true,
+            ),
+            onConflict: DoUpdate(
+              (_) => MainCategoriesCompanion(
+                nameAr: Value(r.nameAr),
+                nameEn: Value(r.nameEn),
+                sortOrder: Value(order),
+                isActive: const Value(true),
+              ),
+              target: [_db.mainCategories.key],
+            ),
+          );
+    }
+  }
+
+  // --- Key-PK reference tables (upsert on the primary key). ---
+
+  Future<void> _seedWorkflowStatuses() async {
+    const List<_Ref> data = [
+      (key: 'imported', nameAr: 'مستورد', nameEn: 'Imported'),
+      (key: 'needs_review', nameAr: 'يحتاج مراجعة', nameEn: 'Needs Review'),
+      (key: 'in_progress', nameAr: 'قيد التصنيف', nameEn: 'In Progress'),
+      (key: 'classified', nameAr: 'مصنف', nameEn: 'Classified'),
+      (
+        key: 'copied_to_library',
+        nameAr: 'نُسخ إلى المكتبة',
+        nameEn: 'Copied to Library',
+      ),
+      (
+        key: 'ready_for_export',
+        nameAr: 'جاهز للتصدير',
+        nameEn: 'Ready for Export',
+      ),
+      (key: 'archived', nameAr: 'مؤرشف', nameEn: 'Archived'),
+    ];
+    for (int i = 0; i < data.length; i++) {
+      final _Ref r = data[i];
+      await _db
+          .into(_db.workflowStatuses)
+          .insertOnConflictUpdate(
+            WorkflowStatusesCompanion.insert(
+              key: r.key,
+              nameAr: r.nameAr,
+              nameEn: r.nameEn,
+              sortOrder: i + 1,
+              isActive: true,
+            ),
+          );
+    }
+  }
+
+  Future<void> _seedFileRoles() async {
+    const List<_Ref> data = [
+      (key: 'source_original', nameAr: 'ملف أصلي', nameEn: 'Source Original'),
+      (key: 'managed_copy', nameAr: 'نسخة مُدارة', nameEn: 'Managed Copy'),
+      (key: 'converted_pdf', nameAr: 'PDF محوّل', nameEn: 'Converted PDF'),
+      (key: 'export_copy', nameAr: 'نسخة تصدير', nameEn: 'Export Copy'),
+    ];
+    for (int i = 0; i < data.length; i++) {
+      final _Ref r = data[i];
+      await _db
+          .into(_db.fileRoles)
+          .insertOnConflictUpdate(
+            FileRolesCompanion.insert(
+              key: r.key,
+              nameAr: r.nameAr,
+              nameEn: r.nameEn,
+              sortOrder: i + 1,
+              isActive: true,
+            ),
+          );
+    }
+  }
+
+  Future<void> _seedFileHealthStatuses() async {
+    const List<_Ref> data = [
+      (key: 'unknown', nameAr: 'غير معروف', nameEn: 'Unknown'),
+      (key: 'healthy', nameAr: 'سليم', nameEn: 'Healthy'),
+      (key: 'corrupted', nameAr: 'تالف', nameEn: 'Corrupted'),
+      (key: 'unreadable', nameAr: 'غير قابل للقراءة', nameEn: 'Unreadable'),
+      (key: 'missing', nameAr: 'مفقود', nameEn: 'Missing'),
+    ];
+    for (int i = 0; i < data.length; i++) {
+      final _Ref r = data[i];
+      await _db
+          .into(_db.fileHealthStatuses)
+          .insertOnConflictUpdate(
+            FileHealthStatusesCompanion.insert(
+              key: r.key,
+              nameAr: r.nameAr,
+              nameEn: r.nameEn,
+              sortOrder: i + 1,
+              isActive: true,
+            ),
+          );
+    }
+  }
+
+  Future<void> _seedTrustLevels() async {
+    const List<_Ref> data = [
+      (key: 'trusted', nameAr: 'موثوق', nameEn: 'Trusted'),
+      (key: 'medium', nameAr: 'متوسط', nameEn: 'Medium'),
+      (key: 'unverified', nameAr: 'غير موثق', nameEn: 'Unverified'),
+    ];
+    for (int i = 0; i < data.length; i++) {
+      final _Ref r = data[i];
+      await _db
+          .into(_db.trustLevels)
+          .insertOnConflictUpdate(
+            TrustLevelsCompanion.insert(
+              key: r.key,
+              nameAr: r.nameAr,
+              nameEn: r.nameEn,
+              sortOrder: i + 1,
+              isActive: true,
+            ),
+          );
+    }
+  }
+
+  Future<void> _seedUsageRights() async {
+    const List<_Ref> data = [
+      (key: 'unknown', nameAr: 'غير معروف', nameEn: 'Unknown'),
+      (
+        key: 'personal_use_only',
+        nameAr: 'للاستخدام الشخصي فقط',
+        nameEn: 'Personal Use Only',
+      ),
+      (key: 'publishable', nameAr: 'قابل للنشر', nameEn: 'Publishable'),
+      (key: 'open_access', nameAr: 'وصول مفتوح', nameEn: 'Open Access'),
+      (
+        key: 'permission_required',
+        nameAr: 'يحتاج إذن',
+        nameEn: 'Permission Required',
+      ),
+    ];
+    for (int i = 0; i < data.length; i++) {
+      final _Ref r = data[i];
+      await _db
+          .into(_db.usageRights)
+          .insertOnConflictUpdate(
+            UsageRightsCompanion.insert(
+              key: r.key,
+              nameAr: r.nameAr,
+              nameEn: r.nameEn,
+              sortOrder: i + 1,
+              isActive: true,
+            ),
+          );
+    }
+  }
+
+  Future<void> _seedMetadataQualities() async {
+    const List<_Ref> data = [
+      (key: 'low', nameAr: 'منخفضة', nameEn: 'Low'),
+      (key: 'medium', nameAr: 'متوسطة', nameEn: 'Medium'),
+      (key: 'high', nameAr: 'عالية', nameEn: 'High'),
+      (key: 'verified', nameAr: 'موثقة', nameEn: 'Verified'),
+    ];
+    for (int i = 0; i < data.length; i++) {
+      final _Ref r = data[i];
+      await _db
+          .into(_db.metadataQualities)
+          .insertOnConflictUpdate(
+            MetadataQualitiesCompanion.insert(
+              key: r.key,
+              nameAr: r.nameAr,
+              nameEn: r.nameEn,
+              sortOrder: i + 1,
+              isActive: true,
+            ),
+          );
+    }
+  }
+}
