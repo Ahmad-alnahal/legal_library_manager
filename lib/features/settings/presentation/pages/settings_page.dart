@@ -57,9 +57,11 @@ class _CopyOnlyPolicyPanel extends StatelessWidget {
             children: [
               Icon(Icons.policy_outlined, color: accent.foreground, size: 22),
               const SizedBox(width: AppSpacing.sm),
-              Text(
-                l10n.settingsCopyPolicyTitle,
-                style: text.titleMedium?.copyWith(color: accent.foreground),
+              Expanded(
+                child: Text(
+                  l10n.settingsCopyPolicyTitle,
+                  style: text.titleMedium?.copyWith(color: accent.foreground),
+                ),
               ),
             ],
           ),
@@ -70,9 +72,11 @@ class _CopyOnlyPolicyPanel extends StatelessWidget {
             children: [
               Icon(Icons.lock_outline, size: 16, color: accent.foreground),
               const SizedBox(width: AppSpacing.xs),
-              Text(
-                l10n.settingsCopyPolicyActive,
-                style: text.labelLarge?.copyWith(color: accent.foreground),
+              Expanded(
+                child: Text(
+                  l10n.settingsCopyPolicyActive,
+                  style: text.labelLarge?.copyWith(color: accent.foreground),
+                ),
               ),
             ],
           ),

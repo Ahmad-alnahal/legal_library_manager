@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 
 import '../app_database.dart';
+import 'country_seed_data.dart';
 
 /// A single bilingual reference entry: stable English key plus display names.
 typedef _Ref = ({String key, String nameAr, String nameEn});
@@ -14,7 +15,6 @@ typedef _Ref = ({String key, String nameAr, String nameEn});
 ///   names / sort order change.
 ///
 /// Only keys explicitly finalized in the specifications are seeded here.
-/// Subcategories, languages, and countries are intentionally NOT seeded yet.
 /// This is not wired into app startup — callers invoke [seedAll] explicitly.
 class ReferenceSeeder {
   ReferenceSeeder(this._db);
@@ -25,6 +25,9 @@ class ReferenceSeeder {
     return _db.transaction(() async {
       await _seedDocumentTypes();
       await _seedMainCategories();
+      await _seedSubCategories();
+      await _seedLanguages();
+      await _seedCountries();
       await _seedWorkflowStatuses();
       await _seedFileRoles();
       await _seedFileHealthStatuses();
@@ -121,7 +124,213 @@ class ReferenceSeeder {
     }
   }
 
+  /// Seeds the finalized lean set of 17 legal subcategories.
+  ///
+  /// Parent main-category IDs are resolved by their stable English key (never
+  /// hardcoded numeric IDs). `sort_order` restarts at 1 under each main
+  /// category. Upserts on the unique subcategory key restore the canonical
+  /// parent, names, order, and active state.
+  Future<void> _seedSubCategories() async {
+    // Grouped by parent key, in canonical per-parent order.
+    const List<({String parentKey, String key, String nameAr, String nameEn})>
+    data = [
+      // Public Law.
+      (
+        parentKey: 'public_law',
+        key: 'constitutional_law',
+        nameAr: 'القانون الدستوري',
+        nameEn: 'Constitutional Law',
+      ),
+      (
+        parentKey: 'public_law',
+        key: 'administrative_law',
+        nameAr: 'القانون الإداري',
+        nameEn: 'Administrative Law',
+      ),
+      (
+        parentKey: 'public_law',
+        key: 'criminal_law',
+        nameAr: 'القانون الجنائي',
+        nameEn: 'Criminal Law',
+      ),
+      (
+        parentKey: 'public_law',
+        key: 'human_rights',
+        nameAr: 'حقوق الإنسان',
+        nameEn: 'Human Rights',
+      ),
+      // Private Law.
+      (
+        parentKey: 'private_law',
+        key: 'civil_law',
+        nameAr: 'القانون المدني',
+        nameEn: 'Civil Law',
+      ),
+      (
+        parentKey: 'private_law',
+        key: 'commercial_law',
+        nameAr: 'القانون التجاري',
+        nameEn: 'Commercial Law',
+      ),
+      (
+        parentKey: 'private_law',
+        key: 'corporate_law',
+        nameAr: 'قانون الشركات',
+        nameEn: 'Corporate Law',
+      ),
+      (
+        parentKey: 'private_law',
+        key: 'insurance_law',
+        nameAr: 'قانون التأمين',
+        nameEn: 'Insurance Law',
+      ),
+      // International Law.
+      (
+        parentKey: 'international_law',
+        key: 'public_international_law',
+        nameAr: 'القانون الدولي العام',
+        nameEn: 'Public International Law',
+      ),
+      (
+        parentKey: 'international_law',
+        key: 'international_humanitarian_law',
+        nameAr: 'القانون الدولي الإنساني',
+        nameEn: 'International Humanitarian Law',
+      ),
+      (
+        parentKey: 'international_law',
+        key: 'private_international_law',
+        nameAr: 'القانون الدولي الخاص',
+        nameEn: 'Private International Law',
+      ),
+      (
+        parentKey: 'international_law',
+        key: 'international_criminal_law',
+        nameAr: 'القانون الدولي الجنائي',
+        nameEn: 'International Criminal Law',
+      ),
+      (
+        parentKey: 'international_law',
+        key: 'international_human_rights_law',
+        nameAr: 'القانون الدولي لحقوق الإنسان',
+        nameEn: 'International Human Rights Law',
+      ),
+      (
+        parentKey: 'international_law',
+        key: 'diplomatic_law',
+        nameAr: 'القانون الدبلوماسي',
+        nameEn: 'Diplomatic Law',
+      ),
+      // Islamic Jurisprudence.
+      (
+        parentKey: 'islamic_jurisprudence',
+        key: 'principles_of_islamic_jurisprudence',
+        nameAr: 'أصول الفقه',
+        nameEn: 'Principles of Islamic Jurisprudence',
+      ),
+      (
+        parentKey: 'islamic_jurisprudence',
+        key: 'islamic_criminal_jurisprudence',
+        nameAr: 'الفقه الجنائي',
+        nameEn: 'Islamic Criminal Jurisprudence',
+      ),
+      (
+        parentKey: 'islamic_jurisprudence',
+        key: 'islamic_civil_and_transactions_jurisprudence',
+        nameAr: 'الفقه المدني والمعاملات',
+        nameEn: 'Islamic Civil and Transactions Jurisprudence',
+      ),
+    ];
+
+    // Resolve parent IDs once by stable key.
+    final Map<String, int> parentIdByKey = {
+      for (final MainCategory c in await _db.select(_db.mainCategories).get())
+        c.key: c.id,
+    };
+
+    // Per-parent running order, restarting at 1 under each main category.
+    final Map<String, int> orderByParent = <String, int>{};
+    for (final r in data) {
+      final int? parentId = parentIdByKey[r.parentKey];
+      if (parentId == null) {
+        throw StateError(
+          'Main category "${r.parentKey}" must be seeded before its '
+          'subcategories.',
+        );
+      }
+      final int order = (orderByParent[r.parentKey] ?? 0) + 1;
+      orderByParent[r.parentKey] = order;
+
+      await _db
+          .into(_db.subCategories)
+          .insert(
+            SubCategoriesCompanion.insert(
+              mainCategoryId: parentId,
+              key: r.key,
+              nameAr: r.nameAr,
+              nameEn: r.nameEn,
+              sortOrder: order,
+              isActive: true,
+            ),
+            onConflict: DoUpdate(
+              (_) => SubCategoriesCompanion(
+                mainCategoryId: Value(parentId),
+                nameAr: Value(r.nameAr),
+                nameEn: Value(r.nameEn),
+                sortOrder: Value(order),
+                isActive: const Value(true),
+              ),
+              target: [_db.subCategories.key],
+            ),
+          );
+    }
+  }
+
   // --- Key-PK reference tables (upsert on the primary key). ---
+
+  /// Seeds the initially supported document languages. Arabic is the only
+  /// language seeded for now.
+  Future<void> _seedLanguages() async {
+    const List<_Ref> data = [(key: 'ar', nameAr: 'العربية', nameEn: 'Arabic')];
+    for (int i = 0; i < data.length; i++) {
+      final _Ref r = data[i];
+      await _db
+          .into(_db.languages)
+          .insertOnConflictUpdate(
+            LanguagesCompanion.insert(
+              key: r.key,
+              nameAr: r.nameAr,
+              nameEn: r.nameEn,
+              sortOrder: i + 1,
+              isActive: true,
+            ),
+          );
+    }
+  }
+
+  /// Seeds the complete offline ISO 3166-1 alpha-2 country dataset.
+  ///
+  /// Ordering is deterministic: the State of Palestine is pinned first, then
+  /// the remaining entries follow by English display name (see
+  /// [orderedCountrySeedData]). Upserts on the primary key restore the
+  /// canonical names, order, and active state without creating duplicates.
+  Future<void> _seedCountries() async {
+    final List<CountrySeed> ordered = orderedCountrySeedData();
+    for (int i = 0; i < ordered.length; i++) {
+      final CountrySeed c = ordered[i];
+      await _db
+          .into(_db.countries)
+          .insertOnConflictUpdate(
+            CountriesCompanion.insert(
+              key: c.key,
+              nameAr: c.nameAr,
+              nameEn: c.nameEn,
+              sortOrder: i + 1,
+              isActive: true,
+            ),
+          );
+    }
+  }
 
   Future<void> _seedWorkflowStatuses() async {
     const List<_Ref> data = [

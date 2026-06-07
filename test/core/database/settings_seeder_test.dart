@@ -26,15 +26,29 @@ void main() {
       await seeder.seedDefaults();
       final Map<String, String> values = await readSettings();
       expect(values['default_ui_language'], 'ar');
+      expect(values['default_document_country_key'], 'ps');
       expect(values['copy_only_policy_enabled'], 'true');
       expect(values['schema_version'], '1');
-      expect(values.length, 3);
+      expect(values.length, 4);
     });
 
     test('is idempotent (no duplicates on re-run)', () async {
       await seeder.seedDefaults();
       await seeder.seedDefaults();
-      expect((await db.select(db.settings).get()).length, 3);
+      expect((await db.select(db.settings).get()).length, 4);
+    });
+
+    test('restores default_document_country_key to ps', () async {
+      await seeder.seedDefaults();
+      // Simulate a stale/changed default country value.
+      await (db.update(db.settings)
+            ..where((s) => s.key.equals('default_document_country_key')))
+          .write(const SettingsCompanion(value: Value('jo')));
+      expect((await readSettings())['default_document_country_key'], 'jo');
+
+      await seeder.seedDefaults();
+      expect((await readSettings())['default_document_country_key'], 'ps');
+      expect((await db.select(db.settings).get()).length, 4);
     });
 
     test('always restores copy_only_policy_enabled to true', () async {
@@ -47,7 +61,7 @@ void main() {
 
       await seeder.seedDefaults();
       expect((await readSettings())['copy_only_policy_enabled'], 'true');
-      expect((await db.select(db.settings).get()).length, 3);
+      expect((await db.select(db.settings).get()).length, 4);
     });
 
     test('library/backup roots remain absent until configured', () async {

@@ -133,9 +133,14 @@ class _Metric {
   final StatusColor status;
 }
 
-/// Responsive metric grid: 4 columns on wide windows, fewer when narrow.
+/// Responsive metric grid: 4 columns on wide windows, fewer when narrow, and a
+/// single column when the width cannot fit two professional metric cards.
 class _MetricGrid extends StatelessWidget {
   const _MetricGrid({required this.metrics});
+
+  /// Minimum width for a metric card to stay professionally readable; below two
+  /// of these (plus the gap) the grid drops to a single column.
+  static const double _minCardWidth = 220;
 
   final List<_Metric> metrics;
 
@@ -144,12 +149,14 @@ class _MetricGrid extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final double width = constraints.maxWidth;
+        const double gap = AppSpacing.lg;
         final int columns = width >= 1040
             ? 4
             : width >= 720
             ? 3
-            : 2;
-        const double gap = AppSpacing.lg;
+            : width >= (_minCardWidth * 2 + gap)
+            ? 2
+            : 1;
         final double cardWidth = (width - gap * (columns - 1)) / columns;
         return Wrap(
           spacing: gap,

@@ -184,8 +184,8 @@ void main() {
           throwsA(isA<SqliteException>()),
         );
 
-        // Subcategory duplicate.
-        final int subId = await insertSubCategory(mainId, 'criminal_law');
+        // Subcategory duplicate (uses a test-only key not in the seed set).
+        final int subId = await insertSubCategory(mainId, 'test_dup_combo_sub');
         await insertClassification(
           documentId: docId,
           mainId: mainId,
@@ -243,18 +243,8 @@ void main() {
         throwsA(isA<SqliteException>()),
       );
 
-      // Language referenced by a keyword cannot be deleted.
-      await db
-          .into(db.languages)
-          .insert(
-            LanguagesCompanion.insert(
-              key: 'ar',
-              nameAr: 'العربية',
-              nameEn: 'Arabic',
-              sortOrder: 1,
-              isActive: true,
-            ),
-          );
+      // Language referenced by a keyword cannot be deleted. Arabic (`ar`) is
+      // already seeded by ReferenceSeeder in setUp.
       final int kwId = await insertKeyword(
         normalized: 'haqq',
         languageKey: const Value('ar'),

@@ -18,6 +18,13 @@ namespace {
 
 constexpr const wchar_t kWindowClassName[] = L"FLUTTER_RUNNER_WIN32_WINDOW";
 
+// Supported minimum client size in logical pixels. MARJIY is a Windows desktop
+// workstation; below roughly this size the dense Arabic RTL layout cannot render
+// at its designed proportions, so the native window is not allowed to shrink
+// past it. Scaled to physical pixels per the window's DPI in WM_GETMINMAXINFO.
+constexpr int kMinClientWidthLogical = 640;
+constexpr int kMinClientHeightLogical = 600;
+
 /// Registry key for app theme preference.
 ///
 /// A value of 0 indicates apps should use dark mode. A non-zero or missing
@@ -195,6 +202,27 @@ Win32Window::MessageHandler(HWND hwnd,
       SetWindowPos(hwnd, nullptr, newRectSize->left, newRectSize->top, newWidth,
                    newHeight, SWP_NOZORDER | SWP_NOACTIVATE);
 
+      return 0;
+    }
+    case WM_GETMINMAXINFO: {
+      // Clamp the smallest the user can drag the window to, keeping the client
+      // area >= the supported minimum. Work in physical pixels for the current
+      // DPI, then expand by the window frame/caption so the *client* (not the
+      // outer) size honors the minimum.
+      auto* info = reinterpret_cast<MINMAXINFO*>(lparam);
+      UINT dpi = GetDpiForWindow(hwnd);
+      if (dpi == 0) {
+        dpi = 96;  // Fall back to 100% scaling if DPI is unavailable.
+      }
+      const double scale_factor = dpi / 96.0;
+      RECT rect{0, 0, Scale(kMinClientWidthLogical, scale_factor),
+                Scale(kMinClientHeightLogical, scale_factor)};
+      const DWORD style = static_cast<DWORD>(GetWindowLong(hwnd, GWL_STYLE));
+      const DWORD ex_style =
+          static_cast<DWORD>(GetWindowLong(hwnd, GWL_EXSTYLE));
+      AdjustWindowRectExForDpi(&rect, style, FALSE, ex_style, dpi);
+      info->ptMinTrackSize.x = rect.right - rect.left;
+      info->ptMinTrackSize.y = rect.bottom - rect.top;
       return 0;
     }
     case WM_SIZE: {

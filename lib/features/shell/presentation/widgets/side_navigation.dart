@@ -84,30 +84,48 @@ class SideNavigation extends StatelessWidget {
         color: AppColors.surface,
         border: Border(left: BorderSide(color: AppColors.border)),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          _Header(extended: extended, l10n: l10n, text: text),
-          const Divider(height: 1),
-          const SizedBox(height: AppSpacing.md),
-          Expanded(
-            child: ListView(
-              padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
-              children: [
-                for (final _Destination d in destinations)
-                  _NavItem(
-                    destination: d,
-                    selected: d.section == selected,
-                    extended: extended,
-                    onTap: () => onSelected(d.section),
-                  ),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          // The brand header is non-essential chrome. Below this height there is
+          // not enough room for both the header and the destinations, so the
+          // header is dropped (never the destinations) to avoid a vertical
+          // overflow during live resize, DPI changes, tests, or startup.
+          final bool showHeader = constraints.maxHeight >= _headerMinHeight;
+
+          // The destination list is always scrollable, so every destination
+          // stays reachable even when vertical room is very constrained.
+          final Widget navList = ListView(
+            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm),
+            children: [
+              for (final _Destination d in destinations)
+                _NavItem(
+                  destination: d,
+                  selected: d.section == selected,
+                  extended: extended,
+                  onTap: () => onSelected(d.section),
+                ),
+            ],
+          );
+
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              if (showHeader) ...[
+                _Header(extended: extended, l10n: l10n, text: text),
+                const Divider(height: 1),
+                const SizedBox(height: AppSpacing.md),
               ],
-            ),
-          ),
-        ],
+              Expanded(child: navList),
+            ],
+          );
+        },
       ),
     );
   }
+
+  /// Minimum rail height needed to comfortably show the brand header above the
+  /// destination list; below this the header collapses.
+  static const double _headerMinHeight = 360;
 }
 
 class _Header extends StatelessWidget {

@@ -1,4 +1,5 @@
 import '../app_database.dart';
+import 'country_seed_data.dart';
 
 /// Seeds the initial application settings with finalized default values.
 ///
@@ -16,6 +17,8 @@ class SettingsSeeder {
 
   /// Setting keys with finalized defaults that this seeder owns.
   static const String defaultUiLanguageKey = 'default_ui_language';
+  static const String defaultDocumentCountryKey =
+      'default_document_country_key';
   static const String copyOnlyPolicyEnabledKey = 'copy_only_policy_enabled';
   static const String schemaVersionKey = 'schema_version';
 
@@ -26,6 +29,10 @@ class SettingsSeeder {
 
     return _db.transaction(() async {
       await _upsert(defaultUiLanguageKey, 'ar', timestamp);
+      // Default document country for new/manual metadata forms. This is only a
+      // pre-selected default; it is never auto-applied to imported/unreviewed
+      // rows, and users may change it before saving.
+      await _upsert(defaultDocumentCountryKey, palestineCountryKey, timestamp);
       // Copy-only protection is permanent and always reseeds to true.
       await _upsert(copyOnlyPolicyEnabledKey, 'true', timestamp);
       await _upsert(schemaVersionKey, _db.schemaVersion.toString(), timestamp);
