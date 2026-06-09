@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:legal_library_manager/app/app.dart';
+import 'package:legal_library_manager/core/database/app_database.dart';
 import 'package:legal_library_manager/core/di/injection.dart';
 import 'package:legal_library_manager/features/settings/presentation/pages/settings_page.dart';
 import 'package:legal_library_manager/features/shell/presentation/widgets/side_navigation.dart';
@@ -35,6 +36,10 @@ Future<void> _pumpAt(WidgetTester tester, Size size) async {
 void main() {
   setUp(() async {
     await getIt.reset();
+    getIt.registerSingleton<AppDatabase>(
+      AppDatabase.inMemory(),
+      dispose: (db) => db.close(),
+    );
     configureDependencies();
   });
 

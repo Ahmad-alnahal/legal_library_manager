@@ -18,6 +18,11 @@ import '../../features/import/domain/services/folder_validator.dart';
 import '../../features/import/domain/services/pdf_health_inspector.dart';
 import '../../features/import/domain/services/pdf_scanner.dart';
 import '../../features/import/presentation/bloc/import_bloc.dart';
+import '../../features/documents/data/repositories/drift_document_list_repository.dart';
+import '../../features/documents/domain/repositories/document_list_repository.dart';
+import '../../features/documents/presentation/bloc/document_list_bloc.dart';
+import '../../features/reference/data/repositories/drift_reference_repository.dart';
+import '../../features/reference/domain/repositories/reference_repository.dart';
 import '../../features/shell/presentation/bloc/navigation_bloc.dart';
 import '../database/app_database.dart';
 import '../time/clock.dart';
@@ -25,7 +30,7 @@ import '../time/clock.dart';
 /// Global service locator.
 final GetIt getIt = GetIt.instance;
 
-/// Registers application dependencies (M1 shell + M4 import).
+/// Registers application dependencies (M1 shell + M4 import + M5 documents).
 ///
 /// The production [AppDatabase] is a single lazy singleton (its connection opens
 /// lazily on first query and closes on [GetIt.reset]). Tests may register an
@@ -74,5 +79,14 @@ void configureDependencies() {
         coordinator: getIt<ImportCoordinator>(),
         protectedRootsProvider: getIt<ProtectedRootsProvider>(),
       ),
+    )
+    ..registerLazySingleton<DocumentListRepository>(
+      () => DriftDocumentListRepository(getIt<AppDatabase>()),
+    )
+    ..registerLazySingleton<ReferenceRepository>(
+      () => DriftReferenceRepository(getIt<AppDatabase>()),
+    )
+    ..registerFactory<DocumentListBloc>(
+      () => DocumentListBloc(repository: getIt<DocumentListRepository>()),
     );
 }

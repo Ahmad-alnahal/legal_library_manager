@@ -11,18 +11,33 @@ class AppTextField extends StatelessWidget {
     this.hintText,
     this.prefixIcon,
     this.enabled = true,
+    this.controller,
+    this.focusNode,
+    this.onChanged,
+    this.suffixIcon,
+    this.textInputAction,
   });
 
   final String? hintText;
   final IconData? prefixIcon;
   final bool enabled;
+  final TextEditingController? controller;
+  final FocusNode? focusNode;
+  final ValueChanged<String>? onChanged;
+  final Widget? suffixIcon;
+  final TextInputAction? textInputAction;
 
   @override
   Widget build(BuildContext context) {
     return TextField(
       enabled: enabled,
+      controller: controller,
+      focusNode: focusNode,
+      onChanged: onChanged,
+      textInputAction: textInputAction,
       decoration: InputDecoration(
         hintText: hintText,
+        suffixIcon: suffixIcon,
         prefixIcon: prefixIcon == null
             ? null
             : Icon(prefixIcon, size: 18, color: AppColors.textSecondary),

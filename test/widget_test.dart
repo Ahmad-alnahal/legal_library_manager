@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 
 import 'package:legal_library_manager/app/app.dart';
+import 'package:legal_library_manager/core/database/app_database.dart';
 import 'package:legal_library_manager/core/di/injection.dart';
 import 'package:legal_library_manager/features/shell/presentation/pages/app_shell_page.dart';
 
@@ -31,7 +32,6 @@ Future<void> _pumpShell(
   tester.view.physicalSize = size;
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
-
   await tester.pumpWidget(const MarjiyApp());
   await tester.pumpAndSettle();
 }
@@ -39,6 +39,10 @@ Future<void> _pumpShell(
 void main() {
   setUp(() async {
     await getIt.reset();
+    getIt.registerSingleton<AppDatabase>(
+      AppDatabase.inMemory(),
+      dispose: (db) => db.close(),
+    );
     configureDependencies();
   });
 
