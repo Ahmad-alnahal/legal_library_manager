@@ -47,6 +47,15 @@ dependencies:
   path: ^1.9.1
   sqlite3: ^3.3.2
   country_flags: ^4.1.2
+  # Streaming SHA-256 (Dart team package): supports chunked hashing without
+  # loading whole PDFs into memory. Pure-Dart, BSD-3, no native/licensed deps.
+  crypto: ^3.0.6
+  # Annotations only (@visibleForTesting) for test-only seams. Dart team package.
+  meta: ^1.16.0
+  # Native folder picker for Windows desktop. Maintained, federated plugin with
+  # first-class Windows support; used only to choose a source folder (never to
+  # read/scan/import). Selection is decoupled from scanning.
+  file_picker: ^8.1.6
 
 dev_dependencies:
   flutter_test:

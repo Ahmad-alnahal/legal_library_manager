@@ -38,18 +38,49 @@ void main() {
       expect((await db.select(db.settings).get()).length, 4);
     });
 
-    test('restores default_document_country_key to ps', () async {
+    test('preserves a user-changed default country across reseeding', () async {
       await seeder.seedDefaults();
-      // Simulate a stale/changed default country value.
+      // The user changes their default document country.
       await (db.update(db.settings)
             ..where((s) => s.key.equals('default_document_country_key')))
           .write(const SettingsCompanion(value: Value('jo')));
       expect((await readSettings())['default_document_country_key'], 'jo');
 
+      // Reseeding (e.g. on the next startup) must NOT reset it to Palestine.
       await seeder.seedDefaults();
-      expect((await readSettings())['default_document_country_key'], 'ps');
+      expect((await readSettings())['default_document_country_key'], 'jo');
       expect((await db.select(db.settings).get()).length, 4);
     });
+
+    test(
+      'preserves a user-changed default UI language across reseeding',
+      () async {
+        await seeder.seedDefaults();
+        await (db.update(db.settings)
+              ..where((s) => s.key.equals('default_ui_language')))
+            .write(const SettingsCompanion(value: Value('en')));
+
+        await seeder.seedDefaults();
+        expect((await readSettings())['default_ui_language'], 'en');
+      },
+    );
+
+    test(
+      'always updates schema_version to the current schema version',
+      () async {
+        await seeder.seedDefaults();
+        // Simulate a stale schema_version from an older app version.
+        await (db.update(db.settings)
+              ..where((s) => s.key.equals('schema_version')))
+            .write(const SettingsCompanion(value: Value('0')));
+
+        await seeder.seedDefaults();
+        expect(
+          (await readSettings())['schema_version'],
+          db.schemaVersion.toString(),
+        );
+      },
+    );
 
     test('always restores copy_only_policy_enabled to true', () async {
       await seeder.seedDefaults();

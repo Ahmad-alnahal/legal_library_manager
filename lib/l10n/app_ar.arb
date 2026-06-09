@@ -76,5 +76,60 @@
   "settingsActionVerifyStructure": "التحقق من الهيكل",
   "settingsPlaceholderNote": "ستتوفر خيارات الإعداد التفصيلية في مرحلة لاحقة.",
 
-  "statusBadgePlaceholder": "قيد الإنشاء"
+  "statusBadgePlaceholder": "قيد الإنشاء",
+
+  "importSourceFolderTitle": "مجلد المصدر",
+  "importFolderFieldEmpty": "لم يتم اختيار مجلد بعد",
+  "importPickFolderButton": "اختيار مجلد",
+  "importRecursiveLabel": "تضمين المجلدات الفرعية",
+  "importStartButton": "بدء الفحص والاستيراد",
+  "importCancelButton": "إلغاء",
+  "importRetryButton": "إعادة محاولة الملفات المتعذّرة",
+  "importResetButton": "استيراد جديد",
+
+  "importProgressTitle": "تقدم الاستيراد",
+  "importPhaseValidating": "جارٍ التحقق من المجلد",
+  "importPhaseScanning": "جارٍ فحص الملفات",
+  "importPhaseImporting": "جارٍ الاستيراد",
+  "importPhaseFinalizing": "جارٍ إنهاء الدفعة",
+  "importPhaseCancelling": "جارٍ الإلغاء",
+  "importProgressCount": "تمت معالجة {processed} من {discovered}",
+  "@importProgressCount": {
+    "placeholders": {
+      "processed": { "type": "int" },
+      "discovered": { "type": "int" }
+    }
+  },
+  "importCurrentFileLabel": "الملف الحالي",
+
+  "importSummaryTitle": "ملخص الاستيراد",
+  "importSummaryNew": "مستندات جديدة",
+  "importSummaryDuplicates": "نسخ مكررة",
+  "importSummaryAlreadyImported": "مستوردة مسبقًا",
+  "importSummaryFailed": "ملفات متعذّرة",
+  "importResultsTitle": "نتائج الملفات",
+  "importResultsEmpty": "لم يتم اكتشاف ملفات PDF في هذا المجلد.",
+
+  "importCompletedTitle": "اكتمل الاستيراد",
+  "importCancelledTitle": "تم إلغاء الاستيراد",
+  "importCancelledNote": "تم حفظ دفعة جزئية. يمكنك بدء استيراد جديد أو إعادة المحاولة.",
+  "importFailedTitle": "تعذّر الاستيراد",
+  "importFailedGenericBody": "حدث خطأ غير متوقع أثناء الاستيراد. لم تتأثر الملفات الأصلية.",
+
+  "importStatusImportedNew": "مستند جديد",
+  "importStatusImportedDuplicate": "نسخة مكررة",
+  "importStatusAlreadyImported": "مستوردة مسبقًا",
+  "importStatusUnsupported": "نوع غير مدعوم",
+  "importStatusUnreadable": "غير قابل للقراءة",
+  "importStatusHashFailed": "تعذّر حساب البصمة",
+  "importStatusScanFailed": "تعذّر الفحص",
+  "importStatusPersistenceFailed": "تعذّر حفظ السجل",
+  "importStatusCorrupted": "ملف تالف",
+
+  "importValidationDoesNotExist": "المجلد غير موجود.",
+  "importValidationNotADirectory": "المسار المحدد ليس مجلدًا.",
+  "importValidationNotReadable": "تعذّرت قراءة المجلد.",
+  "importValidationIsProtectedRoot": "لا يمكن اختيار مجلد محمي تابع للنظام.",
+  "importValidationInsideProtectedRoot": "المجلد يقع داخل مجلد محمي تابع للنظام.",
+  "importValidationContainsProtectedRoot": "المجلد يحتوي على مجلد محمي تابع للنظام مثل المكتبة المدارة."
 }

@@ -501,6 +501,264 @@ abstract class AppLocalizations {
   /// In ar, this message translates to:
   /// **'قيد الإنشاء'**
   String get statusBadgePlaceholder;
+
+  /// No description provided for @importSourceFolderTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'مجلد المصدر'**
+  String get importSourceFolderTitle;
+
+  /// No description provided for @importFolderFieldEmpty.
+  ///
+  /// In ar, this message translates to:
+  /// **'لم يتم اختيار مجلد بعد'**
+  String get importFolderFieldEmpty;
+
+  /// No description provided for @importPickFolderButton.
+  ///
+  /// In ar, this message translates to:
+  /// **'اختيار مجلد'**
+  String get importPickFolderButton;
+
+  /// No description provided for @importRecursiveLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'تضمين المجلدات الفرعية'**
+  String get importRecursiveLabel;
+
+  /// No description provided for @importStartButton.
+  ///
+  /// In ar, this message translates to:
+  /// **'بدء الفحص والاستيراد'**
+  String get importStartButton;
+
+  /// No description provided for @importCancelButton.
+  ///
+  /// In ar, this message translates to:
+  /// **'إلغاء'**
+  String get importCancelButton;
+
+  /// No description provided for @importRetryButton.
+  ///
+  /// In ar, this message translates to:
+  /// **'إعادة محاولة الملفات المتعذّرة'**
+  String get importRetryButton;
+
+  /// No description provided for @importResetButton.
+  ///
+  /// In ar, this message translates to:
+  /// **'استيراد جديد'**
+  String get importResetButton;
+
+  /// No description provided for @importProgressTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'تقدم الاستيراد'**
+  String get importProgressTitle;
+
+  /// No description provided for @importPhaseValidating.
+  ///
+  /// In ar, this message translates to:
+  /// **'جارٍ التحقق من المجلد'**
+  String get importPhaseValidating;
+
+  /// No description provided for @importPhaseScanning.
+  ///
+  /// In ar, this message translates to:
+  /// **'جارٍ فحص الملفات'**
+  String get importPhaseScanning;
+
+  /// No description provided for @importPhaseImporting.
+  ///
+  /// In ar, this message translates to:
+  /// **'جارٍ الاستيراد'**
+  String get importPhaseImporting;
+
+  /// No description provided for @importPhaseFinalizing.
+  ///
+  /// In ar, this message translates to:
+  /// **'جارٍ إنهاء الدفعة'**
+  String get importPhaseFinalizing;
+
+  /// No description provided for @importPhaseCancelling.
+  ///
+  /// In ar, this message translates to:
+  /// **'جارٍ الإلغاء'**
+  String get importPhaseCancelling;
+
+  /// No description provided for @importProgressCount.
+  ///
+  /// In ar, this message translates to:
+  /// **'تمت معالجة {processed} من {discovered}'**
+  String importProgressCount(int processed, int discovered);
+
+  /// No description provided for @importCurrentFileLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'الملف الحالي'**
+  String get importCurrentFileLabel;
+
+  /// No description provided for @importSummaryTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'ملخص الاستيراد'**
+  String get importSummaryTitle;
+
+  /// No description provided for @importSummaryNew.
+  ///
+  /// In ar, this message translates to:
+  /// **'مستندات جديدة'**
+  String get importSummaryNew;
+
+  /// No description provided for @importSummaryDuplicates.
+  ///
+  /// In ar, this message translates to:
+  /// **'نسخ مكررة'**
+  String get importSummaryDuplicates;
+
+  /// No description provided for @importSummaryAlreadyImported.
+  ///
+  /// In ar, this message translates to:
+  /// **'مستوردة مسبقًا'**
+  String get importSummaryAlreadyImported;
+
+  /// No description provided for @importSummaryFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'ملفات متعذّرة'**
+  String get importSummaryFailed;
+
+  /// No description provided for @importResultsTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'نتائج الملفات'**
+  String get importResultsTitle;
+
+  /// No description provided for @importResultsEmpty.
+  ///
+  /// In ar, this message translates to:
+  /// **'لم يتم اكتشاف ملفات PDF في هذا المجلد.'**
+  String get importResultsEmpty;
+
+  /// No description provided for @importCompletedTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'اكتمل الاستيراد'**
+  String get importCompletedTitle;
+
+  /// No description provided for @importCancelledTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم إلغاء الاستيراد'**
+  String get importCancelledTitle;
+
+  /// No description provided for @importCancelledNote.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم حفظ دفعة جزئية. يمكنك بدء استيراد جديد أو إعادة المحاولة.'**
+  String get importCancelledNote;
+
+  /// No description provided for @importFailedTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر الاستيراد'**
+  String get importFailedTitle;
+
+  /// No description provided for @importFailedGenericBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'حدث خطأ غير متوقع أثناء الاستيراد. لم تتأثر الملفات الأصلية.'**
+  String get importFailedGenericBody;
+
+  /// No description provided for @importStatusImportedNew.
+  ///
+  /// In ar, this message translates to:
+  /// **'مستند جديد'**
+  String get importStatusImportedNew;
+
+  /// No description provided for @importStatusImportedDuplicate.
+  ///
+  /// In ar, this message translates to:
+  /// **'نسخة مكررة'**
+  String get importStatusImportedDuplicate;
+
+  /// No description provided for @importStatusAlreadyImported.
+  ///
+  /// In ar, this message translates to:
+  /// **'مستوردة مسبقًا'**
+  String get importStatusAlreadyImported;
+
+  /// No description provided for @importStatusUnsupported.
+  ///
+  /// In ar, this message translates to:
+  /// **'نوع غير مدعوم'**
+  String get importStatusUnsupported;
+
+  /// No description provided for @importStatusUnreadable.
+  ///
+  /// In ar, this message translates to:
+  /// **'غير قابل للقراءة'**
+  String get importStatusUnreadable;
+
+  /// No description provided for @importStatusHashFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر حساب البصمة'**
+  String get importStatusHashFailed;
+
+  /// No description provided for @importStatusScanFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر الفحص'**
+  String get importStatusScanFailed;
+
+  /// No description provided for @importStatusPersistenceFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر حفظ السجل'**
+  String get importStatusPersistenceFailed;
+
+  /// No description provided for @importStatusCorrupted.
+  ///
+  /// In ar, this message translates to:
+  /// **'ملف تالف'**
+  String get importStatusCorrupted;
+
+  /// No description provided for @importValidationDoesNotExist.
+  ///
+  /// In ar, this message translates to:
+  /// **'المجلد غير موجود.'**
+  String get importValidationDoesNotExist;
+
+  /// No description provided for @importValidationNotADirectory.
+  ///
+  /// In ar, this message translates to:
+  /// **'المسار المحدد ليس مجلدًا.'**
+  String get importValidationNotADirectory;
+
+  /// No description provided for @importValidationNotReadable.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّرت قراءة المجلد.'**
+  String get importValidationNotReadable;
+
+  /// No description provided for @importValidationIsProtectedRoot.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا يمكن اختيار مجلد محمي تابع للنظام.'**
+  String get importValidationIsProtectedRoot;
+
+  /// No description provided for @importValidationInsideProtectedRoot.
+  ///
+  /// In ar, this message translates to:
+  /// **'المجلد يقع داخل مجلد محمي تابع للنظام.'**
+  String get importValidationInsideProtectedRoot;
+
+  /// No description provided for @importValidationContainsProtectedRoot.
+  ///
+  /// In ar, this message translates to:
+  /// **'المجلد يحتوي على مجلد محمي تابع للنظام مثل المكتبة المدارة.'**
+  String get importValidationContainsProtectedRoot;
 }
 
 class _AppLocalizationsDelegate

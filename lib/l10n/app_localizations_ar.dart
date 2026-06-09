@@ -228,4 +228,140 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get statusBadgePlaceholder => 'قيد الإنشاء';
+
+  @override
+  String get importSourceFolderTitle => 'مجلد المصدر';
+
+  @override
+  String get importFolderFieldEmpty => 'لم يتم اختيار مجلد بعد';
+
+  @override
+  String get importPickFolderButton => 'اختيار مجلد';
+
+  @override
+  String get importRecursiveLabel => 'تضمين المجلدات الفرعية';
+
+  @override
+  String get importStartButton => 'بدء الفحص والاستيراد';
+
+  @override
+  String get importCancelButton => 'إلغاء';
+
+  @override
+  String get importRetryButton => 'إعادة محاولة الملفات المتعذّرة';
+
+  @override
+  String get importResetButton => 'استيراد جديد';
+
+  @override
+  String get importProgressTitle => 'تقدم الاستيراد';
+
+  @override
+  String get importPhaseValidating => 'جارٍ التحقق من المجلد';
+
+  @override
+  String get importPhaseScanning => 'جارٍ فحص الملفات';
+
+  @override
+  String get importPhaseImporting => 'جارٍ الاستيراد';
+
+  @override
+  String get importPhaseFinalizing => 'جارٍ إنهاء الدفعة';
+
+  @override
+  String get importPhaseCancelling => 'جارٍ الإلغاء';
+
+  @override
+  String importProgressCount(int processed, int discovered) {
+    return 'تمت معالجة $processed من $discovered';
+  }
+
+  @override
+  String get importCurrentFileLabel => 'الملف الحالي';
+
+  @override
+  String get importSummaryTitle => 'ملخص الاستيراد';
+
+  @override
+  String get importSummaryNew => 'مستندات جديدة';
+
+  @override
+  String get importSummaryDuplicates => 'نسخ مكررة';
+
+  @override
+  String get importSummaryAlreadyImported => 'مستوردة مسبقًا';
+
+  @override
+  String get importSummaryFailed => 'ملفات متعذّرة';
+
+  @override
+  String get importResultsTitle => 'نتائج الملفات';
+
+  @override
+  String get importResultsEmpty => 'لم يتم اكتشاف ملفات PDF في هذا المجلد.';
+
+  @override
+  String get importCompletedTitle => 'اكتمل الاستيراد';
+
+  @override
+  String get importCancelledTitle => 'تم إلغاء الاستيراد';
+
+  @override
+  String get importCancelledNote =>
+      'تم حفظ دفعة جزئية. يمكنك بدء استيراد جديد أو إعادة المحاولة.';
+
+  @override
+  String get importFailedTitle => 'تعذّر الاستيراد';
+
+  @override
+  String get importFailedGenericBody =>
+      'حدث خطأ غير متوقع أثناء الاستيراد. لم تتأثر الملفات الأصلية.';
+
+  @override
+  String get importStatusImportedNew => 'مستند جديد';
+
+  @override
+  String get importStatusImportedDuplicate => 'نسخة مكررة';
+
+  @override
+  String get importStatusAlreadyImported => 'مستوردة مسبقًا';
+
+  @override
+  String get importStatusUnsupported => 'نوع غير مدعوم';
+
+  @override
+  String get importStatusUnreadable => 'غير قابل للقراءة';
+
+  @override
+  String get importStatusHashFailed => 'تعذّر حساب البصمة';
+
+  @override
+  String get importStatusScanFailed => 'تعذّر الفحص';
+
+  @override
+  String get importStatusPersistenceFailed => 'تعذّر حفظ السجل';
+
+  @override
+  String get importStatusCorrupted => 'ملف تالف';
+
+  @override
+  String get importValidationDoesNotExist => 'المجلد غير موجود.';
+
+  @override
+  String get importValidationNotADirectory => 'المسار المحدد ليس مجلدًا.';
+
+  @override
+  String get importValidationNotReadable => 'تعذّرت قراءة المجلد.';
+
+  @override
+  String get importValidationIsProtectedRoot =>
+      'لا يمكن اختيار مجلد محمي تابع للنظام.';
+
+  @override
+  String get importValidationInsideProtectedRoot =>
+      'المجلد يقع داخل مجلد محمي تابع للنظام.';
+
+  @override
+  String get importValidationContainsProtectedRoot =>
+      'المجلد يحتوي على مجلد محمي تابع للنظام مثل المكتبة المدارة.';
 }
