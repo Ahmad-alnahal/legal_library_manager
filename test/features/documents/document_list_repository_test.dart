@@ -303,7 +303,7 @@ void main() {
 
         final page = await repository.getDocuments(const DocumentListQuery());
 
-      expect(page.items.single.title, equals(null));
+        expect(page.items.single.title, equals(null));
         expect(page.items.single.sourceFileName, 'المرجع القانوني الأصلي.pdf');
       },
     );

@@ -41,4 +41,12 @@ abstract class DocumentMetadataRepository {
   /// files or assign a document code. Throws [StateError] if the document is
   /// missing.
   Future<void> markClassified(int documentId, {required DateTime now});
+
+  /// Explicitly returns a document to `in_progress` transactionally: sets
+  /// `workflow_status_key = 'in_progress'`, clears `classified_at`, and sets
+  /// `updated_at = now`. Only metadata/workflow fields change — no physical
+  /// file is ever copied, moved, or modified, and no document code is assigned.
+  /// Throws [StateError] if the document is missing. The caller (use case)
+  /// enforces the `classified -> in_progress` precondition.
+  Future<void> returnToInProgress(int documentId, {required DateTime now});
 }

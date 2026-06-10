@@ -16,6 +16,8 @@ const List<IconData> _navIcons = [
   Icons.space_dashboard_outlined, // dashboard
   Icons.download_outlined, // import
   Icons.description_outlined, // documents
+  Icons.fact_check_outlined, // review and classification
+  Icons.account_tree_outlined, // category management
   Icons.difference_outlined, // duplicate review
   Icons.settings_outlined, // settings
 ];
@@ -84,7 +86,16 @@ void main() {
       of: find.byType(SideNavigation),
       matching: find.byIcon(Icons.settings_outlined),
     );
-    await tester.ensureVisible(settingsIcon);
+    // The rail is a lazily-built scrollable list; scroll until Settings (the
+    // last destination) is built and visible before tapping it.
+    await tester.scrollUntilVisible(
+      settingsIcon,
+      120,
+      scrollable: find.descendant(
+        of: find.byType(SideNavigation),
+        matching: find.byType(Scrollable),
+      ),
+    );
     await tester.pumpAndSettle();
     await tester.tap(settingsIcon);
     await tester.pumpAndSettle();

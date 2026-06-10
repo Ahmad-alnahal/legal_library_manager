@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:legal_library_manager/core/database/app_database.dart';
+import 'package:legal_library_manager/features/categories/domain/services/category_name.dart';
 import 'package:sqlite3/common.dart';
 
 void main() {
@@ -144,6 +145,8 @@ void main() {
                 key: 'criminal_law',
                 nameAr: 'القانون الجنائي',
                 nameEn: 'Criminal Law',
+                normalizedNameAr: normalizedCategoryNameAr('القانون الجنائي'),
+                normalizedNameEn: normalizedCategoryNameEn('Criminal Law'),
                 sortOrder: 1,
                 isActive: true,
               ),
@@ -159,6 +162,8 @@ void main() {
               key: 'public_law',
               nameAr: 'القانون العام',
               nameEn: 'Public Law',
+              normalizedNameAr: normalizedCategoryNameAr('القانون العام'),
+              normalizedNameEn: normalizedCategoryNameEn('Public Law'),
               sortOrder: 1,
               isActive: true,
             ),
@@ -172,6 +177,8 @@ void main() {
               key: 'criminal_law',
               nameAr: 'القانون الجنائي',
               nameEn: 'Criminal Law',
+              normalizedNameAr: normalizedCategoryNameAr('القانون الجنائي'),
+              normalizedNameEn: normalizedCategoryNameEn('Criminal Law'),
               sortOrder: 1,
               isActive: true,
             ),

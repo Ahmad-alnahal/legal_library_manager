@@ -2,6 +2,7 @@
 
 import 'package:equatable/equatable.dart';
 
+import 'document_aggregate.dart';
 import 'document_classification_input.dart';
 import 'document_common_metadata.dart';
 import 'document_type_details.dart';
@@ -27,6 +28,20 @@ class DraftSaveInput extends Equatable {
   final DocumentClassificationInput? primaryClassification;
   final List<DocumentClassificationInput> additionalClassifications;
   final List<KeywordInput> keywords;
+
+  /// Builds the editable draft baseline that corresponds to a persisted
+  /// [DocumentAggregate]. Used by the review workflow to seed an in-memory draft
+  /// and to detect unsaved changes by comparing against this baseline.
+  factory DraftSaveInput.fromAggregate(DocumentAggregate aggregate) {
+    return DraftSaveInput(
+      documentId: aggregate.documentId,
+      common: aggregate.common,
+      details: aggregate.details,
+      primaryClassification: aggregate.primaryClassification,
+      additionalClassifications: aggregate.additionalClassifications,
+      keywords: aggregate.keywords,
+    );
+  }
 
   DraftSaveInput copyWith({
     DocumentCommonMetadata? common,

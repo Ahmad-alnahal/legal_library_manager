@@ -447,6 +447,28 @@ class $MainCategoriesTable extends MainCategories
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _normalizedNameArMeta = const VerificationMeta(
+    'normalizedNameAr',
+  );
+  @override
+  late final GeneratedColumn<String> normalizedNameAr = GeneratedColumn<String>(
+    'normalized_name_ar',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _normalizedNameEnMeta = const VerificationMeta(
+    'normalizedNameEn',
+  );
+  @override
+  late final GeneratedColumn<String> normalizedNameEn = GeneratedColumn<String>(
+    'normalized_name_en',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
   static const VerificationMeta _sortOrderMeta = const VerificationMeta(
     'sortOrder',
   );
@@ -478,6 +500,8 @@ class $MainCategoriesTable extends MainCategories
     key,
     nameAr,
     nameEn,
+    normalizedNameAr,
+    normalizedNameEn,
     sortOrder,
     isActive,
   ];
@@ -520,6 +544,28 @@ class $MainCategoriesTable extends MainCategories
     } else if (isInserting) {
       context.missing(_nameEnMeta);
     }
+    if (data.containsKey('normalized_name_ar')) {
+      context.handle(
+        _normalizedNameArMeta,
+        normalizedNameAr.isAcceptableOrUnknown(
+          data['normalized_name_ar']!,
+          _normalizedNameArMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_normalizedNameArMeta);
+    }
+    if (data.containsKey('normalized_name_en')) {
+      context.handle(
+        _normalizedNameEnMeta,
+        normalizedNameEn.isAcceptableOrUnknown(
+          data['normalized_name_en']!,
+          _normalizedNameEnMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_normalizedNameEnMeta);
+    }
     if (data.containsKey('sort_order')) {
       context.handle(
         _sortOrderMeta,
@@ -561,6 +607,14 @@ class $MainCategoriesTable extends MainCategories
         DriftSqlType.string,
         data['${effectivePrefix}name_en'],
       )!,
+      normalizedNameAr: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}normalized_name_ar'],
+      )!,
+      normalizedNameEn: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}normalized_name_en'],
+      )!,
       sortOrder: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}sort_order'],
@@ -583,6 +637,8 @@ class MainCategory extends DataClass implements Insertable<MainCategory> {
   final String key;
   final String nameAr;
   final String nameEn;
+  final String normalizedNameAr;
+  final String normalizedNameEn;
   final int sortOrder;
   final bool isActive;
   const MainCategory({
@@ -590,6 +646,8 @@ class MainCategory extends DataClass implements Insertable<MainCategory> {
     required this.key,
     required this.nameAr,
     required this.nameEn,
+    required this.normalizedNameAr,
+    required this.normalizedNameEn,
     required this.sortOrder,
     required this.isActive,
   });
@@ -600,6 +658,8 @@ class MainCategory extends DataClass implements Insertable<MainCategory> {
     map['key'] = Variable<String>(key);
     map['name_ar'] = Variable<String>(nameAr);
     map['name_en'] = Variable<String>(nameEn);
+    map['normalized_name_ar'] = Variable<String>(normalizedNameAr);
+    map['normalized_name_en'] = Variable<String>(normalizedNameEn);
     map['sort_order'] = Variable<int>(sortOrder);
     map['is_active'] = Variable<bool>(isActive);
     return map;
@@ -611,6 +671,8 @@ class MainCategory extends DataClass implements Insertable<MainCategory> {
       key: Value(key),
       nameAr: Value(nameAr),
       nameEn: Value(nameEn),
+      normalizedNameAr: Value(normalizedNameAr),
+      normalizedNameEn: Value(normalizedNameEn),
       sortOrder: Value(sortOrder),
       isActive: Value(isActive),
     );
@@ -626,6 +688,8 @@ class MainCategory extends DataClass implements Insertable<MainCategory> {
       key: serializer.fromJson<String>(json['key']),
       nameAr: serializer.fromJson<String>(json['nameAr']),
       nameEn: serializer.fromJson<String>(json['nameEn']),
+      normalizedNameAr: serializer.fromJson<String>(json['normalizedNameAr']),
+      normalizedNameEn: serializer.fromJson<String>(json['normalizedNameEn']),
       sortOrder: serializer.fromJson<int>(json['sortOrder']),
       isActive: serializer.fromJson<bool>(json['isActive']),
     );
@@ -638,6 +702,8 @@ class MainCategory extends DataClass implements Insertable<MainCategory> {
       'key': serializer.toJson<String>(key),
       'nameAr': serializer.toJson<String>(nameAr),
       'nameEn': serializer.toJson<String>(nameEn),
+      'normalizedNameAr': serializer.toJson<String>(normalizedNameAr),
+      'normalizedNameEn': serializer.toJson<String>(normalizedNameEn),
       'sortOrder': serializer.toJson<int>(sortOrder),
       'isActive': serializer.toJson<bool>(isActive),
     };
@@ -648,6 +714,8 @@ class MainCategory extends DataClass implements Insertable<MainCategory> {
     String? key,
     String? nameAr,
     String? nameEn,
+    String? normalizedNameAr,
+    String? normalizedNameEn,
     int? sortOrder,
     bool? isActive,
   }) => MainCategory(
@@ -655,6 +723,8 @@ class MainCategory extends DataClass implements Insertable<MainCategory> {
     key: key ?? this.key,
     nameAr: nameAr ?? this.nameAr,
     nameEn: nameEn ?? this.nameEn,
+    normalizedNameAr: normalizedNameAr ?? this.normalizedNameAr,
+    normalizedNameEn: normalizedNameEn ?? this.normalizedNameEn,
     sortOrder: sortOrder ?? this.sortOrder,
     isActive: isActive ?? this.isActive,
   );
@@ -664,6 +734,12 @@ class MainCategory extends DataClass implements Insertable<MainCategory> {
       key: data.key.present ? data.key.value : this.key,
       nameAr: data.nameAr.present ? data.nameAr.value : this.nameAr,
       nameEn: data.nameEn.present ? data.nameEn.value : this.nameEn,
+      normalizedNameAr: data.normalizedNameAr.present
+          ? data.normalizedNameAr.value
+          : this.normalizedNameAr,
+      normalizedNameEn: data.normalizedNameEn.present
+          ? data.normalizedNameEn.value
+          : this.normalizedNameEn,
       sortOrder: data.sortOrder.present ? data.sortOrder.value : this.sortOrder,
       isActive: data.isActive.present ? data.isActive.value : this.isActive,
     );
@@ -676,6 +752,8 @@ class MainCategory extends DataClass implements Insertable<MainCategory> {
           ..write('key: $key, ')
           ..write('nameAr: $nameAr, ')
           ..write('nameEn: $nameEn, ')
+          ..write('normalizedNameAr: $normalizedNameAr, ')
+          ..write('normalizedNameEn: $normalizedNameEn, ')
           ..write('sortOrder: $sortOrder, ')
           ..write('isActive: $isActive')
           ..write(')'))
@@ -683,7 +761,16 @@ class MainCategory extends DataClass implements Insertable<MainCategory> {
   }
 
   @override
-  int get hashCode => Object.hash(id, key, nameAr, nameEn, sortOrder, isActive);
+  int get hashCode => Object.hash(
+    id,
+    key,
+    nameAr,
+    nameEn,
+    normalizedNameAr,
+    normalizedNameEn,
+    sortOrder,
+    isActive,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -692,6 +779,8 @@ class MainCategory extends DataClass implements Insertable<MainCategory> {
           other.key == this.key &&
           other.nameAr == this.nameAr &&
           other.nameEn == this.nameEn &&
+          other.normalizedNameAr == this.normalizedNameAr &&
+          other.normalizedNameEn == this.normalizedNameEn &&
           other.sortOrder == this.sortOrder &&
           other.isActive == this.isActive);
 }
@@ -701,6 +790,8 @@ class MainCategoriesCompanion extends UpdateCompanion<MainCategory> {
   final Value<String> key;
   final Value<String> nameAr;
   final Value<String> nameEn;
+  final Value<String> normalizedNameAr;
+  final Value<String> normalizedNameEn;
   final Value<int> sortOrder;
   final Value<bool> isActive;
   const MainCategoriesCompanion({
@@ -708,6 +799,8 @@ class MainCategoriesCompanion extends UpdateCompanion<MainCategory> {
     this.key = const Value.absent(),
     this.nameAr = const Value.absent(),
     this.nameEn = const Value.absent(),
+    this.normalizedNameAr = const Value.absent(),
+    this.normalizedNameEn = const Value.absent(),
     this.sortOrder = const Value.absent(),
     this.isActive = const Value.absent(),
   });
@@ -716,11 +809,15 @@ class MainCategoriesCompanion extends UpdateCompanion<MainCategory> {
     required String key,
     required String nameAr,
     required String nameEn,
+    required String normalizedNameAr,
+    required String normalizedNameEn,
     required int sortOrder,
     required bool isActive,
   }) : key = Value(key),
        nameAr = Value(nameAr),
        nameEn = Value(nameEn),
+       normalizedNameAr = Value(normalizedNameAr),
+       normalizedNameEn = Value(normalizedNameEn),
        sortOrder = Value(sortOrder),
        isActive = Value(isActive);
   static Insertable<MainCategory> custom({
@@ -728,6 +825,8 @@ class MainCategoriesCompanion extends UpdateCompanion<MainCategory> {
     Expression<String>? key,
     Expression<String>? nameAr,
     Expression<String>? nameEn,
+    Expression<String>? normalizedNameAr,
+    Expression<String>? normalizedNameEn,
     Expression<int>? sortOrder,
     Expression<bool>? isActive,
   }) {
@@ -736,6 +835,8 @@ class MainCategoriesCompanion extends UpdateCompanion<MainCategory> {
       if (key != null) 'key': key,
       if (nameAr != null) 'name_ar': nameAr,
       if (nameEn != null) 'name_en': nameEn,
+      if (normalizedNameAr != null) 'normalized_name_ar': normalizedNameAr,
+      if (normalizedNameEn != null) 'normalized_name_en': normalizedNameEn,
       if (sortOrder != null) 'sort_order': sortOrder,
       if (isActive != null) 'is_active': isActive,
     });
@@ -746,6 +847,8 @@ class MainCategoriesCompanion extends UpdateCompanion<MainCategory> {
     Value<String>? key,
     Value<String>? nameAr,
     Value<String>? nameEn,
+    Value<String>? normalizedNameAr,
+    Value<String>? normalizedNameEn,
     Value<int>? sortOrder,
     Value<bool>? isActive,
   }) {
@@ -754,6 +857,8 @@ class MainCategoriesCompanion extends UpdateCompanion<MainCategory> {
       key: key ?? this.key,
       nameAr: nameAr ?? this.nameAr,
       nameEn: nameEn ?? this.nameEn,
+      normalizedNameAr: normalizedNameAr ?? this.normalizedNameAr,
+      normalizedNameEn: normalizedNameEn ?? this.normalizedNameEn,
       sortOrder: sortOrder ?? this.sortOrder,
       isActive: isActive ?? this.isActive,
     );
@@ -774,6 +879,12 @@ class MainCategoriesCompanion extends UpdateCompanion<MainCategory> {
     if (nameEn.present) {
       map['name_en'] = Variable<String>(nameEn.value);
     }
+    if (normalizedNameAr.present) {
+      map['normalized_name_ar'] = Variable<String>(normalizedNameAr.value);
+    }
+    if (normalizedNameEn.present) {
+      map['normalized_name_en'] = Variable<String>(normalizedNameEn.value);
+    }
     if (sortOrder.present) {
       map['sort_order'] = Variable<int>(sortOrder.value);
     }
@@ -790,6 +901,8 @@ class MainCategoriesCompanion extends UpdateCompanion<MainCategory> {
           ..write('key: $key, ')
           ..write('nameAr: $nameAr, ')
           ..write('nameEn: $nameEn, ')
+          ..write('normalizedNameAr: $normalizedNameAr, ')
+          ..write('normalizedNameEn: $normalizedNameEn, ')
           ..write('sortOrder: $sortOrder, ')
           ..write('isActive: $isActive')
           ..write(')'))
@@ -858,6 +971,28 @@ class $SubCategoriesTable extends SubCategories
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _normalizedNameArMeta = const VerificationMeta(
+    'normalizedNameAr',
+  );
+  @override
+  late final GeneratedColumn<String> normalizedNameAr = GeneratedColumn<String>(
+    'normalized_name_ar',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _normalizedNameEnMeta = const VerificationMeta(
+    'normalizedNameEn',
+  );
+  @override
+  late final GeneratedColumn<String> normalizedNameEn = GeneratedColumn<String>(
+    'normalized_name_en',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
   static const VerificationMeta _sortOrderMeta = const VerificationMeta(
     'sortOrder',
   );
@@ -890,6 +1025,8 @@ class $SubCategoriesTable extends SubCategories
     key,
     nameAr,
     nameEn,
+    normalizedNameAr,
+    normalizedNameEn,
     sortOrder,
     isActive,
   ];
@@ -943,6 +1080,28 @@ class $SubCategoriesTable extends SubCategories
     } else if (isInserting) {
       context.missing(_nameEnMeta);
     }
+    if (data.containsKey('normalized_name_ar')) {
+      context.handle(
+        _normalizedNameArMeta,
+        normalizedNameAr.isAcceptableOrUnknown(
+          data['normalized_name_ar']!,
+          _normalizedNameArMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_normalizedNameArMeta);
+    }
+    if (data.containsKey('normalized_name_en')) {
+      context.handle(
+        _normalizedNameEnMeta,
+        normalizedNameEn.isAcceptableOrUnknown(
+          data['normalized_name_en']!,
+          _normalizedNameEnMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_normalizedNameEnMeta);
+    }
     if (data.containsKey('sort_order')) {
       context.handle(
         _sortOrderMeta,
@@ -988,6 +1147,14 @@ class $SubCategoriesTable extends SubCategories
         DriftSqlType.string,
         data['${effectivePrefix}name_en'],
       )!,
+      normalizedNameAr: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}normalized_name_ar'],
+      )!,
+      normalizedNameEn: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}normalized_name_en'],
+      )!,
       sortOrder: attachedDatabase.typeMapping.read(
         DriftSqlType.int,
         data['${effectivePrefix}sort_order'],
@@ -1011,6 +1178,8 @@ class SubCategory extends DataClass implements Insertable<SubCategory> {
   final String key;
   final String nameAr;
   final String nameEn;
+  final String normalizedNameAr;
+  final String normalizedNameEn;
   final int sortOrder;
   final bool isActive;
   const SubCategory({
@@ -1019,6 +1188,8 @@ class SubCategory extends DataClass implements Insertable<SubCategory> {
     required this.key,
     required this.nameAr,
     required this.nameEn,
+    required this.normalizedNameAr,
+    required this.normalizedNameEn,
     required this.sortOrder,
     required this.isActive,
   });
@@ -1030,6 +1201,8 @@ class SubCategory extends DataClass implements Insertable<SubCategory> {
     map['key'] = Variable<String>(key);
     map['name_ar'] = Variable<String>(nameAr);
     map['name_en'] = Variable<String>(nameEn);
+    map['normalized_name_ar'] = Variable<String>(normalizedNameAr);
+    map['normalized_name_en'] = Variable<String>(normalizedNameEn);
     map['sort_order'] = Variable<int>(sortOrder);
     map['is_active'] = Variable<bool>(isActive);
     return map;
@@ -1042,6 +1215,8 @@ class SubCategory extends DataClass implements Insertable<SubCategory> {
       key: Value(key),
       nameAr: Value(nameAr),
       nameEn: Value(nameEn),
+      normalizedNameAr: Value(normalizedNameAr),
+      normalizedNameEn: Value(normalizedNameEn),
       sortOrder: Value(sortOrder),
       isActive: Value(isActive),
     );
@@ -1058,6 +1233,8 @@ class SubCategory extends DataClass implements Insertable<SubCategory> {
       key: serializer.fromJson<String>(json['key']),
       nameAr: serializer.fromJson<String>(json['nameAr']),
       nameEn: serializer.fromJson<String>(json['nameEn']),
+      normalizedNameAr: serializer.fromJson<String>(json['normalizedNameAr']),
+      normalizedNameEn: serializer.fromJson<String>(json['normalizedNameEn']),
       sortOrder: serializer.fromJson<int>(json['sortOrder']),
       isActive: serializer.fromJson<bool>(json['isActive']),
     );
@@ -1071,6 +1248,8 @@ class SubCategory extends DataClass implements Insertable<SubCategory> {
       'key': serializer.toJson<String>(key),
       'nameAr': serializer.toJson<String>(nameAr),
       'nameEn': serializer.toJson<String>(nameEn),
+      'normalizedNameAr': serializer.toJson<String>(normalizedNameAr),
+      'normalizedNameEn': serializer.toJson<String>(normalizedNameEn),
       'sortOrder': serializer.toJson<int>(sortOrder),
       'isActive': serializer.toJson<bool>(isActive),
     };
@@ -1082,6 +1261,8 @@ class SubCategory extends DataClass implements Insertable<SubCategory> {
     String? key,
     String? nameAr,
     String? nameEn,
+    String? normalizedNameAr,
+    String? normalizedNameEn,
     int? sortOrder,
     bool? isActive,
   }) => SubCategory(
@@ -1090,6 +1271,8 @@ class SubCategory extends DataClass implements Insertable<SubCategory> {
     key: key ?? this.key,
     nameAr: nameAr ?? this.nameAr,
     nameEn: nameEn ?? this.nameEn,
+    normalizedNameAr: normalizedNameAr ?? this.normalizedNameAr,
+    normalizedNameEn: normalizedNameEn ?? this.normalizedNameEn,
     sortOrder: sortOrder ?? this.sortOrder,
     isActive: isActive ?? this.isActive,
   );
@@ -1102,6 +1285,12 @@ class SubCategory extends DataClass implements Insertable<SubCategory> {
       key: data.key.present ? data.key.value : this.key,
       nameAr: data.nameAr.present ? data.nameAr.value : this.nameAr,
       nameEn: data.nameEn.present ? data.nameEn.value : this.nameEn,
+      normalizedNameAr: data.normalizedNameAr.present
+          ? data.normalizedNameAr.value
+          : this.normalizedNameAr,
+      normalizedNameEn: data.normalizedNameEn.present
+          ? data.normalizedNameEn.value
+          : this.normalizedNameEn,
       sortOrder: data.sortOrder.present ? data.sortOrder.value : this.sortOrder,
       isActive: data.isActive.present ? data.isActive.value : this.isActive,
     );
@@ -1115,6 +1304,8 @@ class SubCategory extends DataClass implements Insertable<SubCategory> {
           ..write('key: $key, ')
           ..write('nameAr: $nameAr, ')
           ..write('nameEn: $nameEn, ')
+          ..write('normalizedNameAr: $normalizedNameAr, ')
+          ..write('normalizedNameEn: $normalizedNameEn, ')
           ..write('sortOrder: $sortOrder, ')
           ..write('isActive: $isActive')
           ..write(')'))
@@ -1122,8 +1313,17 @@ class SubCategory extends DataClass implements Insertable<SubCategory> {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, mainCategoryId, key, nameAr, nameEn, sortOrder, isActive);
+  int get hashCode => Object.hash(
+    id,
+    mainCategoryId,
+    key,
+    nameAr,
+    nameEn,
+    normalizedNameAr,
+    normalizedNameEn,
+    sortOrder,
+    isActive,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1133,6 +1333,8 @@ class SubCategory extends DataClass implements Insertable<SubCategory> {
           other.key == this.key &&
           other.nameAr == this.nameAr &&
           other.nameEn == this.nameEn &&
+          other.normalizedNameAr == this.normalizedNameAr &&
+          other.normalizedNameEn == this.normalizedNameEn &&
           other.sortOrder == this.sortOrder &&
           other.isActive == this.isActive);
 }
@@ -1143,6 +1345,8 @@ class SubCategoriesCompanion extends UpdateCompanion<SubCategory> {
   final Value<String> key;
   final Value<String> nameAr;
   final Value<String> nameEn;
+  final Value<String> normalizedNameAr;
+  final Value<String> normalizedNameEn;
   final Value<int> sortOrder;
   final Value<bool> isActive;
   const SubCategoriesCompanion({
@@ -1151,6 +1355,8 @@ class SubCategoriesCompanion extends UpdateCompanion<SubCategory> {
     this.key = const Value.absent(),
     this.nameAr = const Value.absent(),
     this.nameEn = const Value.absent(),
+    this.normalizedNameAr = const Value.absent(),
+    this.normalizedNameEn = const Value.absent(),
     this.sortOrder = const Value.absent(),
     this.isActive = const Value.absent(),
   });
@@ -1160,12 +1366,16 @@ class SubCategoriesCompanion extends UpdateCompanion<SubCategory> {
     required String key,
     required String nameAr,
     required String nameEn,
+    required String normalizedNameAr,
+    required String normalizedNameEn,
     required int sortOrder,
     required bool isActive,
   }) : mainCategoryId = Value(mainCategoryId),
        key = Value(key),
        nameAr = Value(nameAr),
        nameEn = Value(nameEn),
+       normalizedNameAr = Value(normalizedNameAr),
+       normalizedNameEn = Value(normalizedNameEn),
        sortOrder = Value(sortOrder),
        isActive = Value(isActive);
   static Insertable<SubCategory> custom({
@@ -1174,6 +1384,8 @@ class SubCategoriesCompanion extends UpdateCompanion<SubCategory> {
     Expression<String>? key,
     Expression<String>? nameAr,
     Expression<String>? nameEn,
+    Expression<String>? normalizedNameAr,
+    Expression<String>? normalizedNameEn,
     Expression<int>? sortOrder,
     Expression<bool>? isActive,
   }) {
@@ -1183,6 +1395,8 @@ class SubCategoriesCompanion extends UpdateCompanion<SubCategory> {
       if (key != null) 'key': key,
       if (nameAr != null) 'name_ar': nameAr,
       if (nameEn != null) 'name_en': nameEn,
+      if (normalizedNameAr != null) 'normalized_name_ar': normalizedNameAr,
+      if (normalizedNameEn != null) 'normalized_name_en': normalizedNameEn,
       if (sortOrder != null) 'sort_order': sortOrder,
       if (isActive != null) 'is_active': isActive,
     });
@@ -1194,6 +1408,8 @@ class SubCategoriesCompanion extends UpdateCompanion<SubCategory> {
     Value<String>? key,
     Value<String>? nameAr,
     Value<String>? nameEn,
+    Value<String>? normalizedNameAr,
+    Value<String>? normalizedNameEn,
     Value<int>? sortOrder,
     Value<bool>? isActive,
   }) {
@@ -1203,6 +1419,8 @@ class SubCategoriesCompanion extends UpdateCompanion<SubCategory> {
       key: key ?? this.key,
       nameAr: nameAr ?? this.nameAr,
       nameEn: nameEn ?? this.nameEn,
+      normalizedNameAr: normalizedNameAr ?? this.normalizedNameAr,
+      normalizedNameEn: normalizedNameEn ?? this.normalizedNameEn,
       sortOrder: sortOrder ?? this.sortOrder,
       isActive: isActive ?? this.isActive,
     );
@@ -1226,6 +1444,12 @@ class SubCategoriesCompanion extends UpdateCompanion<SubCategory> {
     if (nameEn.present) {
       map['name_en'] = Variable<String>(nameEn.value);
     }
+    if (normalizedNameAr.present) {
+      map['normalized_name_ar'] = Variable<String>(normalizedNameAr.value);
+    }
+    if (normalizedNameEn.present) {
+      map['normalized_name_en'] = Variable<String>(normalizedNameEn.value);
+    }
     if (sortOrder.present) {
       map['sort_order'] = Variable<int>(sortOrder.value);
     }
@@ -1243,6 +1467,8 @@ class SubCategoriesCompanion extends UpdateCompanion<SubCategory> {
           ..write('key: $key, ')
           ..write('nameAr: $nameAr, ')
           ..write('nameEn: $nameEn, ')
+          ..write('normalizedNameAr: $normalizedNameAr, ')
+          ..write('normalizedNameEn: $normalizedNameEn, ')
           ..write('sortOrder: $sortOrder, ')
           ..write('isActive: $isActive')
           ..write(')'))
@@ -15889,6 +16115,8 @@ typedef $$MainCategoriesTableCreateCompanionBuilder =
       required String key,
       required String nameAr,
       required String nameEn,
+      required String normalizedNameAr,
+      required String normalizedNameEn,
       required int sortOrder,
       required bool isActive,
     });
@@ -15898,6 +16126,8 @@ typedef $$MainCategoriesTableUpdateCompanionBuilder =
       Value<String> key,
       Value<String> nameAr,
       Value<String> nameEn,
+      Value<String> normalizedNameAr,
+      Value<String> normalizedNameEn,
       Value<int> sortOrder,
       Value<bool> isActive,
     });
@@ -16006,6 +16236,16 @@ class $$MainCategoriesTableFilterComposer
 
   ColumnFilters<String> get nameEn => $composableBuilder(
     column: $table.nameEn,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get normalizedNameAr => $composableBuilder(
+    column: $table.normalizedNameAr,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get normalizedNameEn => $composableBuilder(
+    column: $table.normalizedNameEn,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -16125,6 +16365,16 @@ class $$MainCategoriesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get normalizedNameAr => $composableBuilder(
+    column: $table.normalizedNameAr,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get normalizedNameEn => $composableBuilder(
+    column: $table.normalizedNameEn,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get sortOrder => $composableBuilder(
     column: $table.sortOrder,
     builder: (column) => ColumnOrderings(column),
@@ -16156,6 +16406,16 @@ class $$MainCategoriesTableAnnotationComposer
 
   GeneratedColumn<String> get nameEn =>
       $composableBuilder(column: $table.nameEn, builder: (column) => column);
+
+  GeneratedColumn<String> get normalizedNameAr => $composableBuilder(
+    column: $table.normalizedNameAr,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get normalizedNameEn => $composableBuilder(
+    column: $table.normalizedNameEn,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<int> get sortOrder =>
       $composableBuilder(column: $table.sortOrder, builder: (column) => column);
@@ -16279,6 +16539,8 @@ class $$MainCategoriesTableTableManager
                 Value<String> key = const Value.absent(),
                 Value<String> nameAr = const Value.absent(),
                 Value<String> nameEn = const Value.absent(),
+                Value<String> normalizedNameAr = const Value.absent(),
+                Value<String> normalizedNameEn = const Value.absent(),
                 Value<int> sortOrder = const Value.absent(),
                 Value<bool> isActive = const Value.absent(),
               }) => MainCategoriesCompanion(
@@ -16286,6 +16548,8 @@ class $$MainCategoriesTableTableManager
                 key: key,
                 nameAr: nameAr,
                 nameEn: nameEn,
+                normalizedNameAr: normalizedNameAr,
+                normalizedNameEn: normalizedNameEn,
                 sortOrder: sortOrder,
                 isActive: isActive,
               ),
@@ -16295,6 +16559,8 @@ class $$MainCategoriesTableTableManager
                 required String key,
                 required String nameAr,
                 required String nameEn,
+                required String normalizedNameAr,
+                required String normalizedNameEn,
                 required int sortOrder,
                 required bool isActive,
               }) => MainCategoriesCompanion.insert(
@@ -16302,6 +16568,8 @@ class $$MainCategoriesTableTableManager
                 key: key,
                 nameAr: nameAr,
                 nameEn: nameEn,
+                normalizedNameAr: normalizedNameAr,
+                normalizedNameEn: normalizedNameEn,
                 sortOrder: sortOrder,
                 isActive: isActive,
               ),
@@ -16425,6 +16693,8 @@ typedef $$SubCategoriesTableCreateCompanionBuilder =
       required String key,
       required String nameAr,
       required String nameEn,
+      required String normalizedNameAr,
+      required String normalizedNameEn,
       required int sortOrder,
       required bool isActive,
     });
@@ -16435,6 +16705,8 @@ typedef $$SubCategoriesTableUpdateCompanionBuilder =
       Value<String> key,
       Value<String> nameAr,
       Value<String> nameEn,
+      Value<String> normalizedNameAr,
+      Value<String> normalizedNameEn,
       Value<int> sortOrder,
       Value<bool> isActive,
     });
@@ -16544,6 +16816,16 @@ class $$SubCategoriesTableFilterComposer
 
   ColumnFilters<String> get nameEn => $composableBuilder(
     column: $table.nameEn,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get normalizedNameAr => $composableBuilder(
+    column: $table.normalizedNameAr,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get normalizedNameEn => $composableBuilder(
+    column: $table.normalizedNameEn,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -16661,6 +16943,16 @@ class $$SubCategoriesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get normalizedNameAr => $composableBuilder(
+    column: $table.normalizedNameAr,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get normalizedNameEn => $composableBuilder(
+    column: $table.normalizedNameEn,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get sortOrder => $composableBuilder(
     column: $table.sortOrder,
     builder: (column) => ColumnOrderings(column),
@@ -16715,6 +17007,16 @@ class $$SubCategoriesTableAnnotationComposer
 
   GeneratedColumn<String> get nameEn =>
       $composableBuilder(column: $table.nameEn, builder: (column) => column);
+
+  GeneratedColumn<String> get normalizedNameAr => $composableBuilder(
+    column: $table.normalizedNameAr,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get normalizedNameEn => $composableBuilder(
+    column: $table.normalizedNameEn,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<int> get sortOrder =>
       $composableBuilder(column: $table.sortOrder, builder: (column) => column);
@@ -16835,6 +17137,8 @@ class $$SubCategoriesTableTableManager
                 Value<String> key = const Value.absent(),
                 Value<String> nameAr = const Value.absent(),
                 Value<String> nameEn = const Value.absent(),
+                Value<String> normalizedNameAr = const Value.absent(),
+                Value<String> normalizedNameEn = const Value.absent(),
                 Value<int> sortOrder = const Value.absent(),
                 Value<bool> isActive = const Value.absent(),
               }) => SubCategoriesCompanion(
@@ -16843,6 +17147,8 @@ class $$SubCategoriesTableTableManager
                 key: key,
                 nameAr: nameAr,
                 nameEn: nameEn,
+                normalizedNameAr: normalizedNameAr,
+                normalizedNameEn: normalizedNameEn,
                 sortOrder: sortOrder,
                 isActive: isActive,
               ),
@@ -16853,6 +17159,8 @@ class $$SubCategoriesTableTableManager
                 required String key,
                 required String nameAr,
                 required String nameEn,
+                required String normalizedNameAr,
+                required String normalizedNameEn,
                 required int sortOrder,
                 required bool isActive,
               }) => SubCategoriesCompanion.insert(
@@ -16861,6 +17169,8 @@ class $$SubCategoriesTableTableManager
                 key: key,
                 nameAr: nameAr,
                 nameEn: nameEn,
+                normalizedNameAr: normalizedNameAr,
+                normalizedNameEn: normalizedNameEn,
                 sortOrder: sortOrder,
                 isActive: isActive,
               ),

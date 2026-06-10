@@ -24,6 +24,12 @@ class AppLocalizationsAr extends AppLocalizations {
   String get navDocuments => 'المستندات';
 
   @override
+  String get navReview => 'المراجعة والتصنيف';
+
+  @override
+  String get navCategories => 'إدارة التصنيفات';
+
+  @override
   String get navDuplicates => 'إدارة التكرارات';
 
   @override
@@ -37,6 +43,13 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get navTooltipDocuments => 'المستندات: قائمة المستندات المفهرسة';
+
+  @override
+  String get navTooltipReview => 'المراجعة والتصنيف: تصنيف المستندات واعتمادها';
+
+  @override
+  String get navTooltipCategories =>
+      'إدارة التصنيفات: الفئات الرئيسية والفرعية';
 
   @override
   String get navTooltipDuplicates =>

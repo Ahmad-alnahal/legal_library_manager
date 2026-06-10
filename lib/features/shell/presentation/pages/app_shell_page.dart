@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/di/injection.dart';
+import '../../../categories/presentation/pages/category_management_page.dart';
 import '../../../dashboard/presentation/pages/dashboard_page.dart';
+import '../../../documents/presentation/pages/document_review_page.dart';
 import '../../../documents/presentation/pages/documents_page.dart';
 import '../../../duplicates/presentation/pages/duplicate_review_page.dart';
 import '../../../import/presentation/pages/import_page.dart';
@@ -63,6 +65,8 @@ class _SectionView extends StatelessWidget {
       AppSection.dashboard => const DashboardPage(),
       AppSection.import => const ImportPage(),
       AppSection.documents => const DocumentsPage(),
+      AppSection.review => const DocumentReviewPage(),
+      AppSection.categories => const CategoryManagementPage(),
       AppSection.duplicates => const DuplicateReviewPage(),
       AppSection.settings => const SettingsPage(),
     };

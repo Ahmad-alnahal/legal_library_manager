@@ -65,6 +65,18 @@ class SideNavigation extends StatelessWidget {
         tooltip: l10n.navTooltipDocuments,
       ),
       _Destination(
+        section: AppSection.review,
+        icon: Icons.fact_check_outlined,
+        label: l10n.navReview,
+        tooltip: l10n.navTooltipReview,
+      ),
+      _Destination(
+        section: AppSection.categories,
+        icon: Icons.account_tree_outlined,
+        label: l10n.navCategories,
+        tooltip: l10n.navTooltipCategories,
+      ),
+      _Destination(
         section: AppSection.duplicates,
         icon: Icons.difference_outlined,
         label: l10n.navDuplicates,

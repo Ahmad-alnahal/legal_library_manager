@@ -25,6 +25,7 @@ class DocumentAggregate extends Equatable {
     required this.conversions,
     this.documentCode,
     this.classifiedAt,
+    this.preferredSourceFileName,
   });
 
   final int documentId;
@@ -43,6 +44,12 @@ class DocumentAggregate extends Equatable {
   final String? documentCode;
   final String? classifiedAt;
 
+  /// The preferred original source file's name (e.g. `report.pdf`), or `null`
+  /// when the document has no source file. Used by the review workflow to
+  /// suggest a title for untitled documents. Read-only metadata: it never
+  /// implies any filesystem access.
+  final String? preferredSourceFileName;
+
   @override
   List<Object?> get props => [
     documentId,
@@ -56,5 +63,6 @@ class DocumentAggregate extends Equatable {
     conversions,
     documentCode,
     classifiedAt,
+    preferredSourceFileName,
   ];
 }

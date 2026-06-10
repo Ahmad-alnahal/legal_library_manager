@@ -92,6 +92,20 @@ class DriftDocumentMetadataRepository implements DocumentMetadataRepository {
         )
         .toList();
 
+    // Preferred original source filename: prefer the explicitly-preferred row,
+    // then the lowest id, among `source_original` files. Read-only projection.
+    final List<DocumentFile> sourceFiles =
+        files.where((f) => f.fileRoleKey == 'source_original').toList()
+          ..sort((a, b) {
+            if (a.isPreferred != b.isPreferred) {
+              return a.isPreferred ? -1 : 1;
+            }
+            return a.id.compareTo(b.id);
+          });
+    final String? preferredSourceFileName = sourceFiles.isEmpty
+        ? null
+        : sourceFiles.first.fileName;
+
     final List<FileConversion> convs = await (_db.select(
       _db.fileConversions,
     )..where((c) => c.documentId.equals(documentId))).get();
@@ -129,6 +143,7 @@ class DriftDocumentMetadataRepository implements DocumentMetadataRepository {
       conversions: conversionRefs,
       documentCode: doc.documentCode,
       classifiedAt: doc.classifiedAt,
+      preferredSourceFileName: preferredSourceFileName,
     );
   }
 
@@ -210,6 +225,23 @@ class DriftDocumentMetadataRepository implements DocumentMetadataRepository {
           primarySubCategoryId: Value(primary?.subCategoryId),
           workflowStatusKey: const Value('classified'),
           classifiedAt: Value(nowIso),
+          updatedAt: Value(nowIso),
+        ),
+      );
+    });
+  }
+
+  @override
+  Future<void> returnToInProgress(int documentId, {required DateTime now}) {
+    final String nowIso = now.toUtc().toIso8601String();
+    return _db.transaction(() async {
+      await _ensureExists(documentId);
+      await (_db.update(
+        _db.documents,
+      )..where((d) => d.id.equals(documentId))).write(
+        DocumentsCompanion(
+          workflowStatusKey: const Value('in_progress'),
+          classifiedAt: const Value(null),
           updatedAt: Value(nowIso),
         ),
       );

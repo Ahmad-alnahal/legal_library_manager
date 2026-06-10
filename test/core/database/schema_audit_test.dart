@@ -102,6 +102,11 @@ void main() {
       'ix_file_open_events_file_created',
       'ix_import_batches_started_at',
       'ix_export_batches_created_at',
+      // M6.4 category-name integrity indexes (schema v2).
+      'ux_main_categories_normalized_name_ar',
+      'ux_main_categories_normalized_name_en',
+      'ux_sub_categories_main_normalized_name_ar',
+      'ux_sub_categories_main_normalized_name_en',
     ];
 
     test('all expected tables exist and bootstrap_info does not', () async {
@@ -117,6 +122,30 @@ void main() {
       final Set<String> indexes = await objectNames('index');
       for (final String idx in expectedIndexes) {
         expect(indexes, contains(idx), reason: 'missing index $idx');
+      }
+    });
+
+    test('schema is created at version 2', () async {
+      expect(db.schemaVersion, 2);
+      final QueryRow row = await db
+          .customSelect('PRAGMA user_version;')
+          .getSingle();
+      expect(row.read<int>('user_version'), 2);
+    });
+
+    test('category tables carry the normalized-name columns', () async {
+      for (final String table in const ['main_categories', 'sub_categories']) {
+        final List<QueryRow> columns = await db
+            .customSelect('PRAGMA table_info($table);')
+            .get();
+        final Set<String> names = columns
+            .map((QueryRow r) => r.read<String>('name'))
+            .toSet();
+        expect(
+          names,
+          containsAll(<String>['normalized_name_ar', 'normalized_name_en']),
+          reason: '$table is missing normalized columns',
+        );
       }
     });
 

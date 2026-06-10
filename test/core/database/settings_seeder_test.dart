@@ -28,7 +28,7 @@ void main() {
       expect(values['default_ui_language'], 'ar');
       expect(values['default_document_country_key'], 'ps');
       expect(values['copy_only_policy_enabled'], 'true');
-      expect(values['schema_version'], '1');
+      expect(values['schema_version'], db.schemaVersion.toString());
       expect(values.length, 4);
     });
 

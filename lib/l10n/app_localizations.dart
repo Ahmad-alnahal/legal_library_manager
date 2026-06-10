@@ -124,6 +124,18 @@ abstract class AppLocalizations {
   /// **'المستندات'**
   String get navDocuments;
 
+  /// No description provided for @navReview.
+  ///
+  /// In ar, this message translates to:
+  /// **'المراجعة والتصنيف'**
+  String get navReview;
+
+  /// No description provided for @navCategories.
+  ///
+  /// In ar, this message translates to:
+  /// **'إدارة التصنيفات'**
+  String get navCategories;
+
   /// No description provided for @navDuplicates.
   ///
   /// In ar, this message translates to:
@@ -153,6 +165,18 @@ abstract class AppLocalizations {
   /// In ar, this message translates to:
   /// **'المستندات: قائمة المستندات المفهرسة'**
   String get navTooltipDocuments;
+
+  /// No description provided for @navTooltipReview.
+  ///
+  /// In ar, this message translates to:
+  /// **'المراجعة والتصنيف: تصنيف المستندات واعتمادها'**
+  String get navTooltipReview;
+
+  /// No description provided for @navTooltipCategories.
+  ///
+  /// In ar, this message translates to:
+  /// **'إدارة التصنيفات: الفئات الرئيسية والفرعية'**
+  String get navTooltipCategories;
 
   /// No description provided for @navTooltipDuplicates.
   ///

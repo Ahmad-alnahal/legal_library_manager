@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 
+import '../../../features/categories/domain/services/category_name.dart';
 import '../app_database.dart';
 import 'country_seed_data.dart';
 
@@ -101,6 +102,8 @@ class ReferenceSeeder {
     for (int i = 0; i < data.length; i++) {
       final _Ref r = data[i];
       final int order = i + 1;
+      final String normalizedAr = normalizedCategoryNameAr(r.nameAr);
+      final String normalizedEn = normalizedCategoryNameEn(r.nameEn);
       await _db
           .into(_db.mainCategories)
           .insert(
@@ -108,6 +111,8 @@ class ReferenceSeeder {
               key: r.key,
               nameAr: r.nameAr,
               nameEn: r.nameEn,
+              normalizedNameAr: normalizedAr,
+              normalizedNameEn: normalizedEn,
               sortOrder: order,
               isActive: true,
             ),
@@ -115,6 +120,8 @@ class ReferenceSeeder {
               (_) => MainCategoriesCompanion(
                 nameAr: Value(r.nameAr),
                 nameEn: Value(r.nameEn),
+                normalizedNameAr: Value(normalizedAr),
+                normalizedNameEn: Value(normalizedEn),
                 sortOrder: Value(order),
                 isActive: const Value(true),
               ),
@@ -261,6 +268,8 @@ class ReferenceSeeder {
       final int order = (orderByParent[r.parentKey] ?? 0) + 1;
       orderByParent[r.parentKey] = order;
 
+      final String normalizedAr = normalizedCategoryNameAr(r.nameAr);
+      final String normalizedEn = normalizedCategoryNameEn(r.nameEn);
       await _db
           .into(_db.subCategories)
           .insert(
@@ -269,6 +278,8 @@ class ReferenceSeeder {
               key: r.key,
               nameAr: r.nameAr,
               nameEn: r.nameEn,
+              normalizedNameAr: normalizedAr,
+              normalizedNameEn: normalizedEn,
               sortOrder: order,
               isActive: true,
             ),
@@ -277,6 +288,8 @@ class ReferenceSeeder {
                 mainCategoryId: Value(parentId),
                 nameAr: Value(r.nameAr),
                 nameEn: Value(r.nameEn),
+                normalizedNameAr: Value(normalizedAr),
+                normalizedNameEn: Value(normalizedEn),
                 sortOrder: Value(order),
                 isActive: const Value(true),
               ),
