@@ -1,7 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:legal_library_manager/core/database/app_database.dart';
-import 'package:legal_library_manager/features/categories/domain/services/category_name.dart';
+import 'package:legal_library_manager/core/validation/category_name.dart';
 import 'package:sqlite3/common.dart';
 
 void main() {

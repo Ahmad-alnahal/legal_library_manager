@@ -1,10 +1,10 @@
 // lib/features/categories/domain/services/category_management_service.dart
 
+import '../../../../core/validation/category_name.dart';
 import '../../../../core/validation/validation_error.dart';
 import '../../../../core/validation/validation_result.dart';
 import '../repositories/category_management_repository.dart';
 import 'category_key_generator.dart';
-import 'category_name.dart';
 
 /// Validates and applies category-management operations.
 ///

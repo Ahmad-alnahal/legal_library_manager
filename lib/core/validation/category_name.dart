@@ -1,4 +1,4 @@
-// lib/features/categories/domain/services/category_name.dart
+// lib/core/validation/category_name.dart
 
 /// Shared, pure category-name cleaning, comparison normalization, and character
 /// validation.

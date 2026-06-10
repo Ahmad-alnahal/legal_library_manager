@@ -135,5 +135,11 @@
   "importValidationNotReadable": "تعذّرت قراءة المجلد.",
   "importValidationIsProtectedRoot": "لا يمكن اختيار مجلد محمي تابع للنظام.",
   "importValidationInsideProtectedRoot": "المجلد يقع داخل مجلد محمي تابع للنظام.",
-  "importValidationContainsProtectedRoot": "المجلد يحتوي على مجلد محمي تابع للنظام مثل المكتبة المدارة."
+  "importValidationContainsProtectedRoot": "المجلد يحتوي على مجلد محمي تابع للنظام مثل المكتبة المدارة.",
+
+  "startupLoading": "جارٍ تجهيز مرجعي...",
+  "startupFailureTitle": "تعذّر تجهيز قاعدة البيانات المحلية",
+  "startupFailureBody": "لم يتمكّن مرجعي من إكمال تهيئة البيانات المحلية. يمكنك إعادة المحاولة بأمان. إذا استمرت المشكلة، أغلق التطبيق واحتفظ بنسخة من قاعدة البيانات قبل إجراء أي صيانة.",
+  "startupSafetyNote": "لم يتم نقل أي ملف أصلي أو تعديله أو حذفه.",
+  "startupRetry": "إعادة المحاولة"
 }

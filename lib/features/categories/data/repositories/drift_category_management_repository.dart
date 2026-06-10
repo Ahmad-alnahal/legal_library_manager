@@ -4,10 +4,10 @@ import 'package:drift/drift.dart';
 import 'package:sqlite3/common.dart' show SqliteException;
 
 import '../../../../core/database/app_database.dart';
+import '../../../../core/validation/category_name.dart';
 import '../../domain/entities/managed_main_category.dart';
 import '../../domain/entities/managed_sub_category.dart';
 import '../../domain/repositories/category_management_repository.dart';
-import '../../domain/services/category_name.dart';
 
 /// Prepared display + normalized values for a write.
 typedef _PreparedNames = ({

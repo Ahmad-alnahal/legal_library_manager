@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:legal_library_manager/features/categories/domain/services/category_name.dart';
+import 'package:legal_library_manager/core/validation/category_name.dart';
 
 void main() {
   // Build single-character strings from code points so the source stays ASCII

@@ -4,7 +4,7 @@ import 'package:legal_library_manager/core/database/app_database.dart';
 import 'package:legal_library_manager/core/database/seeding/reference_seeder.dart';
 import 'package:legal_library_manager/features/categories/data/repositories/drift_category_management_repository.dart';
 import 'package:legal_library_manager/features/categories/domain/repositories/category_management_repository.dart';
-import 'package:legal_library_manager/features/categories/domain/services/category_name.dart';
+import 'package:legal_library_manager/core/validation/category_name.dart';
 import 'package:sqlite3/common.dart' show SqliteException;
 
 void main() {

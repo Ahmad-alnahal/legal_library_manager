@@ -10,7 +10,9 @@ import '../l10n/app_localizations.dart';
 /// Arabic-first and RTL by default: the single supported locale is `ar`, which
 /// drives Material's text direction to right-to-left for the whole app.
 class MarjiyApp extends StatelessWidget {
-  const MarjiyApp({super.key});
+  const MarjiyApp({super.key, this.home = const AppShellPage()});
+
+  final Widget home;
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +28,7 @@ class MarjiyApp extends StatelessWidget {
         GlobalWidgetsLocalizations.delegate,
         GlobalCupertinoLocalizations.delegate,
       ],
-      home: const AppShellPage(),
+      home: home,
     );
   }
 }

@@ -1,7 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 
-import '../../features/categories/domain/services/category_name.dart';
+import '../validation/category_name.dart';
 import 'database_connection.dart';
 import 'tables/book_details.dart';
 import 'tables/court_case_details.dart';

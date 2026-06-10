@@ -2,46 +2,51 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 
-/// Guards M6.1 layering and safety: the review workflow's domain/presentation
-/// code stays persistence/filesystem agnostic, and nothing in the new review
-/// code introduces file copy/move/delete/open or OS-integration behavior.
+/// Guards review-workflow layering and safety: document domain/application code
+/// stays persistence/filesystem agnostic, and no review code introduces file
+/// copy/move/delete/open or OS-integration behavior.
 void main() {
   String read(String path) => File(path).readAsStringSync();
 
-  const List<String> domainAndPresentationFiles = [
-    'lib/features/documents/domain/entities/review_queue_query.dart',
-    'lib/features/documents/domain/entities/review_queue_item.dart',
-    'lib/features/documents/domain/repositories/review_queue_repository.dart',
-    'lib/features/documents/domain/usecases/load_document_aggregate.dart',
-    'lib/features/documents/domain/usecases/return_to_in_progress.dart',
-    'lib/features/documents/presentation/bloc/review_bloc.dart',
-    'lib/features/documents/presentation/bloc/review_event.dart',
-    'lib/features/documents/presentation/bloc/review_state.dart',
+  Iterable<File> dartFilesIn(String path) {
+    final directory = Directory(path);
+    if (!directory.existsSync()) return const [];
+    return directory
+        .listSync(recursive: true)
+        .whereType<File>()
+        .where((file) => file.path.endsWith('.dart'));
+  }
+
+  final domainAndApplicationFiles = [
+    ...dartFilesIn('lib/features/documents/domain'),
+    ...dartFilesIn('lib/features/documents/application'),
+  ];
+  final reviewFiles = [
+    ...dartFilesIn('lib/features/documents/domain'),
+    ...dartFilesIn('lib/features/documents/presentation'),
+    File(
+      'lib/features/documents/data/repositories/'
+      'drift_review_queue_repository.dart',
+    ),
   ];
 
-  // Includes the read-only data repository and the modified metadata repo.
-  const List<String> allReviewFiles = [
-    ...domainAndPresentationFiles,
-    'lib/features/documents/data/repositories/drift_review_queue_repository.dart',
-  ];
-
-  test('review domain/presentation do not depend on Drift or dart:io', () {
-    for (final path in domainAndPresentationFiles) {
-      final source = read(path);
+  test('document domain/application do not depend on Drift or dart:io', () {
+    for (final file in domainAndApplicationFiles) {
+      final source = read(file.path);
       expect(
         source.contains('package:drift/'),
         isFalse,
-        reason: '$path must remain persistence-agnostic',
+        reason: '${file.path} must remain persistence-agnostic',
       );
       expect(
         source.contains('core/database'),
         isFalse,
-        reason: '$path must not import the database layer',
+        reason: '${file.path} must not import the database layer',
       );
       expect(
         source.contains("import 'dart:io'"),
         isFalse,
-        reason: '$path must not import dart:io',
+        reason: '${file.path} must not import dart:io',
       );
     }
   });
@@ -65,13 +70,20 @@ void main() {
       'OpenFilex',
       'open_file',
     ];
-    for (final path in allReviewFiles) {
-      final source = read(path);
+    for (final file in reviewFiles) {
+      final source = read(file.path);
       for (final token in forbidden) {
+        final bool found = switch (token) {
+          'File(' => RegExp(r'\bFile\s*\(').hasMatch(source),
+          'Directory(' => RegExp(r'\bDirectory\s*\(').hasMatch(source),
+          _ => source.contains(token),
+        };
         expect(
-          source.contains(token),
+          found,
           isFalse,
-          reason: '$path must not contain "$token" (no file/OS side effects)',
+          reason:
+              '${file.path} must not contain "$token" '
+              '(no file/OS side effects)',
         );
       }
     }

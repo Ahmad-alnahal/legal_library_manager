@@ -1,6 +1,6 @@
 import 'package:drift/drift.dart';
 
-import '../../../features/categories/domain/services/category_name.dart';
+import '../../validation/category_name.dart';
 import '../app_database.dart';
 import 'country_seed_data.dart';
 
@@ -16,7 +16,8 @@ typedef _Ref = ({String key, String nameAr, String nameEn});
 ///   names / sort order change.
 ///
 /// Only keys explicitly finalized in the specifications are seeded here.
-/// This is not wired into app startup — callers invoke [seedAll] explicitly.
+/// App startup invokes [seedAll]; tests and maintenance tools may also call it
+/// explicitly. Repeated calls are safe because seeding is idempotent.
 class ReferenceSeeder {
   ReferenceSeeder(this._db);
 

@@ -377,4 +377,20 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get importValidationContainsProtectedRoot =>
       'المجلد يحتوي على مجلد محمي تابع للنظام مثل المكتبة المدارة.';
+
+  @override
+  String get startupLoading => 'جارٍ تجهيز مرجعي...';
+
+  @override
+  String get startupFailureTitle => 'تعذّر تجهيز قاعدة البيانات المحلية';
+
+  @override
+  String get startupFailureBody =>
+      'لم يتمكّن مرجعي من إكمال تهيئة البيانات المحلية. يمكنك إعادة المحاولة بأمان. إذا استمرت المشكلة، أغلق التطبيق واحتفظ بنسخة من قاعدة البيانات قبل إجراء أي صيانة.';
+
+  @override
+  String get startupSafetyNote => 'لم يتم نقل أي ملف أصلي أو تعديله أو حذفه.';
+
+  @override
+  String get startupRetry => 'إعادة المحاولة';
 }

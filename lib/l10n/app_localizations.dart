@@ -783,6 +783,36 @@ abstract class AppLocalizations {
   /// In ar, this message translates to:
   /// **'المجلد يحتوي على مجلد محمي تابع للنظام مثل المكتبة المدارة.'**
   String get importValidationContainsProtectedRoot;
+
+  /// No description provided for @startupLoading.
+  ///
+  /// In ar, this message translates to:
+  /// **'جارٍ تجهيز مرجعي...'**
+  String get startupLoading;
+
+  /// No description provided for @startupFailureTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر تجهيز قاعدة البيانات المحلية'**
+  String get startupFailureTitle;
+
+  /// No description provided for @startupFailureBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'لم يتمكّن مرجعي من إكمال تهيئة البيانات المحلية. يمكنك إعادة المحاولة بأمان. إذا استمرت المشكلة، أغلق التطبيق واحتفظ بنسخة من قاعدة البيانات قبل إجراء أي صيانة.'**
+  String get startupFailureBody;
+
+  /// No description provided for @startupSafetyNote.
+  ///
+  /// In ar, this message translates to:
+  /// **'لم يتم نقل أي ملف أصلي أو تعديله أو حذفه.'**
+  String get startupSafetyNote;
+
+  /// No description provided for @startupRetry.
+  ///
+  /// In ar, this message translates to:
+  /// **'إعادة المحاولة'**
+  String get startupRetry;
 }
 
 class _AppLocalizationsDelegate
