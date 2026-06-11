@@ -813,6 +813,102 @@ abstract class AppLocalizations {
   /// In ar, this message translates to:
   /// **'إعادة المحاولة'**
   String get startupRetry;
+
+  /// No description provided for @fileOpenOpenFile.
+  ///
+  /// In ar, this message translates to:
+  /// **'فتح الملف'**
+  String get fileOpenOpenFile;
+
+  /// No description provided for @fileOpenOpenFolder.
+  ///
+  /// In ar, this message translates to:
+  /// **'فتح المجلد'**
+  String get fileOpenOpenFolder;
+
+  /// No description provided for @fileOpenOpening.
+  ///
+  /// In ar, this message translates to:
+  /// **'جاري الفتح'**
+  String get fileOpenOpening;
+
+  /// No description provided for @fileOpenSuccessFile.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم فتح الملف.'**
+  String get fileOpenSuccessFile;
+
+  /// No description provided for @fileOpenSuccessFolder.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم فتح مجلد الملف.'**
+  String get fileOpenSuccessFolder;
+
+  /// No description provided for @fileOpenAuditFailureFile.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم فتح الملف، لكن تعذّر تسجيل حدث الفتح في السجل.'**
+  String get fileOpenAuditFailureFile;
+
+  /// No description provided for @fileOpenAuditFailureFolder.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم فتح المجلد، لكن تعذّر تسجيل حدث الفتح في السجل.'**
+  String get fileOpenAuditFailureFolder;
+
+  /// No description provided for @fileOpenErrorRecordNotFound.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا يوجد سجل مسجل لهذا الملف.'**
+  String get fileOpenErrorRecordNotFound;
+
+  /// No description provided for @fileOpenErrorMissingPath.
+  ///
+  /// In ar, this message translates to:
+  /// **'مسار الملف غير مسجل.'**
+  String get fileOpenErrorMissingPath;
+
+  /// No description provided for @fileOpenErrorPathNotFound.
+  ///
+  /// In ar, this message translates to:
+  /// **'الملف غير موجود في مساره المسجل.'**
+  String get fileOpenErrorPathNotFound;
+
+  /// No description provided for @fileOpenErrorNotRegularFile.
+  ///
+  /// In ar, this message translates to:
+  /// **'المسار لا يشير إلى ملف عادي.'**
+  String get fileOpenErrorNotRegularFile;
+
+  /// No description provided for @fileOpenErrorUnsupportedExtension.
+  ///
+  /// In ar, this message translates to:
+  /// **'نوع الملف غير مدعوم أو لا يطابق الامتداد المسجل.'**
+  String get fileOpenErrorUnsupportedExtension;
+
+  /// No description provided for @fileOpenErrorPermissionDenied.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم رفض الإذن بفتح الملف.'**
+  String get fileOpenErrorPermissionDenied;
+
+  /// No description provided for @fileOpenErrorNoAssociatedApplication.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا يوجد تطبيق مرتبط بهذا النوع من الملفات.'**
+  String get fileOpenErrorNoAssociatedApplication;
+
+  /// No description provided for @fileOpenErrorOsLaunchFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر فتح الملف. لم تتأثر الملفات الأصلية.'**
+  String get fileOpenErrorOsLaunchFailed;
+
+  /// No description provided for @fileOpenErrorUnhealthyFile.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا يمكن فتح الملف مباشرةً؛ الملف تالف أو غير قابل للقراءة أو مفقود. يمكنك فتح المجلد بدلًا من ذلك.'**
+  String get fileOpenErrorUnhealthyFile;
 }
 
 class _AppLocalizationsDelegate

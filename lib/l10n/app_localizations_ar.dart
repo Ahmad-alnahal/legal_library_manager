@@ -393,4 +393,58 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get startupRetry => 'إعادة المحاولة';
+
+  @override
+  String get fileOpenOpenFile => 'فتح الملف';
+
+  @override
+  String get fileOpenOpenFolder => 'فتح المجلد';
+
+  @override
+  String get fileOpenOpening => 'جاري الفتح';
+
+  @override
+  String get fileOpenSuccessFile => 'تم فتح الملف.';
+
+  @override
+  String get fileOpenSuccessFolder => 'تم فتح مجلد الملف.';
+
+  @override
+  String get fileOpenAuditFailureFile =>
+      'تم فتح الملف، لكن تعذّر تسجيل حدث الفتح في السجل.';
+
+  @override
+  String get fileOpenAuditFailureFolder =>
+      'تم فتح المجلد، لكن تعذّر تسجيل حدث الفتح في السجل.';
+
+  @override
+  String get fileOpenErrorRecordNotFound => 'لا يوجد سجل مسجل لهذا الملف.';
+
+  @override
+  String get fileOpenErrorMissingPath => 'مسار الملف غير مسجل.';
+
+  @override
+  String get fileOpenErrorPathNotFound => 'الملف غير موجود في مساره المسجل.';
+
+  @override
+  String get fileOpenErrorNotRegularFile => 'المسار لا يشير إلى ملف عادي.';
+
+  @override
+  String get fileOpenErrorUnsupportedExtension =>
+      'نوع الملف غير مدعوم أو لا يطابق الامتداد المسجل.';
+
+  @override
+  String get fileOpenErrorPermissionDenied => 'تم رفض الإذن بفتح الملف.';
+
+  @override
+  String get fileOpenErrorNoAssociatedApplication =>
+      'لا يوجد تطبيق مرتبط بهذا النوع من الملفات.';
+
+  @override
+  String get fileOpenErrorOsLaunchFailed =>
+      'تعذّر فتح الملف. لم تتأثر الملفات الأصلية.';
+
+  @override
+  String get fileOpenErrorUnhealthyFile =>
+      'لا يمكن فتح الملف مباشرةً؛ الملف تالف أو غير قابل للقراءة أو مفقود. يمكنك فتح المجلد بدلًا من ذلك.';
 }

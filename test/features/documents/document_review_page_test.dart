@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:legal_library_manager/core/di/injection.dart';
 import 'package:legal_library_manager/core/time/clock.dart';
@@ -25,11 +26,19 @@ import 'package:legal_library_manager/features/documents/domain/usecases/save_do
 import 'package:legal_library_manager/features/documents/domain/usecases/validate_classification.dart';
 import 'package:legal_library_manager/features/documents/presentation/bloc/review_bloc.dart';
 import 'package:legal_library_manager/features/documents/presentation/pages/document_review_page.dart';
+import 'package:legal_library_manager/features/file_open/application/open_file_use_case.dart';
+import 'package:legal_library_manager/features/file_open/domain/entities/open_file_result.dart';
+import 'package:legal_library_manager/features/file_open/domain/entities/open_target.dart';
+import 'package:legal_library_manager/features/file_open/domain/repositories/file_open_repository.dart';
+import 'package:legal_library_manager/features/file_open/domain/services/file_existence_checker.dart';
+import 'package:legal_library_manager/features/file_open/domain/services/os_file_opener.dart';
+import 'package:legal_library_manager/features/file_open/presentation/bloc/file_open_bloc.dart';
 import 'package:legal_library_manager/features/reference/domain/entities/document_type_ref.dart';
 import 'package:legal_library_manager/features/reference/domain/entities/main_category_ref.dart';
 import 'package:legal_library_manager/features/reference/domain/entities/reference_item.dart';
 import 'package:legal_library_manager/features/reference/domain/entities/sub_category_ref.dart';
 import 'package:legal_library_manager/features/reference/domain/repositories/reference_repository.dart';
+import 'package:legal_library_manager/l10n/app_localizations.dart';
 
 void main() {
   late FakeReviewQueueRepository queue;
@@ -37,6 +46,8 @@ void main() {
   late FakeSave save;
   late FakeApprove approve;
   late FakeReturn ret;
+  late FakeOpenFileUseCase openFile;
+  late FakeDocumentListRepo docListRepo;
 
   DocumentAggregate agg(
     int id, {
@@ -78,12 +89,14 @@ void main() {
     save = FakeSave();
     approve = FakeApprove();
     ret = FakeReturn();
+    openFile = FakeOpenFileUseCase();
+    docListRepo = FakeDocumentListRepo();
     getIt
       ..registerSingleton<ReferenceRepository>(FakeReferenceRepository())
       ..registerSingleton<CategoryManagementRepository>(
         FakeCategoryManagementRepository(),
       )
-      ..registerSingleton<DocumentListRepository>(FakeDocumentListRepo())
+      ..registerSingleton<DocumentListRepository>(docListRepo)
       ..registerFactory<ReviewBloc>(
         () => ReviewBloc(
           queueRepository: queue,
@@ -92,7 +105,8 @@ void main() {
           approveClassification: approve,
           returnToInProgress: ret,
         ),
-      );
+      )
+      ..registerFactory<FileOpenBloc>(() => FileOpenBloc(openFile));
   });
 
   tearDown(() => getIt.reset());
@@ -425,17 +439,95 @@ void main() {
     expect(find.byKey(const Key('review_queue_tile_1')), findsOneWidget);
   });
 
-  testWidgets('exposes no file-operation actions', (tester) async {
+  testWidgets('exposes safe open actions but no mutation actions', (
+    tester,
+  ) async {
     await _pump(tester);
     await tester.tap(find.byKey(const Key('review_queue_tile_1')));
     await tester.pumpAndSettle();
 
-    expect(find.textContaining('فتح الملف'), findsNothing);
-    expect(find.textContaining('فتح المجلد'), findsNothing);
+    // Separate Open File / Open Folder actions exist on the source card.
+    expect(find.byKey(const Key('open_file_button_1')), findsOneWidget);
+    expect(find.byKey(const Key('open_folder_button_1')), findsOneWidget);
+
+    // No source-file mutation actions appear (checked as button labels so the
+    // page's descriptive safety copy never produces a false match).
+    expect(find.widgetWithText(TextButton, 'حذف الملف'), findsNothing);
+    expect(find.widgetWithText(TextButton, 'نقل الملف'), findsNothing);
+    expect(find.widgetWithText(TextButton, 'إعادة تسمية الملف'), findsNothing);
+    expect(find.widgetWithText(OutlinedButton, 'حذف الملف'), findsNothing);
+
+    // Managed copy (M8) remains disabled.
     final copy = tester.widget<OutlinedButton>(
       find.widgetWithText(OutlinedButton, 'نسخ إلى المكتبة المدارة'),
     );
     expect(copy.onPressed, isNull);
+  });
+
+  testWidgets('tapping Open File sends the DB file id and file target', (
+    tester,
+  ) async {
+    await _pump(tester);
+    await tester.tap(find.byKey(const Key('review_queue_tile_1')));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('open_file_button_1')));
+    await tester.pumpAndSettle();
+
+    expect(openFile.calls, [(fileId: 1, target: OpenTarget.file)]);
+    expect(find.text('تم فتح الملف.'), findsOneWidget);
+    await _flushSnackBar(tester);
+  });
+
+  testWidgets('tapping Open Folder sends the DB file id and folder target', (
+    tester,
+  ) async {
+    await _pump(tester);
+    await tester.tap(find.byKey(const Key('review_queue_tile_1')));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('open_folder_button_1')));
+    await tester.pumpAndSettle();
+
+    expect(openFile.calls, [(fileId: 1, target: OpenTarget.folder)]);
+    expect(find.text('تم فتح مجلد الملف.'), findsOneWidget);
+    await _flushSnackBar(tester);
+  });
+
+  testWidgets('opening a file does not dirty the review form', (tester) async {
+    await _pump(tester);
+    await tester.tap(find.byKey(const Key('review_queue_tile_1')));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('open_file_button_1')));
+    await tester.pumpAndSettle();
+
+    // Opening is read-only: no unsaved-changes indicator, and no draft save or
+    // workflow mutation was triggered by the open action.
+    expect(find.textContaining('لديك تعديلات غير محفوظة'), findsNothing);
+    expect(save.callCount, 0);
+    expect(approve.callCount, 0);
+    expect(ret.callCount, 0);
+    await _flushSnackBar(tester);
+  });
+
+  testWidgets('a failed open shows the mapped Arabic error', (tester) async {
+    openFile.result = const OpenFileFailed(
+      code: FileOpenError.noAssociatedApplication,
+      safeMessage: 'unused',
+    );
+    await _pump(tester);
+    await tester.tap(find.byKey(const Key('review_queue_tile_1')));
+    await tester.pumpAndSettle();
+
+    await tester.tap(find.byKey(const Key('open_file_button_1')));
+    await tester.pumpAndSettle();
+
+    expect(
+      find.text('لا يوجد تطبيق مرتبط بهذا النوع من الملفات.'),
+      findsOneWidget,
+    );
+    await _flushSnackBar(tester);
   });
 
   testWidgets('renders without overflow at desktop sizes', (tester) async {
@@ -451,6 +543,68 @@ void main() {
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull, reason: 'overflow at $size');
     }
+  });
+
+  // ---------------------------------------------------------------------------
+  // Health-based Open File visibility
+  // ---------------------------------------------------------------------------
+
+  testWidgets('healthy file shows both Open File and Open Folder buttons', (
+    tester,
+  ) async {
+    // Default health is 'healthy'; no override needed.
+    await _pump(tester);
+    await tester.tap(find.byKey(const Key('review_queue_tile_1')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('open_file_button_1')), findsOneWidget);
+    expect(find.byKey(const Key('open_folder_button_1')), findsOneWidget);
+  });
+
+  testWidgets(
+    'corrupted file hides Open File button but shows Open Folder button',
+    (tester) async {
+      docListRepo.sourceFileHealthKey = 'corrupted';
+      await _pump(tester);
+      await tester.tap(find.byKey(const Key('review_queue_tile_1')));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('open_file_button_1')), findsNothing);
+      expect(find.byKey(const Key('open_folder_button_1')), findsOneWidget);
+    },
+  );
+
+  testWidgets(
+    'unreadable file hides Open File button but shows Open Folder button',
+    (tester) async {
+      docListRepo.sourceFileHealthKey = 'unreadable';
+      await _pump(tester);
+      await tester.tap(find.byKey(const Key('review_queue_tile_1')));
+      await tester.pumpAndSettle();
+
+      expect(find.byKey(const Key('open_file_button_1')), findsNothing);
+      expect(find.byKey(const Key('open_folder_button_1')), findsOneWidget);
+    },
+  );
+
+  testWidgets('missing health hides Open File button', (tester) async {
+    docListRepo.sourceFileHealthKey = 'missing';
+    await _pump(tester);
+    await tester.tap(find.byKey(const Key('review_queue_tile_1')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('open_file_button_1')), findsNothing);
+    expect(find.byKey(const Key('open_folder_button_1')), findsOneWidget);
+  });
+
+  testWidgets('unknown health hides Open File button', (tester) async {
+    docListRepo.sourceFileHealthKey = 'unknown';
+    await _pump(tester);
+    await tester.tap(find.byKey(const Key('review_queue_tile_1')));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('open_file_button_1')), findsNothing);
+    expect(find.byKey(const Key('open_folder_button_1')), findsOneWidget);
   });
 }
 
@@ -470,6 +624,14 @@ Future<void> _pump(
   addTearDown(tester.view.resetPhysicalSize);
   await tester.pumpWidget(
     const MaterialApp(
+      locale: Locale('ar'),
+      supportedLocales: AppLocalizations.supportedLocales,
+      localizationsDelegates: [
+        AppLocalizations.delegate,
+        GlobalMaterialLocalizations.delegate,
+        GlobalWidgetsLocalizations.delegate,
+        GlobalCupertinoLocalizations.delegate,
+      ],
       home: Directionality(
         textDirection: TextDirection.rtl,
         child: Scaffold(body: DocumentReviewPage()),
@@ -477,6 +639,49 @@ Future<void> _pump(
     ),
   );
   await tester.pumpAndSettle();
+}
+
+// --- safe-open test doubles -----------------------------------------------
+
+class _DummyFileOpenRepo implements FileOpenRepository {
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      throw UnimplementedError('not used');
+}
+
+class _DummyChecker implements FileExistenceChecker {
+  @override
+  FileExistenceStatus checkFile(String absolutePath) =>
+      throw UnimplementedError('not used');
+}
+
+class _DummyOpener implements OsFileOpener {
+  @override
+  dynamic noSuchMethod(Invocation invocation) =>
+      throw UnimplementedError('not used');
+}
+
+/// Controllable [OpenFileUseCase] that records calls and never touches the OS.
+class FakeOpenFileUseCase extends OpenFileUseCase {
+  FakeOpenFileUseCase()
+    : super(
+        repository: _DummyFileOpenRepo(),
+        existenceChecker: _DummyChecker(),
+        osOpener: _DummyOpener(),
+      );
+
+  final List<({int fileId, OpenTarget target})> calls = [];
+  OpenFileResult result = const OpenFileSuccess(target: OpenTarget.file);
+
+  @override
+  Future<OpenFileResult> execute(int fileId, OpenTarget target) async {
+    calls.add((fileId: fileId, target: target));
+    return switch (result) {
+      OpenFileSuccess() => OpenFileSuccess(target: target),
+      OpenFileAuditFailure() => OpenFileAuditFailure(target: target),
+      _ => result,
+    };
+  }
 }
 
 // --- test doubles ---------------------------------------------------------
@@ -575,23 +780,25 @@ class FakeReturn extends ReturnToInProgress {
 }
 
 class FakeDocumentListRepo implements DocumentListRepository {
+  /// Override per-test to exercise non-healthy health visibility.
+  String sourceFileHealthKey = 'healthy';
+
   @override
   Future<DocumentListPage> getDocuments(DocumentListQuery query) async =>
       const DocumentListPage(items: [], totalCount: 0, offset: 0, limit: 50);
 
   @override
-  Future<List<DocumentSourceFileItem>> getSourceFiles(int documentId) async =>
-      const [
-        DocumentSourceFileItem(
-          id: 1,
-          fileName: 'source.pdf',
-          absolutePath: r'D:\source\source.pdf',
-          fileRoleKey: 'source_original',
-          fileHealthKey: 'healthy',
-          fileSizeBytes: 2048,
-          isReadOnlySource: true,
-        ),
-      ];
+  Future<List<DocumentSourceFileItem>> getSourceFiles(int documentId) async => [
+    DocumentSourceFileItem(
+      id: 1,
+      fileName: 'source.pdf',
+      absolutePath: r'D:\source\source.pdf',
+      fileRoleKey: 'source_original',
+      fileHealthKey: sourceFileHealthKey,
+      fileSizeBytes: 2048,
+      isReadOnlySource: true,
+    ),
+  ];
 }
 
 class FakeReferenceRepository implements ReferenceRepository {

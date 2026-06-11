@@ -141,5 +141,22 @@
   "startupFailureTitle": "تعذّر تجهيز قاعدة البيانات المحلية",
   "startupFailureBody": "لم يتمكّن مرجعي من إكمال تهيئة البيانات المحلية. يمكنك إعادة المحاولة بأمان. إذا استمرت المشكلة، أغلق التطبيق واحتفظ بنسخة من قاعدة البيانات قبل إجراء أي صيانة.",
   "startupSafetyNote": "لم يتم نقل أي ملف أصلي أو تعديله أو حذفه.",
-  "startupRetry": "إعادة المحاولة"
+  "startupRetry": "إعادة المحاولة",
+
+  "fileOpenOpenFile": "فتح الملف",
+  "fileOpenOpenFolder": "فتح المجلد",
+  "fileOpenOpening": "جاري الفتح",
+  "fileOpenSuccessFile": "تم فتح الملف.",
+  "fileOpenSuccessFolder": "تم فتح مجلد الملف.",
+  "fileOpenAuditFailureFile": "تم فتح الملف، لكن تعذّر تسجيل حدث الفتح في السجل.",
+  "fileOpenAuditFailureFolder": "تم فتح المجلد، لكن تعذّر تسجيل حدث الفتح في السجل.",
+  "fileOpenErrorRecordNotFound": "لا يوجد سجل مسجل لهذا الملف.",
+  "fileOpenErrorMissingPath": "مسار الملف غير مسجل.",
+  "fileOpenErrorPathNotFound": "الملف غير موجود في مساره المسجل.",
+  "fileOpenErrorNotRegularFile": "المسار لا يشير إلى ملف عادي.",
+  "fileOpenErrorUnsupportedExtension": "نوع الملف غير مدعوم أو لا يطابق الامتداد المسجل.",
+  "fileOpenErrorPermissionDenied": "تم رفض الإذن بفتح الملف.",
+  "fileOpenErrorNoAssociatedApplication": "لا يوجد تطبيق مرتبط بهذا النوع من الملفات.",
+  "fileOpenErrorOsLaunchFailed": "تعذّر فتح الملف. لم تتأثر الملفات الأصلية.",
+  "fileOpenErrorUnhealthyFile": "لا يمكن فتح الملف مباشرةً؛ الملف تالف أو غير قابل للقراءة أو مفقود. يمكنك فتح المجلد بدلًا من ذلك."
 }

@@ -53,6 +53,12 @@ dependencies:
   # first-class Windows support; used only to choose a source folder (never to
   # read/scan/import). Selection is decoupled from scanning.
   file_picker: ^8.1.6
+  # Win32 FFI bindings required by WindowsOsFileOpener to call ShellExecuteEx
+  # directly. ShellExecuteEx returns a synchronous success/failure result that
+  # explorer.exe dispatch cannot provide. Narrowly scoped to data/services.
+  win32: ^5.15.0
+  # Arena allocator and toNativeUtf16 used alongside win32 in the OS boundary.
+  ffi: ^2.2.0
 
 dev_dependencies:
   flutter_test:

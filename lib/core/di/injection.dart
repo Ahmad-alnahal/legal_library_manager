@@ -36,6 +36,14 @@ import '../../features/categories/domain/repositories/category_management_reposi
 import '../../features/categories/domain/services/category_key_generator.dart';
 import '../../features/categories/domain/services/category_management_service.dart';
 import '../../features/categories/presentation/bloc/category_management_bloc.dart';
+import '../../features/file_open/application/open_file_use_case.dart';
+import '../../features/file_open/data/repositories/drift_file_open_repository.dart';
+import '../../features/file_open/data/services/file_system_existence_checker.dart';
+import '../../features/file_open/data/services/windows_os_file_opener.dart';
+import '../../features/file_open/domain/repositories/file_open_repository.dart';
+import '../../features/file_open/domain/services/file_existence_checker.dart';
+import '../../features/file_open/domain/services/os_file_opener.dart';
+import '../../features/file_open/presentation/bloc/file_open_bloc.dart';
 import '../../features/reference/data/repositories/drift_reference_repository.dart';
 import '../../features/reference/domain/repositories/reference_repository.dart';
 import '../../features/shell/presentation/bloc/navigation_bloc.dart';
@@ -45,7 +53,7 @@ import '../time/clock.dart';
 /// Global service locator.
 final GetIt getIt = GetIt.instance;
 
-/// Registers application dependencies (M1 shell + M4 import + M5 documents).
+/// Registers application dependencies (M1 shell + M4 import + M5 documents + M7.1 file open).
 ///
 /// The production [AppDatabase] is a single lazy singleton (its connection opens
 /// lazily on first query and closes on [GetIt.reset]). Tests may register an
@@ -170,5 +178,28 @@ void configureDependencies() {
         repository: getIt<CategoryManagementRepository>(),
         service: getIt<CategoryManagementService>(),
       ),
+    )
+    // M7.1 safe-open foundation: DB-backed repository, Windows OS invoker,
+    // filesystem existence checker, and orchestrating use case. Not wired into
+    // any UI yet; presentation integration is deferred to M7.2.
+    ..registerLazySingleton<FileOpenRepository>(
+      () => DriftFileOpenRepository(getIt<AppDatabase>(), getIt<Clock>()),
+    )
+    ..registerLazySingleton<FileExistenceChecker>(
+      FileSystemExistenceChecker.new,
+    )
+    ..registerLazySingleton<OsFileOpener>(WindowsOsFileOpener.new)
+    ..registerLazySingleton<OpenFileUseCase>(
+      () => OpenFileUseCase(
+        repository: getIt<FileOpenRepository>(),
+        existenceChecker: getIt<FileExistenceChecker>(),
+        osOpener: getIt<OsFileOpener>(),
+      ),
+    )
+    // M7.2 safe-open UI controller. A fresh instance per page; depends only on
+    // the M7.1 use case. The presentation layer drives opening exclusively
+    // through this controller, never the use case directly.
+    ..registerFactory<FileOpenBloc>(
+      () => FileOpenBloc(getIt<OpenFileUseCase>()),
     );
 }

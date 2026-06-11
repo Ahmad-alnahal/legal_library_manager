@@ -12,6 +12,10 @@ import '../../../../core/widgets/country_flag_view.dart';
 import '../../../../core/widgets/empty_state.dart';
 import '../../../../core/widgets/page_header.dart';
 import '../../../../core/widgets/status_chip.dart';
+import '../../../file_open/domain/entities/file_health_eligibility.dart';
+import '../../../file_open/presentation/bloc/file_open_bloc.dart';
+import '../../../file_open/presentation/widgets/file_open_feedback.dart';
+import '../../../file_open/presentation/widgets/open_actions.dart';
 import '../../../reference/domain/entities/document_type_ref.dart';
 import '../../../reference/domain/entities/main_category_ref.dart';
 import '../../../reference/domain/entities/reference_item.dart';
@@ -29,12 +33,19 @@ class DocumentsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) =>
-          getIt<DocumentListBloc>()..add(const DocumentListStarted()),
-      child: _DocumentsWorkspace(
-        references: getIt<ReferenceRepository>(),
-        documents: getIt<DocumentListRepository>(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (_) =>
+              getIt<DocumentListBloc>()..add(const DocumentListStarted()),
+        ),
+        BlocProvider(create: (_) => getIt<FileOpenBloc>()),
+      ],
+      child: FileOpenFeedbackListener(
+        child: _DocumentsWorkspace(
+          references: getIt<ReferenceRepository>(),
+          documents: getIt<DocumentListRepository>(),
+        ),
       ),
     );
   }
@@ -858,6 +869,11 @@ class _SourceFiles extends StatelessWidget {
                           '${_fileHealthLabel(file.fileHealthKey)} | '
                           '${_formatBytes(file.fileSizeBytes)} | '
                           '${file.isReadOnlySource ? 'مصدر للقراءة فقط' : 'نسخة مُدارة'}',
+                        ),
+                        const SizedBox(height: AppSpacing.xs),
+                        OpenActions(
+                          fileId: file.id,
+                          showOpenFile: canOpenFileDirectly(file.fileHealthKey),
                         ),
                       ],
                     ),
