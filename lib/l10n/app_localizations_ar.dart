@@ -189,6 +189,93 @@ class AppLocalizationsAr extends AppLocalizations {
       'تظهر هنا مجموعات الملفات المتطابقة بقيمة SHA-256 بعد الاستيراد.';
 
   @override
+  String get duplicatesGroupsLabel => 'مجموعات التكرار';
+
+  @override
+  String get duplicatesMembersLabel => 'الملفات المتطابقة';
+
+  @override
+  String get duplicatesSelectGroupPrompt =>
+      'اختر مجموعة من القائمة لعرض الملفات المتطابقة';
+
+  @override
+  String get duplicatesLoadError => 'تعذّر تحميل مجموعات التكرار';
+
+  @override
+  String get duplicatesRetry => 'إعادة المحاولة';
+
+  @override
+  String get duplicatesSha256Label => 'SHA-256';
+
+  @override
+  String get duplicatesPreferredBadge => 'مفضّل';
+
+  @override
+  String get duplicatesHiddenFromSearchLabel => 'مخفي من البحث';
+
+  @override
+  String get duplicatesDocumentCode => 'رمز المستند';
+
+  @override
+  String duplicatesFileCountLabel(int count) {
+    return '$count ملفات متطابقة';
+  }
+
+  @override
+  String get duplicatesSnackPreferredSaved => 'تم تعيين النسخة المفضلة.';
+
+  @override
+  String get duplicatesSnackMemberHidden =>
+      'تم إخفاء هذه النسخة من نتائج البحث.';
+
+  @override
+  String get duplicatesSnackMemberUnhidden =>
+      'تم إظهار هذه النسخة في نتائج البحث.';
+
+  @override
+  String get duplicatesSnackReviewSaved => 'تم حفظ مراجعة مجموعة التكرار.';
+
+  @override
+  String get duplicatesSnackPreferredFailed =>
+      'تعذّر تعيين النسخة المفضلة بأمان.';
+
+  @override
+  String get duplicatesSnackVisibilityFailed =>
+      'تعذّر تحديث ظهور النسخة بأمان.';
+
+  @override
+  String get duplicatesSnackReviewSaveFailed =>
+      'تعذّر حفظ مراجعة المجموعة بأمان.';
+
+  @override
+  String get duplicatesSnackGenericFailed =>
+      'تعذّر تحديث مجموعة التكرار بأمان.';
+
+  @override
+  String get duplicatesReviewStatusLabel => 'حالة المراجعة';
+
+  @override
+  String get duplicatesReviewNotesLabel => 'ملاحظات المراجعة';
+
+  @override
+  String get duplicatesSaveReview => 'حفظ المراجعة';
+
+  @override
+  String get duplicatesSaving => 'جارٍ الحفظ';
+
+  @override
+  String get duplicatesSetPreferred => 'تعيين كمفضلة';
+
+  @override
+  String get duplicatesAlreadyPreferred => 'النسخة المفضلة';
+
+  @override
+  String get duplicatesShowInSearch => 'إظهار في البحث';
+
+  @override
+  String get duplicatesHideFromSearch => 'إخفاء من البحث';
+
+  @override
   String get settingsTitle => 'إعدادات النظام';
 
   @override

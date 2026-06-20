@@ -726,6 +726,14 @@ class _SourceFilesViewState extends State<_SourceFilesView> {
     _files = widget.documents.getSourceFiles(widget.documentId);
   }
 
+  @override
+  void didUpdateWidget(covariant _SourceFilesView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.aggregate != widget.aggregate) {
+      _files = widget.documents.getSourceFiles(widget.documentId);
+    }
+  }
+
   Future<void> _setPreferred(DocumentSourceFileItem file) async {
     try {
       await widget.documents.setPreferredSourceFile(widget.documentId, file.id);

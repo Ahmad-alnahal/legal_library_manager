@@ -121,9 +121,7 @@ class WindowsManagedLibraryFilesystem implements ManagedLibraryFilesystem {
       // The final managed copy (<code>.pdf) is handled by the explicit
       // isExistingFile(finalPath) checks in the use case and must NOT be
       // returned here, as it is not an artifact of an interrupted operation.
-      final ownedName = RegExp(
-        '^$escaped\\.pdf\\.[A-Za-z0-9_-]+\\.copying\$',
-      );
+      final ownedName = RegExp('^$escaped\\.pdf\\.[A-Za-z0-9_-]+\\.copying\$');
       final artifacts = <String>[];
       for (final entity in dir.listSync(followLinks: false)) {
         if (FileSystemEntity.typeSync(entity.path, followLinks: false) !=

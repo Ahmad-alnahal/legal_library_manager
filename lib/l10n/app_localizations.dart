@@ -430,6 +430,162 @@ abstract class AppLocalizations {
   /// **'تظهر هنا مجموعات الملفات المتطابقة بقيمة SHA-256 بعد الاستيراد.'**
   String get duplicatesEmptyBody;
 
+  /// No description provided for @duplicatesGroupsLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'مجموعات التكرار'**
+  String get duplicatesGroupsLabel;
+
+  /// No description provided for @duplicatesMembersLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'الملفات المتطابقة'**
+  String get duplicatesMembersLabel;
+
+  /// No description provided for @duplicatesSelectGroupPrompt.
+  ///
+  /// In ar, this message translates to:
+  /// **'اختر مجموعة من القائمة لعرض الملفات المتطابقة'**
+  String get duplicatesSelectGroupPrompt;
+
+  /// No description provided for @duplicatesLoadError.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر تحميل مجموعات التكرار'**
+  String get duplicatesLoadError;
+
+  /// No description provided for @duplicatesRetry.
+  ///
+  /// In ar, this message translates to:
+  /// **'إعادة المحاولة'**
+  String get duplicatesRetry;
+
+  /// No description provided for @duplicatesSha256Label.
+  ///
+  /// In ar, this message translates to:
+  /// **'SHA-256'**
+  String get duplicatesSha256Label;
+
+  /// No description provided for @duplicatesPreferredBadge.
+  ///
+  /// In ar, this message translates to:
+  /// **'مفضّل'**
+  String get duplicatesPreferredBadge;
+
+  /// No description provided for @duplicatesHiddenFromSearchLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'مخفي من البحث'**
+  String get duplicatesHiddenFromSearchLabel;
+
+  /// No description provided for @duplicatesDocumentCode.
+  ///
+  /// In ar, this message translates to:
+  /// **'رمز المستند'**
+  String get duplicatesDocumentCode;
+
+  /// No description provided for @duplicatesFileCountLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'{count} ملفات متطابقة'**
+  String duplicatesFileCountLabel(int count);
+
+  /// No description provided for @duplicatesSnackPreferredSaved.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم تعيين النسخة المفضلة.'**
+  String get duplicatesSnackPreferredSaved;
+
+  /// No description provided for @duplicatesSnackMemberHidden.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم إخفاء هذه النسخة من نتائج البحث.'**
+  String get duplicatesSnackMemberHidden;
+
+  /// No description provided for @duplicatesSnackMemberUnhidden.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم إظهار هذه النسخة في نتائج البحث.'**
+  String get duplicatesSnackMemberUnhidden;
+
+  /// No description provided for @duplicatesSnackReviewSaved.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم حفظ مراجعة مجموعة التكرار.'**
+  String get duplicatesSnackReviewSaved;
+
+  /// No description provided for @duplicatesSnackPreferredFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر تعيين النسخة المفضلة بأمان.'**
+  String get duplicatesSnackPreferredFailed;
+
+  /// No description provided for @duplicatesSnackVisibilityFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر تحديث ظهور النسخة بأمان.'**
+  String get duplicatesSnackVisibilityFailed;
+
+  /// No description provided for @duplicatesSnackReviewSaveFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر حفظ مراجعة المجموعة بأمان.'**
+  String get duplicatesSnackReviewSaveFailed;
+
+  /// No description provided for @duplicatesSnackGenericFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر تحديث مجموعة التكرار بأمان.'**
+  String get duplicatesSnackGenericFailed;
+
+  /// No description provided for @duplicatesReviewStatusLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'حالة المراجعة'**
+  String get duplicatesReviewStatusLabel;
+
+  /// No description provided for @duplicatesReviewNotesLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'ملاحظات المراجعة'**
+  String get duplicatesReviewNotesLabel;
+
+  /// No description provided for @duplicatesSaveReview.
+  ///
+  /// In ar, this message translates to:
+  /// **'حفظ المراجعة'**
+  String get duplicatesSaveReview;
+
+  /// No description provided for @duplicatesSaving.
+  ///
+  /// In ar, this message translates to:
+  /// **'جارٍ الحفظ'**
+  String get duplicatesSaving;
+
+  /// No description provided for @duplicatesSetPreferred.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعيين كمفضلة'**
+  String get duplicatesSetPreferred;
+
+  /// No description provided for @duplicatesAlreadyPreferred.
+  ///
+  /// In ar, this message translates to:
+  /// **'النسخة المفضلة'**
+  String get duplicatesAlreadyPreferred;
+
+  /// No description provided for @duplicatesShowInSearch.
+  ///
+  /// In ar, this message translates to:
+  /// **'إظهار في البحث'**
+  String get duplicatesShowInSearch;
+
+  /// No description provided for @duplicatesHideFromSearch.
+  ///
+  /// In ar, this message translates to:
+  /// **'إخفاء من البحث'**
+  String get duplicatesHideFromSearch;
+
   /// No description provided for @settingsTitle.
   ///
   /// In ar, this message translates to:

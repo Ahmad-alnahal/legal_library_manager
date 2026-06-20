@@ -104,33 +104,44 @@ LIMIT ? OFFSET ?
 
   @override
   Future<List<DocumentSourceFileItem>> getSourceFiles(int documentId) async {
-    final rows =
-        await (_db.select(_db.documentFiles)
-              ..where(
-                (f) =>
-                    f.documentId.equals(documentId) &
-                    f.fileRoleKey.equals('source_original'),
-              )
-              ..orderBy([
-                (f) => OrderingTerm(
-                  expression: f.isPreferred,
-                  mode: OrderingMode.desc,
-                ),
-                (f) => OrderingTerm(expression: f.fileName),
-                (f) => OrderingTerm(expression: f.id),
-              ]))
-            .get();
+    final rows = await _db
+        .customSelect(
+          '''
+SELECT
+  df.id,
+  df.file_name,
+  df.absolute_path,
+  df.file_role_key,
+  df.file_health_key,
+  df.file_size_bytes,
+  df.is_read_only_source,
+  df.is_preferred
+FROM document_files df
+WHERE df.document_id = ?
+  AND df.file_role_key = 'source_original'
+  AND NOT EXISTS (
+    SELECT 1
+    FROM duplicate_group_members dgm
+    WHERE dgm.file_id = df.id
+      AND dgm.is_hidden_from_search = 1
+  )
+ORDER BY df.is_preferred DESC, df.file_name ASC, df.id ASC
+''',
+          variables: [Variable<int>(documentId)],
+          readsFrom: {_db.documentFiles, _db.duplicateGroupMembers},
+        )
+        .get();
     return rows
         .map(
           (row) => DocumentSourceFileItem(
-            id: row.id,
-            fileName: row.fileName,
-            absolutePath: row.absolutePath,
-            fileRoleKey: row.fileRoleKey,
-            fileHealthKey: row.fileHealthKey,
-            fileSizeBytes: row.fileSizeBytes,
-            isReadOnlySource: row.isReadOnlySource,
-            isPreferred: row.isPreferred,
+            id: row.read<int>('id'),
+            fileName: row.read<String>('file_name'),
+            absolutePath: row.read<String>('absolute_path'),
+            fileRoleKey: row.read<String>('file_role_key'),
+            fileHealthKey: row.read<String>('file_health_key'),
+            fileSizeBytes: row.read<int>('file_size_bytes'),
+            isReadOnlySource: row.read<int>('is_read_only_source') == 1,
+            isPreferred: row.read<int>('is_preferred') == 1,
           ),
         )
         .toList(growable: false);

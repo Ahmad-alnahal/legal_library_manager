@@ -79,9 +79,21 @@ class DriftDocumentMetadataRepository implements DocumentMetadataRepository {
       }
     }
 
-    final List<DocumentFile> files = await (_db.select(
+    final List<DocumentFile> allFiles = await (_db.select(
       _db.documentFiles,
     )..where((f) => f.documentId.equals(documentId))).get();
+    // Only source_original files are subject to duplicate-hide filtering.
+    // managed_copy / converted_pdf files must always appear in the aggregate
+    // so that copy-health checks (hasMissingManagedCopy etc.) remain correct.
+    final List<int> sourceFileIds = allFiles
+        .where((f) => f.fileRoleKey == 'source_original')
+        .map((f) => f.id)
+        .toList(growable: false);
+    final Set<int> hiddenSourceFileIds =
+        await _hiddenDuplicateFileIds(sourceFileIds);
+    final List<DocumentFile> files = allFiles
+        .where((f) => f.fileRoleKey != 'source_original' || !hiddenSourceFileIds.contains(f.id))
+        .toList(growable: false);
     final List<DocumentFileRef> fileRefs = files
         .map(
           (f) => DocumentFileRef(
@@ -249,6 +261,16 @@ class DriftDocumentMetadataRepository implements DocumentMetadataRepository {
   }
 
   // --- internal helpers (all Drift types stay here) ---
+
+  Future<Set<int>> _hiddenDuplicateFileIds(List<int> fileIds) async {
+    if (fileIds.isEmpty) return const {};
+    final rows =
+        await (_db.select(_db.duplicateGroupMembers)..where(
+              (m) => m.fileId.isIn(fileIds) & m.isHiddenFromSearch.equals(true),
+            ))
+            .get();
+    return rows.map((r) => r.fileId).toSet();
+  }
 
   Future<void> _ensureExists(int documentId) async {
     final Document? doc = await (_db.select(

@@ -2,6 +2,9 @@
 
 import 'package:get_it/get_it.dart';
 
+import '../../features/duplicates/data/repositories/drift_duplicate_review_repository.dart';
+import '../../features/duplicates/domain/repositories/duplicate_review_repository.dart';
+import '../../features/duplicates/presentation/bloc/duplicate_review_bloc.dart';
 import '../../features/import/application/folder_picker.dart';
 import '../../features/import/application/import_coordinator.dart';
 import '../../features/import/application/protected_roots_provider.dart';
@@ -75,7 +78,7 @@ import '../time/clock.dart';
 /// Global service locator.
 final GetIt getIt = GetIt.instance;
 
-/// Registers application dependencies (M1 shell + M4 import + M5 documents + M7 file open + M8.1–M8.6 managed copy).
+/// Registers application dependencies (M1 shell + M4 import + M5 documents + M7 file open + M8.1–M8.6 managed copy + M9.1 duplicate review).
 ///
 /// The production [AppDatabase] is a single lazy singleton (its connection opens
 /// lazily on first query and closes on [GetIt.reset]). Tests may register an
@@ -313,5 +316,12 @@ void configureDependencies() {
         getIt<RepairCopyRoot>(),
         getIt<ApplyDefaultCopyRoots>(),
       ),
+    )
+    // M9.1 duplicate review: read-only repository and BLoC.
+    ..registerLazySingleton<DuplicateReviewRepository>(
+      () => DriftDuplicateReviewRepository(getIt<AppDatabase>()),
+    )
+    ..registerFactory<DuplicateReviewBloc>(
+      () => DuplicateReviewBloc(repository: getIt<DuplicateReviewRepository>()),
     );
 }

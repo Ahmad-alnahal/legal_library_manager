@@ -121,16 +121,18 @@ void main() {
       expect(tempDir.listSync(), isEmpty);
     });
 
-    test('rejects a backup root containing both a quote and a null byte',
-        () async {
-      final service = SqliteDatabaseBackupService(db);
-      final result = await service.createBackup(
-        backupRoot: "C:\\bad'\x00root",
-        operationId: 'op-3',
-        timestamp: DateTime.utc(2026, 6, 18),
-      );
-      expect(result, isA<BackupFailure>());
-      expect(tempDir.listSync(), isEmpty);
-    });
+    test(
+      'rejects a backup root containing both a quote and a null byte',
+      () async {
+        final service = SqliteDatabaseBackupService(db);
+        final result = await service.createBackup(
+          backupRoot: "C:\\bad'\x00root",
+          operationId: 'op-3',
+          timestamp: DateTime.utc(2026, 6, 18),
+        );
+        expect(result, isA<BackupFailure>());
+        expect(tempDir.listSync(), isEmpty);
+      },
+    );
   });
 }

@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:drift/drift.dart' as drift;
 import 'package:legal_library_manager/core/database/app_database.dart';
 import 'package:legal_library_manager/core/database/seeding/reference_seeder.dart';
 import 'package:legal_library_manager/features/documents/data/repositories/drift_document_metadata_repository.dart';
@@ -99,6 +100,50 @@ void main() {
       expect(agg.files, isNotEmpty);
       expect(agg.classifiedAt, isNotNull);
     });
+
+    test(
+      'hides duplicate members marked hidden from review source files',
+      () async {
+        final int id = await classifiedBook();
+        final int hiddenFileId = await addHealthySource(db, id);
+        final int visibleFileId = await addHealthySource(db, id);
+        final int groupId = await db
+            .into(db.duplicateGroups)
+            .insert(
+              DuplicateGroupsCompanion.insert(
+                groupCode: 'DUP-GROUP-TEST',
+                sha256Hash: 'b' * 64,
+                createdAt: kSeedNow,
+                updatedAt: kSeedNow,
+              ),
+            );
+        await db
+            .into(db.duplicateGroupMembers)
+            .insert(
+              DuplicateGroupMembersCompanion.insert(
+                duplicateGroupId: groupId,
+                fileId: hiddenFileId,
+                addedAt: kSeedNow,
+                isHiddenFromSearch: const drift.Value(true),
+              ),
+            );
+        await db
+            .into(db.duplicateGroupMembers)
+            .insert(
+              DuplicateGroupMembersCompanion.insert(
+                duplicateGroupId: groupId,
+                fileId: visibleFileId,
+                addedAt: kSeedNow,
+              ),
+            );
+
+        final agg = await loadAggregate.call(id);
+
+        expect(agg, isNotNull);
+        expect(agg!.files.map((f) => f.id), isNot(contains(hiddenFileId)));
+        expect(agg.files.map((f) => f.id), contains(visibleFileId));
+      },
+    );
 
     test('returns null for a missing document', () async {
       expect(await loadAggregate.call(999999), isNull);

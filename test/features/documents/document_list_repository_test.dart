@@ -111,7 +111,10 @@ void main() {
           );
     }
 
-    Future<void> markDuplicate(int fileId) async {
+    Future<void> markDuplicate(
+      int fileId, {
+      bool hiddenFromSearch = false,
+    }) async {
       final groupId = await db
           .into(db.duplicateGroups)
           .insert(
@@ -129,6 +132,7 @@ void main() {
               duplicateGroupId: groupId,
               fileId: fileId,
               addedAt: now,
+              isHiddenFromSearch: Value(hiddenFromSearch),
             ),
           );
     }
@@ -312,6 +316,29 @@ void main() {
       expect(files.first.id, second);
       expect(files.first.isPreferred, isTrue);
       expect(files.where((file) => file.isPreferred), hasLength(1));
+    });
+
+    test('source-file details omit hidden duplicate members', () async {
+      final documentId = await addDocument(title: 'مرجع', updatedAt: now);
+      final hidden = await addFile(
+        documentId,
+        name: 'hidden.pdf',
+        health: 'healthy',
+        path: r'C:\src\hidden.pdf',
+      );
+      final visible = await addFile(
+        documentId,
+        name: 'visible.pdf',
+        health: 'healthy',
+        path: r'C:\src\visible.pdf',
+      );
+      await markDuplicate(hidden, hiddenFromSearch: true);
+      await markDuplicate(visible);
+
+      final files = await repository.getSourceFiles(documentId);
+
+      expect(files.map((file) => file.id), isNot(contains(hidden)));
+      expect(files.map((file) => file.id), contains(visible));
     });
 
     test(
