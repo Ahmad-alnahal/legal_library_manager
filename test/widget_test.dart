@@ -6,6 +6,8 @@ import 'package:legal_library_manager/core/database/app_database.dart';
 import 'package:legal_library_manager/core/di/injection.dart';
 import 'package:legal_library_manager/features/shell/presentation/pages/app_shell_page.dart';
 
+import 'support/managed_copy_test_doubles.dart';
+
 // Stable Arabic UI strings asserted by these tests (mirrors lib/l10n/app_ar.arb).
 const String _navDashboard = 'لوحة القيادة';
 const String _navImport = 'استيراد';
@@ -44,6 +46,10 @@ void main() {
       dispose: (db) => db.close(),
     );
     configureDependencies();
+    // Settings navigation triggers automatic copy-root setup, whose production
+    // resolver calls path_provider — a platform channel that never completes
+    // under flutter_test. The stub keeps it in-process.
+    useStubDocumentsDirectoryResolver();
   });
 
   testWidgets('app defaults to RTL', (tester) async {

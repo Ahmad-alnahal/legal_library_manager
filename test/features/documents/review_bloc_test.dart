@@ -361,6 +361,40 @@ void main() {
     expect(bloc.state.documentStatus, ReviewDocumentStatus.loaded);
   });
 
+  test(
+    'refresh syncs the selected queue tile workflow from loaded aggregate',
+    () async {
+      var copied = false;
+      final queue = FakeReviewQueueRepository((q) async => qPage([1], 1));
+      final load = FakeLoad()
+        ..handler = (id) async =>
+            makeAgg(id, status: copied ? 'copied_to_library' : 'classified');
+      final bloc = build(queue: queue, load: load);
+      addTearDown(bloc.close);
+
+      bloc.add(const ReviewQueueScopeChanged(ReviewQueueScope.classified));
+      await waitFor(bloc, (s) => s.scope == ReviewQueueScope.classified);
+      bloc.add(const ReviewDocumentSelected(1));
+      await waitFor(
+        bloc,
+        (s) => s.documentStatus == ReviewDocumentStatus.loaded,
+      );
+      expect(bloc.state.queueItems.single.workflowStatusKey, 'classified');
+
+      copied = true;
+      bloc.add(const ReviewRefreshRequested());
+      await waitFor(
+        bloc,
+        (s) => s.aggregate?.workflowStatusKey == 'copied_to_library',
+      );
+
+      expect(
+        bloc.state.queueItems.single.workflowStatusKey,
+        'copied_to_library',
+      );
+    },
+  );
+
   test('return is rejected for a non-classified document', () async {
     final queue = FakeReviewQueueRepository((q) async => qPage([1], 1));
     final load = FakeLoad()..handler = (id) async => makeAgg(id);

@@ -290,6 +290,58 @@ void main() {
       expect(files.single.isReadOnlySource, isTrue);
     });
 
+    test('sets exactly one healthy PDF source as preferred', () async {
+      final documentId = await addDocument(title: 'مرجع', updatedAt: now);
+      final first = await addFile(
+        documentId,
+        name: 'first.pdf',
+        health: 'healthy',
+        path: r'C:\src\first.pdf',
+      );
+      final second = await addFile(
+        documentId,
+        name: 'second.pdf',
+        health: 'healthy',
+        path: r'C:\src\second.pdf',
+      );
+
+      await repository.setPreferredSourceFile(documentId, first);
+      await repository.setPreferredSourceFile(documentId, second);
+
+      final files = await repository.getSourceFiles(documentId);
+      expect(files.first.id, second);
+      expect(files.first.isPreferred, isTrue);
+      expect(files.where((file) => file.isPreferred), hasLength(1));
+    });
+
+    test(
+      'rejects an unhealthy preferred source without changing metadata',
+      () async {
+        final documentId = await addDocument(title: 'مرجع', updatedAt: now);
+        final healthy = await addFile(
+          documentId,
+          name: 'healthy.pdf',
+          health: 'healthy',
+          path: r'C:\src\healthy.pdf',
+        );
+        final corrupted = await addFile(
+          documentId,
+          name: 'corrupted.pdf',
+          health: 'corrupted',
+          path: r'C:\src\corrupted.pdf',
+        );
+        await repository.setPreferredSourceFile(documentId, healthy);
+
+        await expectLater(
+          repository.setPreferredSourceFile(documentId, corrupted),
+          throwsStateError,
+        );
+
+        final files = await repository.getSourceFiles(documentId);
+        expect(files.singleWhere((file) => file.isPreferred).id, healthy);
+      },
+    );
+
     test(
       'list item exposes the preferred source filename as title fallback',
       () async {

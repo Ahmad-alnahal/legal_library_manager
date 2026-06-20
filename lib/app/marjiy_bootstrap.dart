@@ -8,6 +8,7 @@ import '../core/theme/app_colors.dart';
 import '../core/theme/app_radii.dart';
 import '../core/theme/app_spacing.dart';
 import '../core/widgets/app_panel.dart';
+import '../features/managed_copy/application/initialize_copy_roots.dart';
 import '../features/shell/presentation/pages/app_shell_page.dart';
 import '../l10n/app_localizations.dart';
 import 'app.dart';
@@ -21,6 +22,10 @@ Future<void> initializeApplication() async {
   final AppDatabase database = getIt<AppDatabase>();
   await ReferenceSeeder(database).seedAll();
   await SettingsSeeder(database).seedDefaults();
+  // M8.4: configure default copy roots under <Documents>\MARJIY. Never
+  // throws; failures surface as a requires-attention state in Settings and
+  // keep managed-copy actions blocked without blocking the rest of the app.
+  await getIt<InitializeCopyRoots>()();
 }
 
 void _reportStartupError(Object error, StackTrace stack) {

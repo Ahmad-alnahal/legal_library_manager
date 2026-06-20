@@ -6,6 +6,8 @@ import 'package:legal_library_manager/core/di/injection.dart';
 import 'package:legal_library_manager/features/dashboard/presentation/widgets/metric_card.dart';
 import 'package:legal_library_manager/features/shell/presentation/widgets/side_navigation.dart';
 
+import '../../support/managed_copy_test_doubles.dart';
+
 // Navigation destination icons (unique within the rail). Tapping by icon works
 // whether the rail is extended (with labels) or collapsed to icons only, which
 // is what happens at the narrow widths exercised here.
@@ -48,6 +50,10 @@ void main() {
       dispose: (db) => db.close(),
     );
     configureDependencies();
+    // Settings (visited below) triggers automatic copy-root setup, whose
+    // production resolver calls path_provider — a platform channel that never
+    // completes under flutter_test. The stub keeps it in-process.
+    useStubDocumentsDirectoryResolver();
   });
 
   // Realistic narrow Windows client areas, plus the previously-tested width.

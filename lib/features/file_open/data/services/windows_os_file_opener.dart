@@ -66,10 +66,13 @@ class WindowsOsFileOpener implements OsFileOpener {
 
   @override
   Future<OsOpenResult> openFolder(String absolutePath) {
-    // The /select,<path> value is a single argument whose flag and value are
-    // joined by a comma (explorer.exe's own syntax, not shell syntax). No
-    // shell parses the combined string; it is passed verbatim via CreateProcess.
-    return _launchExplorer(['/select,$absolutePath']);
+    // The /select,<path> value is a single argument (explorer.exe's own syntax,
+    // not shell syntax). The path is wrapped in double quotes so that
+    // Explorer's argument parser treats it as one token even when the path
+    // contains commas (which Explorer would otherwise interpret as delimiters).
+    // runInShell: false means CreateProcess — not the Windows command shell —
+    // handles the command line, so the embedded quotes survive correctly.
+    return _launchExplorer(['/select,"$absolutePath"']);
   }
 
   Future<OsOpenResult> _launchExplorer(List<String> arguments) async {

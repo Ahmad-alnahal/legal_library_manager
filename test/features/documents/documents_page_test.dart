@@ -402,6 +402,9 @@ class FakeDocumentRepository implements DocumentListRepository {
       ),
     ];
   }
+
+  @override
+  Future<void> setPreferredSourceFile(int documentId, int fileId) async {}
 }
 
 class FakeReferenceRepository implements ReferenceRepository {

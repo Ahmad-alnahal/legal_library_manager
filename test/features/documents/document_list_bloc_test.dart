@@ -214,4 +214,7 @@ class FakeDocumentListRepository implements DocumentListRepository {
   @override
   Future<List<DocumentSourceFileItem>> getSourceFiles(int documentId) async =>
       const [];
+
+  @override
+  Future<void> setPreferredSourceFile(int documentId, int fileId) async {}
 }

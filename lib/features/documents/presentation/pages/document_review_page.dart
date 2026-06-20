@@ -17,6 +17,8 @@ import '../../../file_open/domain/entities/file_health_eligibility.dart';
 import '../../../file_open/presentation/bloc/file_open_bloc.dart';
 import '../../../file_open/presentation/widgets/file_open_feedback.dart';
 import '../../../file_open/presentation/widgets/open_actions.dart';
+import '../../../managed_copy/presentation/bloc/managed_copy_bloc.dart';
+import '../../../managed_copy/presentation/widgets/managed_copy_feedback.dart';
 import '../../../reference/domain/repositories/reference_repository.dart';
 import '../../domain/entities/document_aggregate.dart';
 import '../../domain/entities/document_classification_input.dart';
@@ -49,12 +51,19 @@ class DocumentReviewPage extends StatelessWidget {
           create: (_) => getIt<ReviewBloc>()..add(const ReviewStarted()),
         ),
         BlocProvider<FileOpenBloc>(create: (_) => getIt<FileOpenBloc>()),
+        BlocProvider<ManagedCopyBloc>(create: (_) => getIt<ManagedCopyBloc>()),
       ],
       child: FileOpenFeedbackListener(
-        child: _ReviewWorkspace(
-          references: getIt<ReferenceRepository>(),
-          categories: getIt<CategoryManagementRepository>(),
-          documents: getIt<DocumentListRepository>(),
+        child: Builder(
+          builder: (context) => ManagedCopyFeedbackListener(
+            onSuccess: () =>
+                context.read<ReviewBloc>().add(const ReviewRefreshRequested()),
+            child: _ReviewWorkspace(
+              references: getIt<ReferenceRepository>(),
+              categories: getIt<CategoryManagementRepository>(),
+              documents: getIt<DocumentListRepository>(),
+            ),
+          ),
         ),
       ),
     );
@@ -717,12 +726,43 @@ class _SourceFilesViewState extends State<_SourceFilesView> {
     _files = widget.documents.getSourceFiles(widget.documentId);
   }
 
+  Future<void> _setPreferred(DocumentSourceFileItem file) async {
+    try {
+      await widget.documents.setPreferredSourceFile(widget.documentId, file.id);
+      if (!mounted) return;
+      setState(() {
+        _files = widget.documents.getSourceFiles(widget.documentId);
+      });
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(content: Text('تم تعيين ${file.fileName} كمصدر مفضل.')),
+        );
+    } catch (e) {
+      if (!mounted) return;
+      debugPrint('setPreferredSourceFile failed: $e');
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(content: Text('تعذّر تعيين الملف كمصدر مفضل بأمان.')),
+        );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final text = Theme.of(context).textTheme;
     final aggregate = widget.aggregate;
     final convertedHealthy = aggregate.files.where(
       (f) => f.fileRoleKey == 'converted_pdf',
+    );
+    final hasMissingManagedCopy = aggregate.files.any(
+      (f) => f.fileRoleKey == 'managed_copy' && f.fileHealthKey == 'missing',
+    );
+    final hasHealthyManagedCopy = aggregate.files.any(
+      (f) =>
+          f.fileRoleKey == 'managed_copy' &&
+          canOpenFileDirectly(f.fileHealthKey),
     );
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -757,6 +797,10 @@ class _SourceFilesViewState extends State<_SourceFilesView> {
             padding: const EdgeInsets.only(top: AppSpacing.xs),
             child: Text('الرمز: ${aggregate.documentCode}'),
           ),
+        if (hasMissingManagedCopy && !hasHealthyManagedCopy) ...[
+          const SizedBox(height: AppSpacing.sm),
+          const _MissingManagedCopyWarning(),
+        ],
         const SizedBox(height: AppSpacing.md),
         FutureBuilder<List<DocumentSourceFileItem>>(
           future: _files,
@@ -779,7 +823,16 @@ class _SourceFilesViewState extends State<_SourceFilesView> {
               children: [
                 Text('الملفات المصدرية', style: text.labelLarge),
                 const SizedBox(height: AppSpacing.sm),
-                ...files.map((file) => _SourceFileCard(file: file)),
+                ...files.map(
+                  (file) => _SourceFileCard(
+                    file: file,
+                    onSetPreferred:
+                        canOpenFileDirectly(file.fileHealthKey) &&
+                            file.absolutePath.toLowerCase().endsWith('.pdf')
+                        ? () => _setPreferred(file)
+                        : null,
+                  ),
+                ),
               ],
             );
           },
@@ -811,10 +864,53 @@ class _SourceFilesViewState extends State<_SourceFilesView> {
   }
 }
 
+/// Shown in the source-information panel when a managed-copy file record exists
+/// in the database but the physical PDF is no longer present on disk (M8.6).
+///
+/// Displayed after reconciliation has downgraded the document to 'classified',
+/// informing the user that re-copy is now available.
+class _MissingManagedCopyWarning extends StatelessWidget {
+  const _MissingManagedCopyWarning();
+
+  @override
+  Widget build(BuildContext context) {
+    const accent = AppStatusColors.warning;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppSpacing.sm),
+      decoration: BoxDecoration(
+        color: accent.background,
+        borderRadius: AppRadii.control,
+        border: Border.all(color: accent.foreground.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(
+            Icons.warning_amber_outlined,
+            size: 16,
+            color: accent.foreground,
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Text(
+              'النسخة المدارة مفقودة. يمكن إعادة النسخ بعد التحقق.',
+              style: Theme.of(
+                context,
+              ).textTheme.bodySmall?.copyWith(color: accent.foreground),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
 class _SourceFileCard extends StatelessWidget {
-  const _SourceFileCard({required this.file});
+  const _SourceFileCard({required this.file, this.onSetPreferred});
 
   final DocumentSourceFileItem file;
+  final VoidCallback? onSetPreferred;
 
   @override
   Widget build(BuildContext context) {
@@ -861,6 +957,20 @@ class _SourceFileCard extends StatelessWidget {
           OpenActions(
             fileId: file.id,
             showOpenFile: canOpenFileDirectly(file.fileHealthKey),
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: file.isPreferred
+                ? StatusChip(
+                    label: 'المصدر المفضل',
+                    status: AppStatusColors.success,
+                  )
+                : AppSecondaryButton(
+                    label: 'تعيين كمصدر مفضل',
+                    icon: Icons.star_outline,
+                    onPressed: onSetPreferred,
+                  ),
           ),
         ],
       ),
@@ -1433,8 +1543,8 @@ class _FormFieldsState extends State<_FormFields> {
             controller: _c('legislation.issueNumber'),
             onChanged: _emit,
           ),
-          _LabeledField(
-            label: 'تاريخ النشر (YYYY-MM-DD)',
+          _DateField(
+            label: 'تاريخ النشر',
             controller: _c('legislation.publicationDate'),
             onChanged: _emit,
           ),
@@ -1712,7 +1822,9 @@ class _ActionBar extends StatelessWidget {
         final loaded = state.documentStatus == ReviewDocumentStatus.loaded;
         final busy = state.isBusy;
         final dirty = state.isDirty;
-        final isClassified = state.aggregate?.workflowStatusKey == 'classified';
+        final workflowStatus = state.aggregate?.workflowStatusKey;
+        final isClassified = workflowStatus == 'classified';
+        final isCopied = workflowStatus == 'copied_to_library';
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -1742,13 +1854,14 @@ class _ActionBar extends StatelessWidget {
                       ? () => bloc.add(const ReviewDraftSaved())
                       : null,
                 ),
-                AppSecondaryButton(
-                  label: 'اعتماد التصنيف',
-                  icon: Icons.verified_outlined,
-                  onPressed: loaded && !busy && !dirty
-                      ? () => bloc.add(const ReviewClassificationApproved())
-                      : null,
-                ),
+                if (!isClassified && !isCopied)
+                  AppSecondaryButton(
+                    label: 'اعتماد التصنيف',
+                    icon: Icons.verified_outlined,
+                    onPressed: loaded && !busy && !dirty
+                        ? () => bloc.add(const ReviewClassificationApproved())
+                        : null,
+                  ),
                 if (isClassified)
                   AppSecondaryButton(
                     label: 'إعادة إلى قيد التصنيف',
@@ -1757,13 +1870,24 @@ class _ActionBar extends StatelessWidget {
                         ? () => _confirmReturn(context, bloc)
                         : null,
                   ),
-                const Tooltip(
-                  message: 'سيتوفر النسخ إلى المكتبة المدارة في مرحلة لاحقة.',
-                  child: AppSecondaryButton(
-                    label: 'نسخ إلى المكتبة المدارة',
-                    icon: Icons.drive_file_move_outline,
+                if (!isCopied)
+                  BlocBuilder<ManagedCopyBloc, ManagedCopyState>(
+                    builder: (context, copyState) => AppSecondaryButton(
+                      label: copyState.isRunning
+                          ? 'جارٍ النسخ والتحقق...'
+                          : 'نسخ إلى المكتبة المدارة',
+                      icon: Icons.content_copy_outlined,
+                      onPressed:
+                          loaded &&
+                              isClassified &&
+                              !busy &&
+                              !dirty &&
+                              !copyState.isRunning
+                          ? () =>
+                                _confirmCopy(context, state.selectedDocumentId!)
+                          : null,
+                    ),
                   ),
-                ),
               ],
             ),
           ],
@@ -1795,6 +1919,31 @@ class _ActionBar extends StatelessWidget {
     );
     if (confirmed == true) {
       bloc.add(const ReviewReturnedToInProgress());
+    }
+  }
+
+  Future<void> _confirmCopy(BuildContext context, int documentId) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        title: const Text('نسخ إلى المكتبة المدارة'),
+        content: const Text(
+          'سيُنشئ مرجعي نسخة PDF مدارة بعد إنشاء نسخة احتياطية والتحقق من التطابق. لن يتغير الملف الأصلي.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(dialogContext).pop(false),
+            child: const Text('إلغاء'),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(dialogContext).pop(true),
+            child: const Text('بدء النسخ'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && context.mounted) {
+      context.read<ManagedCopyBloc>().add(ManagedCopyRequested(documentId));
     }
   }
 }
@@ -1853,6 +2002,55 @@ class _LabeledField extends StatelessWidget {
       decoration: InputDecoration(labelText: label),
       onChanged: (_) => onChanged(),
     );
+  }
+}
+
+class _DateField extends StatelessWidget {
+  const _DateField({
+    required this.label,
+    required this.controller,
+    required this.onChanged,
+  });
+
+  final String label;
+  final TextEditingController controller;
+  final VoidCallback onChanged;
+
+  @override
+  Widget build(BuildContext context) {
+    return TextField(
+      controller: controller,
+      readOnly: true,
+      decoration: InputDecoration(
+        labelText: label,
+        hintText: 'YYYY-MM-DD',
+        suffixIcon: IconButton(
+          tooltip: 'اختيار التاريخ',
+          onPressed: () => _pick(context),
+          icon: const Icon(Icons.calendar_month_outlined),
+        ),
+      ),
+      onTap: () => _pick(context),
+    );
+  }
+
+  Future<void> _pick(BuildContext context) async {
+    final parsed = DateTime.tryParse(controller.text);
+    final selected = await showDatePicker(
+      context: context,
+      initialDate: parsed ?? DateTime.now(),
+      firstDate: DateTime(1800),
+      lastDate: DateTime(2100),
+      helpText: label,
+      cancelText: 'إلغاء',
+      confirmText: 'اختيار',
+    );
+    if (selected == null) return;
+    controller.text =
+        '${selected.year.toString().padLeft(4, '0')}-'
+        '${selected.month.toString().padLeft(2, '0')}-'
+        '${selected.day.toString().padLeft(2, '0')}';
+    onChanged();
   }
 }
 

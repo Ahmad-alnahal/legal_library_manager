@@ -130,9 +130,38 @@ LIMIT ? OFFSET ?
             fileHealthKey: row.fileHealthKey,
             fileSizeBytes: row.fileSizeBytes,
             isReadOnlySource: row.isReadOnlySource,
+            isPreferred: row.isPreferred,
           ),
         )
         .toList(growable: false);
+  }
+
+  @override
+  Future<void> setPreferredSourceFile(int documentId, int fileId) {
+    return _db.transaction(() async {
+      final selected =
+          await (_db.select(_db.documentFiles)..where(
+                (f) =>
+                    f.id.equals(fileId) &
+                    f.documentId.equals(documentId) &
+                    f.fileRoleKey.equals('source_original') &
+                    f.fileHealthKey.equals('healthy') &
+                    f.extension.lower().equals('.pdf'),
+              ))
+              .getSingleOrNull();
+      if (selected == null) {
+        throw StateError('Preferred source must be a healthy source PDF.');
+      }
+
+      await (_db.update(_db.documentFiles)..where(
+            (f) =>
+                f.documentId.equals(documentId) &
+                f.fileRoleKey.equals('source_original'),
+          ))
+          .write(const DocumentFilesCompanion(isPreferred: Value(false)));
+      await (_db.update(_db.documentFiles)..where((f) => f.id.equals(fileId)))
+          .write(const DocumentFilesCompanion(isPreferred: Value(true)));
+    });
   }
 
   _Where _buildWhere(DocumentListFilters filters) {

@@ -1,8 +1,10 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/validation/validation_result.dart';
+import '../../../managed_copy/application/check_managed_copy_health.dart';
 import '../../domain/entities/document_aggregate.dart';
 import '../../domain/entities/draft_save_input.dart';
+import '../../domain/entities/review_queue_item.dart';
 import '../../domain/entities/review_queue_query.dart';
 import '../../domain/repositories/review_queue_repository.dart';
 import '../../domain/usecases/approve_classification.dart';
@@ -26,6 +28,7 @@ class ReviewBloc extends Bloc<ReviewEvent, ReviewState> {
     required this.saveDraft,
     required this.approveClassification,
     required this.returnToInProgress,
+    this.checkManagedCopyHealth,
     this.pageSize = 50,
   }) : super(const ReviewState()) {
     if (pageSize < 1 || pageSize > 200) {
@@ -46,6 +49,7 @@ class ReviewBloc extends Bloc<ReviewEvent, ReviewState> {
     on<ReviewClassificationApproved>(_onApproved);
     on<ReviewReturnedToInProgress>(_onReturnedToInProgress);
     on<ReviewRetryRequested>(_onRetry);
+    on<ReviewRefreshRequested>(_onRefresh);
   }
 
   final ReviewQueueRepository queueRepository;
@@ -53,6 +57,13 @@ class ReviewBloc extends Bloc<ReviewEvent, ReviewState> {
   final SaveDocumentDraft saveDraft;
   final ApproveClassification approveClassification;
   final ReturnToInProgress returnToInProgress;
+
+  /// Optional: when provided, called after loading a 'copied_to_library'
+  /// document to detect and reconcile a missing physical managed-copy file
+  /// (M8.6). When null the health check is skipped (e.g., in tests that do
+  /// not exercise the managed-copy feature).
+  final CheckManagedCopyHealth? checkManagedCopyHealth;
+
   final int pageSize;
 
   /// Monotonic generations guard against stale async results overwriting newer
@@ -180,7 +191,24 @@ class ReviewBloc extends Bloc<ReviewEvent, ReviewState> {
       final bool alreadyShown =
           id == state.selectedDocumentId &&
           state.documentStatus == ReviewDocumentStatus.loaded;
-      if (alreadyShown) return;
+      if (alreadyShown) {
+        // Only re-load when the M8.6 health check is relevant: a
+        // 'copied_to_library' document or one with a known-missing managed
+        // copy may have its status changed by the health check, so we need a
+        // fresh aggregate. For every other status the reload is unnecessary
+        // and would emit a loading spinner that discards unsaved edits.
+        final needsHealthCheck =
+            checkManagedCopyHealth != null &&
+            (state.aggregate?.workflowStatusKey == 'copied_to_library' ||
+                (state.aggregate?.files.any(
+                      (f) =>
+                          f.fileRoleKey == 'managed_copy' &&
+                          f.fileHealthKey == 'missing',
+                    ) ??
+                    false));
+        if (needsHealthCheck && !state.isDirty) await _loadDocument(id, emit);
+        return;
+      }
       // Selecting a different document with unsaved edits must not silently
       // discard them: record a pending selection requiring confirmation.
       if (state.isDirty && id != state.selectedDocumentId) {
@@ -223,12 +251,43 @@ class ReviewBloc extends Bloc<ReviewEvent, ReviewState> {
       ),
     );
     try {
-      final DocumentAggregate? agg = await loadDocument.call(id);
+      DocumentAggregate? agg = await loadDocument.call(id);
       if (version != _loadVersion || emit.isDone) return;
       if (agg == null) {
         emit(state.copyWith(documentStatus: ReviewDocumentStatus.notFound));
         return;
       }
+
+      // M8.6: when a 'copied_to_library' document is opened, verify the
+      // physical managed-copy file exists. If missing, the health check marks
+      // the row 'missing', appends an audit event, and downgrades the document
+      // to 'classified' so re-copy is possible. Reload the aggregate to
+      // reflect the updated state before emitting.
+      final hasMissingManagedCopy = agg.files.any(
+        (file) =>
+            file.fileRoleKey == 'managed_copy' &&
+            file.fileHealthKey == 'missing',
+      );
+      if ((agg.workflowStatusKey == 'copied_to_library' ||
+              hasMissingManagedCopy) &&
+          checkManagedCopyHealth != null) {
+        final healthResult = await checkManagedCopyHealth!.call(id);
+        if (version != _loadVersion || emit.isDone) return;
+        final shouldReloadAfterHealthCheck =
+            hasMissingManagedCopy ||
+            healthResult == CheckManagedCopyHealthResult.missingReconciled ||
+            healthResult == CheckManagedCopyHealthResult.alreadyMissing;
+        if (shouldReloadAfterHealthCheck &&
+            healthResult != CheckManagedCopyHealthResult.reconciliationFailed) {
+          agg = await loadDocument.call(id);
+          if (version != _loadVersion || emit.isDone) return;
+          if (agg == null) {
+            emit(state.copyWith(documentStatus: ReviewDocumentStatus.notFound));
+            return;
+          }
+        }
+      }
+
       // Only a *fresh* selection may suggest a title from the filename, so a
       // suggestion is never re-applied when the same document is reloaded after
       // a save/return (which would re-overwrite a title the user edited or
@@ -270,7 +329,7 @@ class ReviewBloc extends Bloc<ReviewEvent, ReviewState> {
       }
     }
     emit(
-      state.copyWith(
+      _stateWithQueueItemSynced(agg).copyWith(
         documentStatus: ReviewDocumentStatus.loaded,
         aggregate: agg,
         baselineDraft: baseline,
@@ -279,6 +338,32 @@ class ReviewBloc extends Bloc<ReviewEvent, ReviewState> {
         clearDocumentError: true,
       ),
     );
+  }
+
+  ReviewState _stateWithQueueItemSynced(DocumentAggregate agg) {
+    final index = state.queueItems.indexWhere(
+      (item) => item.id == agg.documentId,
+    );
+    if (index < 0) return state;
+
+    final item = state.queueItems[index];
+    if (item.workflowStatusKey == agg.workflowStatusKey &&
+        item.documentCode == agg.documentCode &&
+        item.title == agg.common.title) {
+      return state;
+    }
+
+    final updatedItems = [...state.queueItems];
+    updatedItems[index] = ReviewQueueItem(
+      id: item.id,
+      workflowStatusKey: agg.workflowStatusKey,
+      updatedAt: item.updatedAt,
+      documentCode: agg.documentCode ?? item.documentCode,
+      title: agg.common.title,
+      sourceFileName: item.sourceFileName,
+      documentTypeNameAr: item.documentTypeNameAr,
+    );
+    return state.copyWith(queueItems: updatedItems);
   }
 
   /// Derives a suggested title from a source filename by removing only the final
@@ -512,6 +597,17 @@ class ReviewBloc extends Bloc<ReviewEvent, ReviewState> {
         state.queueErrorKey == 'review_queue_next_page_failed') {
       add(const ReviewNextPageRequested());
     }
+  }
+
+  Future<void> _onRefresh(
+    ReviewRefreshRequested event,
+    Emitter<ReviewState> emit,
+  ) async {
+    if (state.isBusy) return;
+    final selected = state.selectedDocumentId;
+    await _loadQueueFirstPage(emit, limit: _preservedLimit());
+    if (emit.isDone || selected == null) return;
+    await _loadDocument(selected, emit);
   }
 
   /// The id of the document that follows [docId] in the currently loaded queue

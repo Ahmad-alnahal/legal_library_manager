@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radii.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -9,39 +11,80 @@ import '../../../../core/widgets/app_panel.dart';
 import '../../../../core/widgets/page_header.dart';
 import '../../../../core/widgets/screen_container.dart';
 import '../../../../l10n/app_localizations.dart';
+import '../../../managed_copy/domain/entities/copy_roots_setup_report.dart';
+import '../../../managed_copy/domain/services/copy_root_picker.dart';
+import '../../../managed_copy/presentation/bloc/copy_settings_bloc.dart';
 
-/// Settings screen — M1 foundation only.
-///
-/// Shows the page title, a prominent copy-only policy panel, and placeholder
-/// settings sections with disabled safe actions. The Stitch "black canvas"
-/// artifact is intentionally not reproduced, and no action is wired.
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final AppLocalizations l10n = AppLocalizations.of(context);
-    return ScreenContainer(
-      children: [
-        PageHeader(title: l10n.settingsTitle, subtitle: l10n.settingsSubtitle),
-        const SizedBox(height: AppSpacing.lg),
-        _CopyOnlyPolicyPanel(l10n: l10n),
-        const SizedBox(height: AppSpacing.lg),
-        _SettingsSections(l10n: l10n),
-      ],
+    return BlocProvider(
+      create: (_) =>
+          getIt<CopySettingsBloc>()..add(const CopySettingsStarted()),
+      child: const _SettingsBody(),
+    );
+  }
+}
+
+class _SettingsBody extends StatelessWidget {
+  const _SettingsBody();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return BlocListener<CopySettingsBloc, CopySettingsState>(
+      listenWhen: (a, b) => a.sequence != b.sequence && b.messageKey != null,
+      listener: (context, state) {
+        final text = switch (state.messageKey) {
+          'saved' => 'تم حفظ مواقع المكتبة المدارة والنسخ الاحتياطي بأمان.',
+          'choose_both' => 'اختر مجلدي المكتبة المدارة والنسخ الاحتياطي.',
+          'unsafe_overlap' =>
+            'يجب أن تكون المجلدات منفصلة عن بعضها وعن قاعدة البيانات.',
+          'recreated' =>
+            'تمت إعادة إنشاء المجلد المفقود بأمان دون أي تغيير على الملفات الحالية.',
+          'recreate_unsafe' =>
+            'تعذّرت إعادة الإنشاء: يجب أن يكون المجلد منفصلًا عن المجلدات الأخرى وقاعدة البيانات ومجلدات المصدر.',
+          'recreate_invalid' =>
+            'تعذّرت إعادة الإنشاء: مسار المجلد المُهيأ غير صالح.',
+          'recreate_failed' =>
+            'تعذّرت إعادة إنشاء المجلد. يبقى الإعداد بحاجة إلى الانتباه دون أي تغيير على الملفات الحالية.',
+          'defaults_applied' =>
+            'تم تطبيق المجلدات الافتراضية لمرجعي. الملفات المدارة والنسخ الاحتياطية السابقة في مواقعها الأصلية.',
+          'defaults_resolution_failed' =>
+            'تعذّر تحديد مجلد المستندات. تحقق من صلاحيات النظام.',
+          'defaults_creation_failed' =>
+            'تعذّر إنشاء المجلدات الافتراضية. تحقق من المساحة المتاحة وصلاحيات الكتابة.',
+          _ => 'تعذّر اعتماد المجلد المحدد. اختر مجلدًا موجودًا وآمنًا.',
+        };
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(SnackBar(content: Text(text)));
+      },
+      child: ScreenContainer(
+        children: [
+          PageHeader(
+            title: l10n.settingsTitle,
+            subtitle: l10n.settingsSubtitle,
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          const _CopyOnlyPolicyPanel(),
+          const SizedBox(height: AppSpacing.lg),
+          const _CopyLocationsPanel(),
+        ],
+      ),
     );
   }
 }
 
 class _CopyOnlyPolicyPanel extends StatelessWidget {
-  const _CopyOnlyPolicyPanel({required this.l10n});
-
-  final AppLocalizations l10n;
+  const _CopyOnlyPolicyPanel();
 
   @override
   Widget build(BuildContext context) {
-    final TextTheme text = Theme.of(context).textTheme;
-    const StatusColor accent = AppStatusColors.teal;
+    final l10n = AppLocalizations.of(context);
+    const accent = AppStatusColors.teal;
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.all(AppSpacing.cardPadding),
@@ -50,35 +93,28 @@ class _CopyOnlyPolicyPanel extends StatelessWidget {
         borderRadius: AppRadii.card,
         border: Border.all(color: accent.foreground.withValues(alpha: 0.3)),
       ),
-      child: Column(
+      child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              Icon(Icons.policy_outlined, color: accent.foreground, size: 22),
-              const SizedBox(width: AppSpacing.sm),
-              Expanded(
-                child: Text(
+          Icon(Icons.lock_outline, color: accent.foreground),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
                   l10n.settingsCopyPolicyTitle,
-                  style: text.titleMedium?.copyWith(color: accent.foreground),
+                  style: Theme.of(context).textTheme.titleMedium,
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          Text(l10n.settingsCopyPolicyBody, style: text.bodyLarge),
-          const SizedBox(height: AppSpacing.md),
-          Row(
-            children: [
-              Icon(Icons.lock_outline, size: 16, color: accent.foreground),
-              const SizedBox(width: AppSpacing.xs),
-              Expanded(
-                child: Text(
+                const SizedBox(height: AppSpacing.xs),
+                Text(l10n.settingsCopyPolicyBody),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
                   l10n.settingsCopyPolicyActive,
-                  style: text.labelLarge?.copyWith(color: accent.foreground),
+                  style: TextStyle(color: accent.foreground),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ],
       ),
@@ -86,102 +122,335 @@ class _CopyOnlyPolicyPanel extends StatelessWidget {
   }
 }
 
-class _SettingsSections extends StatelessWidget {
-  const _SettingsSections({required this.l10n});
-
-  final AppLocalizations l10n;
+class _CopyLocationsPanel extends StatelessWidget {
+  const _CopyLocationsPanel();
 
   @override
   Widget build(BuildContext context) {
-    final List<Widget> sections = [
-      _SettingsSection(
-        icon: Icons.drive_folder_upload_outlined,
-        title: l10n.settingsManagedLibraryTitle,
-        body: l10n.settingsManagedLibraryBody,
-        actions: [AppSecondaryButton(label: l10n.settingsActionChangeLocation)],
-        note: l10n.settingsPlaceholderNote,
+    return AppPanel(
+      child: BlocBuilder<CopySettingsBloc, CopySettingsState>(
+        builder: (context, state) {
+          if (state.loading) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          final bloc = context.read<CopySettingsBloc>();
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: AppSpacing.sm,
+                runSpacing: AppSpacing.xs,
+                children: [
+                  const Icon(
+                    Icons.folder_copy_outlined,
+                    color: AppColors.accentTeal,
+                  ),
+                  Text(
+                    'مواقع النسخ الآمن',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              const Text(
+                'تُحفظ ملفات PDF المدارة داخل مجلد files، وتبقى النسخ الاحتياطية في مجلد منفصل. '
+                'يجهّز التطبيق هذه المواقع تلقائيًا، ويمكن تغييرها كخيار متقدم.',
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              const Text(
+                'تغيير المواقع لا ينقل الملفات المدارة أو النسخ الاحتياطية السابقة؛ تبقى في مكانها الحالي.',
+              ),
+              if (state.requiresAttention) ...[
+                const SizedBox(height: AppSpacing.md),
+                const _AttentionBanner(),
+              ],
+              const SizedBox(height: AppSpacing.lg),
+              _LocationRow(
+                title: 'جذر المكتبة المدارة',
+                value: state.managedRoot,
+                status: state.managedStatus,
+                icon: Icons.library_books_outlined,
+                enabled: !state.busy,
+                onChoose: () => bloc.add(
+                  const CopyRootSelectionRequested(CopyRootKind.managedLibrary),
+                ),
+                onRecreate: state.managedStatus == CopyRootStatus.missing
+                    ? () => _confirmAndRecreate(
+                        context,
+                        bloc,
+                        CopyRootKind.managedLibrary,
+                      )
+                    : null,
+              ),
+              const Divider(height: AppSpacing.xl),
+              _LocationRow(
+                title: 'مجلد النسخ الاحتياطي لقاعدة البيانات',
+                value: state.backupRoot,
+                status: state.backupStatus,
+                icon: Icons.backup_outlined,
+                enabled: !state.busy,
+                onChoose: () => bloc.add(
+                  const CopyRootSelectionRequested(CopyRootKind.databaseBackup),
+                ),
+                onRecreate: state.backupStatus == CopyRootStatus.missing
+                    ? () => _confirmAndRecreate(
+                        context,
+                        bloc,
+                        CopyRootKind.databaseBackup,
+                      )
+                    : null,
+              ),
+              const Divider(height: AppSpacing.xl),
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: AppSecondaryButton(
+                  label: 'استخدام المجلدات الافتراضية',
+                  icon: Icons.restore_outlined,
+                  onPressed: !state.busy
+                      ? () => _confirmResetToDefaults(context, bloc)
+                      : null,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              const Text(
+                'تغيير المسارات إلى الافتراضي لا ينقل الملفات المدارة أو النسخ '
+                'الاحتياطية من مواقعها الحالية.',
+                style: TextStyle(fontSize: 12),
+              ),
+              if (state.busy) ...[
+                const SizedBox(height: AppSpacing.md),
+                const LinearProgressIndicator(),
+              ],
+            ],
+          );
+        },
       ),
-      _SettingsSection(
-        icon: Icons.storage_outlined,
-        title: l10n.settingsDatabaseTitle,
-        body: l10n.settingsDatabaseBody,
-        actions: [
-          AppSecondaryButton(label: l10n.settingsActionChooseLocation),
-          AppSecondaryButton(label: l10n.settingsActionVerifyStructure),
-        ],
-        note: l10n.settingsPlaceholderNote,
-      ),
-      _SettingsSection(
-        icon: Icons.backup_outlined,
-        title: l10n.settingsBackupTitle,
-        body: l10n.settingsBackupBody,
-        actions: const [],
-        note: l10n.settingsPlaceholderNote,
-      ),
-    ];
-
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final bool twoColumns = constraints.maxWidth >= 900;
-        const double gap = AppSpacing.lg;
-        final double itemWidth = twoColumns
-            ? (constraints.maxWidth - gap) / 2
-            : constraints.maxWidth;
-        return Wrap(
-          spacing: gap,
-          runSpacing: gap,
-          children: [
-            for (final Widget s in sections)
-              SizedBox(width: itemWidth, child: s),
-          ],
-        );
-      },
     );
   }
 }
 
-class _SettingsSection extends StatelessWidget {
-  const _SettingsSection({
-    required this.icon,
+/// Asks the user to confirm before any directory is created, then dispatches
+/// the explicit repair request (M8.5). Creation never happens without this
+/// confirmed click.
+Future<void> _confirmAndRecreate(
+  BuildContext context,
+  CopySettingsBloc bloc,
+  CopyRootKind kind,
+) async {
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: const Text('إعادة إنشاء المجلد'),
+      content: const Text(
+        'سيتم إنشاء المجلد المفقود في نفس المسار المُهيأ فقط، بعد التحقق من سلامته. '
+        'لا يتم نقل أو نسخ أو تعديل أو حذف أي ملفات موجودة.',
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(dialogContext).pop(false),
+          child: const Text('إلغاء'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(dialogContext).pop(true),
+          child: const Text('إعادة الإنشاء'),
+        ),
+      ],
+    ),
+  );
+  if (confirmed == true && !bloc.isClosed) {
+    bloc.add(CopyRootRepairRequested(kind));
+  }
+}
+
+/// Asks the user to confirm before resetting both roots to the MARJIY defaults
+/// (M8.6 Part A). Warns clearly that files are never moved.
+Future<void> _confirmResetToDefaults(
+  BuildContext context,
+  CopySettingsBloc bloc,
+) async {
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: const Text('استخدام المجلدات الافتراضية'),
+      content: const Text(
+        'سيتم تعيين مجلدَي المكتبة المدارة والنسخ الاحتياطي إلى المواقع '
+        'الافتراضية لمرجعي داخل مجلد المستندات.\n\n'
+        'تنبيه: هذا لا ينقل الملفات المدارة أو النسخ الاحتياطية السابقة؛ '
+        'تبقى في مواقعها الحالية ولا يتأثر أي ملف موجود.',
+      ),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(dialogContext).pop(false),
+          child: const Text('إلغاء'),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(dialogContext).pop(true),
+          child: const Text('تطبيق الافتراضي'),
+        ),
+      ],
+    ),
+  );
+  if (confirmed == true && !bloc.isClosed) {
+    bloc.add(const CopyRootsResetToDefaultRequested());
+  }
+}
+
+class _AttentionBanner extends StatelessWidget {
+  const _AttentionBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    const accent = AppStatusColors.warning;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppSpacing.sm),
+      decoration: BoxDecoration(
+        color: accent.background,
+        borderRadius: AppRadii.card,
+        border: Border.all(color: accent.foreground.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.warning_amber_outlined, color: accent.foreground),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Text(
+              'يتطلب إعداد مواقع النسخ الآمن انتباهك. يبقى النسخ إلى المكتبة المدارة '
+              'متوقفًا حتى يكتمل الإعداد، دون أي تأثير على الملفات الحالية.',
+              style: TextStyle(color: accent.foreground),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _LocationRow extends StatelessWidget {
+  const _LocationRow({
     required this.title,
-    required this.body,
-    required this.actions,
-    required this.note,
+    required this.value,
+    required this.status,
+    required this.icon,
+    required this.enabled,
+    required this.onChoose,
+    this.onRecreate,
   });
 
-  final IconData icon;
   final String title;
-  final String body;
-  final List<Widget> actions;
-  final String note;
+  final String? value;
+  final CopyRootStatus status;
+  final IconData icon;
+  final bool enabled;
+  final VoidCallback onChoose;
+
+  /// Non-null only when this configured root is missing/inaccessible. Renders
+  /// the explicit "إعادة إنشاء المجلد" action beside the missing folder.
+  final VoidCallback? onRecreate;
 
   @override
   Widget build(BuildContext context) {
-    final TextTheme text = Theme.of(context).textTheme;
-    return AppPanel(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
+    return Semantics(
+      label: title,
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final details = Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Icon(icon, size: 20, color: AppColors.accentTeal),
+              Icon(icon, size: 20),
               const SizedBox(width: AppSpacing.sm),
-              Expanded(child: Text(title, style: text.titleMedium)),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(title, style: Theme.of(context).textTheme.labelLarge),
+                    const SizedBox(height: AppSpacing.xs),
+                    SelectableText(value ?? 'لم يتم الاختيار بعد'),
+                    const SizedBox(height: AppSpacing.xs),
+                    _StatusChip(status: status),
+                    if (onRecreate != null) ...[
+                      const SizedBox(height: AppSpacing.sm),
+                      Align(
+                        alignment: AlignmentDirectional.centerStart,
+                        child: AppPrimaryButton(
+                          label: 'إعادة إنشاء المجلد',
+                          icon: Icons.create_new_folder_outlined,
+                          onPressed: enabled ? onRecreate : null,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
             ],
-          ),
-          const SizedBox(height: AppSpacing.sm),
-          Text(body, style: text.bodyMedium),
-          if (actions.isNotEmpty) ...[
-            const SizedBox(height: AppSpacing.md),
-            Wrap(
-              spacing: AppSpacing.sm,
-              runSpacing: AppSpacing.sm,
-              children: actions,
-            ),
-          ],
-          const SizedBox(height: AppSpacing.md),
-          Text(note, style: text.labelMedium),
-        ],
+          );
+          final button = AppSecondaryButton(
+            label: value == null ? 'اختيار' : 'تغيير',
+            icon: Icons.folder_open_outlined,
+            onPressed: enabled ? onChoose : null,
+          );
+          if (constraints.maxWidth < 420) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                details,
+                const SizedBox(height: AppSpacing.sm),
+                Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: button,
+                ),
+              ],
+            );
+          }
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: details),
+              const SizedBox(width: AppSpacing.md),
+              button,
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _StatusChip extends StatelessWidget {
+  const _StatusChip({required this.status});
+
+  final CopyRootStatus status;
+
+  @override
+  Widget build(BuildContext context) {
+    final (label, color) = switch (status) {
+      CopyRootStatus.automatic => ('مُهيأ تلقائيًا', AppStatusColors.success),
+      CopyRootStatus.custom => ('موقع مخصص', AppStatusColors.info),
+      CopyRootStatus.missing => (
+        'المجلد غير متاح — يتطلب الانتباه',
+        AppStatusColors.warning,
+      ),
+      CopyRootStatus.notConfigured => (
+        'غير مُهيأ بعد',
+        AppStatusColors.neutral,
+      ),
+    };
+    return Container(
+      padding: const EdgeInsets.symmetric(
+        horizontal: AppSpacing.sm,
+        vertical: AppSpacing.xs,
+      ),
+      decoration: BoxDecoration(
+        color: color.background,
+        borderRadius: AppRadii.control,
+      ),
+      child: Text(
+        label,
+        style: Theme.of(
+          context,
+        ).textTheme.labelMedium?.copyWith(color: color.foreground),
       ),
     );
   }

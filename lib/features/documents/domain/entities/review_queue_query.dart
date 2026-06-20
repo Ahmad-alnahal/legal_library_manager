@@ -6,8 +6,8 @@ import 'package:equatable/equatable.dart';
 ///
 /// - [reviewQueue] is the default working set of documents that still need
 ///   classification work: `imported`, `needs_review`, and `in_progress`.
-/// - [classified] is the explicit filter that surfaces already-`classified`
-///   documents (e.g. to reopen one for editing).
+/// - [classified] surfaces completed classification work, including documents
+///   already copied to the managed library.
 enum ReviewQueueScope { reviewQueue, classified }
 
 extension ReviewQueueScopeStatuses on ReviewQueueScope {
@@ -19,7 +19,7 @@ extension ReviewQueueScopeStatuses on ReviewQueueScope {
       'needs_review',
       'in_progress',
     ],
-    ReviewQueueScope.classified => const ['classified'],
+    ReviewQueueScope.classified => const ['classified', 'copied_to_library'],
   };
 }
 

@@ -93,18 +93,21 @@ void main() {
       },
     );
 
-    test('classified scope returns only classified documents', () async {
+    test('classified scope returns classified and copied documents', () async {
       await addDocument(status: 'imported');
       final classified = await addDocument(status: 'classified');
-      await addDocument(status: 'copied_to_library');
+      final copied = await addDocument(status: 'copied_to_library');
 
       final page = await repository.getQueue(
         const ReviewQueueQuery(scope: ReviewQueueScope.classified),
       );
 
-      expect(page.totalCount, 1);
-      expect(page.items.single.id, classified);
-      expect(page.items.single.workflowStatusKey, 'classified');
+      expect(page.totalCount, 2);
+      expect(page.items.map((item) => item.id), [classified, copied]);
+      expect(page.items.map((item) => item.workflowStatusKey), [
+        'classified',
+        'copied_to_library',
+      ]);
     });
 
     test('pagination is stable and deterministic by id', () async {

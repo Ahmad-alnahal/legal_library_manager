@@ -33,6 +33,9 @@ import 'package:legal_library_manager/features/file_open/domain/repositories/fil
 import 'package:legal_library_manager/features/file_open/domain/services/file_existence_checker.dart';
 import 'package:legal_library_manager/features/file_open/domain/services/os_file_opener.dart';
 import 'package:legal_library_manager/features/file_open/presentation/bloc/file_open_bloc.dart';
+import 'package:legal_library_manager/features/managed_copy/domain/entities/managed_copy_result.dart';
+import 'package:legal_library_manager/features/managed_copy/domain/entities/managed_copy_error.dart';
+import 'package:legal_library_manager/features/managed_copy/presentation/bloc/managed_copy_bloc.dart';
 import 'package:legal_library_manager/features/reference/domain/entities/document_type_ref.dart';
 import 'package:legal_library_manager/features/reference/domain/entities/main_category_ref.dart';
 import 'package:legal_library_manager/features/reference/domain/entities/reference_item.dart';
@@ -106,7 +109,15 @@ void main() {
           returnToInProgress: ret,
         ),
       )
-      ..registerFactory<FileOpenBloc>(() => FileOpenBloc(openFile));
+      ..registerFactory<FileOpenBloc>(() => FileOpenBloc(openFile))
+      ..registerFactory<ManagedCopyBloc>(
+        () => ManagedCopyBloc.executor(
+          (_) async => const ManagedCopyBlocked(
+            error: ManagedCopyError.notClassified,
+            safeMessage: 'blocked in widget test',
+          ),
+        ),
+      );
   });
 
   tearDown(() => getIt.reset());
@@ -799,6 +810,9 @@ class FakeDocumentListRepo implements DocumentListRepository {
       isReadOnlySource: true,
     ),
   ];
+
+  @override
+  Future<void> setPreferredSourceFile(int documentId, int fileId) async {}
 }
 
 class FakeReferenceRepository implements ReferenceRepository {

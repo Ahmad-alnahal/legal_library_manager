@@ -6,6 +6,8 @@ import 'package:legal_library_manager/core/di/injection.dart';
 import 'package:legal_library_manager/features/settings/presentation/pages/settings_page.dart';
 import 'package:legal_library_manager/features/shell/presentation/widgets/side_navigation.dart';
 
+import '../../support/managed_copy_test_doubles.dart';
+
 // NOTE: These are Flutter *layout* regression tests. They do NOT (and cannot)
 // verify the native Windows minimum-window-size enforcement, which lives in the
 // Win32 runner (windows/runner/win32_window.cpp, WM_GETMINMAXINFO). They only
@@ -43,6 +45,10 @@ void main() {
       dispose: (db) => db.close(),
     );
     configureDependencies();
+    // Settings (visited below) triggers automatic copy-root setup, whose
+    // production resolver calls path_provider — a platform channel that never
+    // completes under flutter_test. The stub keeps it in-process.
+    useStubDocumentsDirectoryResolver();
   });
 
   // Supported minimum plus deliberately tiny transient constraints.

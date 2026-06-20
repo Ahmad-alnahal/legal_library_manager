@@ -37,6 +37,28 @@ import '../../features/categories/domain/services/category_key_generator.dart';
 import '../../features/categories/domain/services/category_management_service.dart';
 import '../../features/categories/presentation/bloc/category_management_bloc.dart';
 import '../../features/file_open/application/open_file_use_case.dart';
+import '../../features/managed_copy/application/apply_default_copy_roots.dart';
+import '../../features/managed_copy/application/check_managed_copy_health.dart';
+import '../../features/managed_copy/application/configure_copy_roots.dart';
+import '../../features/managed_copy/application/initialize_copy_roots.dart';
+import '../../features/managed_copy/application/managed_copy_use_case.dart';
+import '../../features/managed_copy/application/repair_copy_root.dart';
+import '../../features/managed_copy/data/repositories/drift_managed_copy_repository.dart';
+import '../../features/managed_copy/data/services/default_operation_id_generator.dart';
+import '../../features/managed_copy/data/services/file_picker_copy_root_picker.dart';
+import '../../features/managed_copy/data/services/path_provider_documents_directory_resolver.dart';
+import '../../features/managed_copy/data/services/sqlite_database_backup_service.dart';
+import '../../features/managed_copy/data/services/windows_managed_library_filesystem.dart';
+import '../../features/managed_copy/data/services/windows_path_canonicalizer.dart';
+import '../../features/managed_copy/domain/repositories/managed_copy_repository.dart';
+import '../../features/managed_copy/domain/services/database_backup_service.dart';
+import '../../features/managed_copy/domain/services/copy_root_picker.dart';
+import '../../features/managed_copy/domain/services/documents_directory_resolver.dart';
+import '../../features/managed_copy/domain/services/managed_library_filesystem.dart';
+import '../../features/managed_copy/domain/services/operation_id_generator.dart';
+import '../../features/managed_copy/domain/services/path_canonicalizer.dart';
+import '../../features/managed_copy/presentation/bloc/copy_settings_bloc.dart';
+import '../../features/managed_copy/presentation/bloc/managed_copy_bloc.dart';
 import '../../features/file_open/data/repositories/drift_file_open_repository.dart';
 import '../../features/file_open/data/services/file_system_existence_checker.dart';
 import '../../features/file_open/data/services/windows_os_file_opener.dart';
@@ -53,7 +75,7 @@ import '../time/clock.dart';
 /// Global service locator.
 final GetIt getIt = GetIt.instance;
 
-/// Registers application dependencies (M1 shell + M4 import + M5 documents + M7.1 file open).
+/// Registers application dependencies (M1 shell + M4 import + M5 documents + M7 file open + M8.1–M8.6 managed copy).
 ///
 /// The production [AppDatabase] is a single lazy singleton (its connection opens
 /// lazily on first query and closes on [GetIt.reset]). Tests may register an
@@ -157,6 +179,7 @@ void configureDependencies() {
         saveDraft: getIt<SaveDocumentDraft>(),
         approveClassification: getIt<ApproveClassification>(),
         returnToInProgress: getIt<ReturnToInProgress>(),
+        checkManagedCopyHealth: getIt<CheckManagedCopyHealth>(),
       ),
     )
     // M6.3 category management: dedicated repository, key generator, validating
@@ -201,5 +224,94 @@ void configureDependencies() {
     // through this controller, never the use case directly.
     ..registerFactory<FileOpenBloc>(
       () => FileOpenBloc(getIt<OpenFileUseCase>()),
+    )
+    // M8.1 managed-copy foundation: repository, filesystem, backup service,
+    // and orchestrating use case. Not wired into UI yet; presentation
+    // integration is deferred to M8.2.
+    ..registerLazySingleton<ManagedCopyRepository>(
+      () => DriftManagedCopyRepository(getIt<AppDatabase>(), getIt<Clock>()),
+    )
+    ..registerLazySingleton<ManagedLibraryFilesystem>(
+      WindowsManagedLibraryFilesystem.new,
+    )
+    ..registerLazySingleton<DatabaseBackupService>(
+      () => SqliteDatabaseBackupService(getIt<AppDatabase>()),
+    )
+    ..registerLazySingleton<PathCanonicalizer>(WindowsPathCanonicalizer.new)
+    ..registerLazySingleton<OperationIdGenerator>(
+      DefaultOperationIdGenerator.new,
+    )
+    ..registerLazySingleton<CopyRootPicker>(FilePickerCopyRootPicker.new)
+    ..registerLazySingleton<ManagedCopyUseCase>(
+      () => ManagedCopyUseCase(
+        repository: getIt<ManagedCopyRepository>(),
+        filesystem: getIt<ManagedLibraryFilesystem>(),
+        backupService: getIt<DatabaseBackupService>(),
+        hasher: getIt<FileHasher>(),
+        clock: getIt<Clock>(),
+        pathCanonicalizer: getIt<PathCanonicalizer>(),
+        operationIdGenerator: getIt<OperationIdGenerator>(),
+      ),
+    )
+    ..registerLazySingleton<ConfigureCopyRoots>(
+      () => ConfigureCopyRoots(
+        getIt<ManagedCopyRepository>(),
+        getIt<ManagedLibraryFilesystem>(),
+        getIt<PathCanonicalizer>(),
+      ),
+    )
+    // M8.4 automatic safe copy-root setup: resolves the Documents folder in
+    // the data layer and orchestrates default-root creation at startup.
+    ..registerLazySingleton<DocumentsDirectoryResolver>(
+      PathProviderDocumentsDirectoryResolver.new,
+    )
+    ..registerLazySingleton<InitializeCopyRoots>(
+      () => InitializeCopyRoots(
+        repository: getIt<ManagedCopyRepository>(),
+        filesystem: getIt<ManagedLibraryFilesystem>(),
+        documentsResolver: getIt<DocumentsDirectoryResolver>(),
+        configureCopyRoots: getIt<ConfigureCopyRoots>(),
+      ),
+    )
+    // M8.5 explicit missing-folder repair: recreates exactly one configured
+    // root after user confirmation, reusing the filesystem and canonicalizer.
+    ..registerLazySingleton<RepairCopyRoot>(
+      () => RepairCopyRoot(
+        getIt<ManagedCopyRepository>(),
+        getIt<ManagedLibraryFilesystem>(),
+        getIt<PathCanonicalizer>(),
+      ),
+    )
+    // M8.6 Part A: reset both roots to MARJIY defaults; delegates safety
+    // validation and persistence to the existing ConfigureCopyRoots use case.
+    ..registerLazySingleton<ApplyDefaultCopyRoots>(
+      () => ApplyDefaultCopyRoots(
+        documentsResolver: getIt<DocumentsDirectoryResolver>(),
+        filesystem: getIt<ManagedLibraryFilesystem>(),
+        configureCopyRoots: getIt<ConfigureCopyRoots>(),
+      ),
+    )
+    // M8.6 Part B: detects a physically missing managed-copy file and
+    // reconciles the DB record (marks missing, downgrades workflow status).
+    ..registerLazySingleton<CheckManagedCopyHealth>(
+      () => CheckManagedCopyHealth(
+        repository: getIt<ManagedCopyRepository>(),
+        filesystem: getIt<ManagedLibraryFilesystem>(),
+        hasher: getIt<FileHasher>(),
+        operationIdGenerator: getIt<OperationIdGenerator>(),
+        clock: getIt<Clock>(),
+      ),
+    )
+    ..registerFactory<ManagedCopyBloc>(
+      () => ManagedCopyBloc(getIt<ManagedCopyUseCase>()),
+    )
+    ..registerFactory<CopySettingsBloc>(
+      () => CopySettingsBloc(
+        getIt<CopyRootPicker>(),
+        getIt<ConfigureCopyRoots>(),
+        getIt<InitializeCopyRoots>(),
+        getIt<RepairCopyRoot>(),
+        getIt<ApplyDefaultCopyRoots>(),
+      ),
     );
 }

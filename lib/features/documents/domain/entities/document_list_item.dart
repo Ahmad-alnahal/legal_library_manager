@@ -101,6 +101,7 @@ class DocumentSourceFileItem extends Equatable {
     required this.fileHealthKey,
     required this.fileSizeBytes,
     required this.isReadOnlySource,
+    this.isPreferred = false,
   });
 
   final int id;
@@ -110,6 +111,7 @@ class DocumentSourceFileItem extends Equatable {
   final String fileHealthKey;
   final int fileSizeBytes;
   final bool isReadOnlySource;
+  final bool isPreferred;
 
   @override
   List<Object?> get props => [
@@ -120,5 +122,6 @@ class DocumentSourceFileItem extends Equatable {
     fileHealthKey,
     fileSizeBytes,
     isReadOnlySource,
+    isPreferred,
   ];
 }

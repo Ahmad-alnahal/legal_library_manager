@@ -179,9 +179,22 @@ class StreamingFileHasher implements FileHasher {
 
     final File file = File(req.path);
     RandomAccessFile? raf;
-    try {
+
+    Future<void> closeFile() async {
       try {
-        raf = await file.open();
+        await raf?.close();
+      } on FileSystemException {
+        // Closing a read handle cannot corrupt the source; ignore safely.
+      } finally {
+        raf = null;
+      }
+    }
+
+    try {
+      final RandomAccessFile opened;
+      try {
+        opened = await file.open();
+        raf = opened;
       } on FileSystemException catch (e) {
         finish(
           _DoneMessage.failure(
@@ -192,7 +205,7 @@ class StreamingFileHasher implements FileHasher {
         return;
       }
 
-      final int total = await raf.length();
+      final int total = await opened.length();
       final _DigestSink output = _DigestSink();
       final ByteConversionSink input = sha256.startChunkedConversion(output);
       int hashed = 0;
@@ -202,7 +215,7 @@ class StreamingFileHasher implements FileHasher {
           finish(_DoneMessage.cancelled());
           return;
         }
-        final List<int> chunk = await raf.read(req.chunkSize);
+        final List<int> chunk = await opened.read(req.chunkSize);
         if (chunk.isEmpty) break;
         input.add(chunk);
         hashed += chunk.length;
@@ -224,11 +237,7 @@ class StreamingFileHasher implements FileHasher {
         _DoneMessage.failure(ImportErrorCode.hashFailed, 'hashing failed'),
       );
     } finally {
-      try {
-        await raf?.close();
-      } on FileSystemException {
-        // Closing a read handle cannot corrupt the source; ignore safely.
-      }
+      await closeFile();
     }
   }
 }

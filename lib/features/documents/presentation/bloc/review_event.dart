@@ -85,3 +85,9 @@ class ReviewReturnedToInProgress extends ReviewEvent {
 class ReviewRetryRequested extends ReviewEvent {
   const ReviewRetryRequested();
 }
+
+/// Refreshes the queue and currently selected document after an external
+/// workflow operation such as a verified managed copy.
+class ReviewRefreshRequested extends ReviewEvent {
+  const ReviewRefreshRequested();
+}
