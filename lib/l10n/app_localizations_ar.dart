@@ -694,6 +694,43 @@ class AppLocalizationsAr extends AppLocalizations {
       'تعذّر اعتماد المجلد المحدد. اختر مجلدًا موجودًا وآمنًا.';
 
   @override
+  String get settingsManualBackupTitle =>
+      'النسخ الاحتياطي اليدوي لقاعدة البيانات';
+
+  @override
+  String get settingsManualBackupBody =>
+      'تُنشئ نسخة احتياطية من سجلات قاعدة بيانات مرجعي (البيانات الوصفية والتصنيفات فقط) في مجلد النسخ الاحتياطي المُهيأ. الملفات القانونية الأصلية وملفات PDF المدارة لا تُدرج في النسخة الاحتياطية ولا تتأثر.';
+
+  @override
+  String get settingsManualBackupButton => 'إنشاء نسخة احتياطية';
+
+  @override
+  String get settingsManualBackupDialogTitle =>
+      'إنشاء نسخة احتياطية من قاعدة البيانات';
+
+  @override
+  String get settingsManualBackupDialogContent =>
+      'سيتم نسخ قاعدة البيانات المحلية (البيانات الوصفية فقط) إلى مجلد النسخ الاحتياطي المُهيأ.\n\nالملفات القانونية الأصلية وملفات PDF المدارة لا تُدرج في النسخة الاحتياطية ولا يتأثر أي ملف موجود.';
+
+  @override
+  String get settingsManualBackupDialogConfirm => 'إنشاء النسخة';
+
+  @override
+  String get settingsSnackBackupSuccess => 'تم إنشاء النسخة الاحتياطية بنجاح.';
+
+  @override
+  String get settingsSnackBackupNotConfigured =>
+      'لم يتم تهيئة مجلد النسخ الاحتياطي. اختر مجلدًا من إعدادات المواقع أدناه.';
+
+  @override
+  String get settingsSnackBackupRootMissing =>
+      'مجلد النسخ الاحتياطي غير متاح. أعد إنشاءه أو اختر مجلدًا آخر من الإعدادات.';
+
+  @override
+  String get settingsSnackBackupFailed =>
+      'تعذّر إنشاء النسخة الاحتياطية. تحقق من مساحة القرص وصلاحيات الكتابة.';
+
+  @override
   String get duplicatesReviewStatusReviewed => 'تمت المراجعة';
 
   @override

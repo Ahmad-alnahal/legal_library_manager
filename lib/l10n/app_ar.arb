@@ -243,6 +243,17 @@
   "settingsSnackDefaultsCreationFailed": "تعذّر إنشاء المجلدات الافتراضية. تحقق من المساحة المتاحة وصلاحيات الكتابة.",
   "settingsSnackFallback": "تعذّر اعتماد المجلد المحدد. اختر مجلدًا موجودًا وآمنًا.",
 
+  "settingsManualBackupTitle": "النسخ الاحتياطي اليدوي لقاعدة البيانات",
+  "settingsManualBackupBody": "تُنشئ نسخة احتياطية من سجلات قاعدة بيانات مرجعي (البيانات الوصفية والتصنيفات فقط) في مجلد النسخ الاحتياطي المُهيأ. الملفات القانونية الأصلية وملفات PDF المدارة لا تُدرج في النسخة الاحتياطية ولا تتأثر.",
+  "settingsManualBackupButton": "إنشاء نسخة احتياطية",
+  "settingsManualBackupDialogTitle": "إنشاء نسخة احتياطية من قاعدة البيانات",
+  "settingsManualBackupDialogContent": "سيتم نسخ قاعدة البيانات المحلية (البيانات الوصفية فقط) إلى مجلد النسخ الاحتياطي المُهيأ.\n\nالملفات القانونية الأصلية وملفات PDF المدارة لا تُدرج في النسخة الاحتياطية ولا يتأثر أي ملف موجود.",
+  "settingsManualBackupDialogConfirm": "إنشاء النسخة",
+  "settingsSnackBackupSuccess": "تم إنشاء النسخة الاحتياطية بنجاح.",
+  "settingsSnackBackupNotConfigured": "لم يتم تهيئة مجلد النسخ الاحتياطي. اختر مجلدًا من إعدادات المواقع أدناه.",
+  "settingsSnackBackupRootMissing": "مجلد النسخ الاحتياطي غير متاح. أعد إنشاءه أو اختر مجلدًا آخر من الإعدادات.",
+  "settingsSnackBackupFailed": "تعذّر إنشاء النسخة الاحتياطية. تحقق من مساحة القرص وصلاحيات الكتابة.",
+
   "duplicatesReviewStatusReviewed": "تمت المراجعة",
   "duplicatesReviewStatusDeferred": "مؤجلة",
   "duplicatesReviewStatusUnreviewed": "غير مراجعة",

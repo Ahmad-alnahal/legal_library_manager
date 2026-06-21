@@ -14,15 +14,21 @@ import '../../../../l10n/app_localizations.dart';
 import '../../../managed_copy/domain/entities/copy_roots_setup_report.dart';
 import '../../../managed_copy/domain/services/copy_root_picker.dart';
 import '../../../managed_copy/presentation/bloc/copy_settings_bloc.dart';
+import '../../../managed_copy/presentation/bloc/manual_backup_bloc.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider(
-      create: (_) =>
-          getIt<CopySettingsBloc>()..add(const CopySettingsStarted()),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(
+          create: (_) =>
+              getIt<CopySettingsBloc>()..add(const CopySettingsStarted()),
+        ),
+        BlocProvider(create: (_) => getIt<ManualBackupBloc>()),
+      ],
       child: const _SettingsBody(),
     );
   }
@@ -34,28 +40,48 @@ class _SettingsBody extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return BlocListener<CopySettingsBloc, CopySettingsState>(
-      listenWhen: (a, b) => a.sequence != b.sequence && b.messageKey != null,
-      listener: (context, state) {
-        final text = switch (state.messageKey) {
-          'saved' => l10n.settingsSnackSaved,
-          'choose_both' => l10n.settingsSnackChooseBoth,
-          'unsafe_overlap' => l10n.settingsSnackUnsafeOverlap,
-          'recreated' => l10n.settingsSnackRecreated,
-          'recreate_unsafe' => l10n.settingsSnackRecreateUnsafe,
-          'recreate_invalid' => l10n.settingsSnackRecreateInvalid,
-          'recreate_failed' => l10n.settingsSnackRecreateFailed,
-          'defaults_applied' => l10n.settingsSnackDefaultsApplied,
-          'defaults_resolution_failed' =>
-            l10n.settingsSnackDefaultsResolutionFailed,
-          'defaults_creation_failed' =>
-            l10n.settingsSnackDefaultsCreationFailed,
-          _ => l10n.settingsSnackFallback,
-        };
-        ScaffoldMessenger.of(context)
-          ..hideCurrentSnackBar()
-          ..showSnackBar(SnackBar(content: Text(text)));
-      },
+    return MultiBlocListener(
+      listeners: [
+        BlocListener<CopySettingsBloc, CopySettingsState>(
+          listenWhen: (a, b) =>
+              a.sequence != b.sequence && b.messageKey != null,
+          listener: (context, state) {
+            final text = switch (state.messageKey) {
+              'saved' => l10n.settingsSnackSaved,
+              'choose_both' => l10n.settingsSnackChooseBoth,
+              'unsafe_overlap' => l10n.settingsSnackUnsafeOverlap,
+              'recreated' => l10n.settingsSnackRecreated,
+              'recreate_unsafe' => l10n.settingsSnackRecreateUnsafe,
+              'recreate_invalid' => l10n.settingsSnackRecreateInvalid,
+              'recreate_failed' => l10n.settingsSnackRecreateFailed,
+              'defaults_applied' => l10n.settingsSnackDefaultsApplied,
+              'defaults_resolution_failed' =>
+                l10n.settingsSnackDefaultsResolutionFailed,
+              'defaults_creation_failed' =>
+                l10n.settingsSnackDefaultsCreationFailed,
+              _ => l10n.settingsSnackFallback,
+            };
+            ScaffoldMessenger.of(context)
+              ..hideCurrentSnackBar()
+              ..showSnackBar(SnackBar(content: Text(text)));
+          },
+        ),
+        BlocListener<ManualBackupBloc, ManualBackupState>(
+          listenWhen: (a, b) =>
+              a.sequence != b.sequence && b.messageKey != null,
+          listener: (context, state) {
+            final text = switch (state.messageKey) {
+              'success' => l10n.settingsSnackBackupSuccess,
+              'not_configured' => l10n.settingsSnackBackupNotConfigured,
+              'root_missing' => l10n.settingsSnackBackupRootMissing,
+              _ => l10n.settingsSnackBackupFailed,
+            };
+            ScaffoldMessenger.of(context)
+              ..hideCurrentSnackBar()
+              ..showSnackBar(SnackBar(content: Text(text)));
+          },
+        ),
+      ],
       child: ScreenContainer(
         children: [
           PageHeader(
@@ -65,9 +91,39 @@ class _SettingsBody extends StatelessWidget {
           const SizedBox(height: AppSpacing.lg),
           const _CopyOnlyPolicyPanel(),
           const SizedBox(height: AppSpacing.lg),
-          const _CopyLocationsPanel(),
+          const _SettingsPanels(),
         ],
       ),
+    );
+  }
+}
+
+class _SettingsPanels extends StatelessWidget {
+  const _SettingsPanels();
+
+  @override
+  Widget build(BuildContext context) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        if (constraints.maxWidth >= 1000) {
+          return const Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(flex: 3, child: _CopyLocationsPanel()),
+              SizedBox(width: AppSpacing.lg),
+              SizedBox(width: 360, child: _ManualBackupPanel()),
+            ],
+          );
+        }
+        return const Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            _ManualBackupPanel(),
+            SizedBox(height: AppSpacing.lg),
+            _CopyLocationsPanel(),
+          ],
+        );
+      },
     );
   }
 }
@@ -151,6 +207,22 @@ class _CopyLocationsPanel extends StatelessWidget {
               Text(l10n.settingsCopyLocationsBody),
               const SizedBox(height: AppSpacing.xs),
               Text(l10n.settingsCopyLocationsWarning),
+              const SizedBox(height: AppSpacing.md),
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: AppSecondaryButton(
+                  label: l10n.settingsResetToDefaults,
+                  icon: Icons.restore_outlined,
+                  onPressed: !state.busy
+                      ? () => _confirmResetToDefaults(context, bloc)
+                      : null,
+                ),
+              ),
+              const SizedBox(height: AppSpacing.xs),
+              Text(
+                l10n.settingsResetWarning,
+                style: const TextStyle(fontSize: 12),
+              ),
               if (state.requiresAttention) ...[
                 const SizedBox(height: AppSpacing.md),
                 const _AttentionBanner(),
@@ -197,22 +269,6 @@ class _CopyLocationsPanel extends StatelessWidget {
                       )
                     : null,
               ),
-              const Divider(height: AppSpacing.xl),
-              Align(
-                alignment: AlignmentDirectional.centerStart,
-                child: AppSecondaryButton(
-                  label: l10n.settingsResetToDefaults,
-                  icon: Icons.restore_outlined,
-                  onPressed: !state.busy
-                      ? () => _confirmResetToDefaults(context, bloc)
-                      : null,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.xs),
-              Text(
-                l10n.settingsResetWarning,
-                style: const TextStyle(fontSize: 12),
-              ),
               if (state.busy) ...[
                 const SizedBox(height: AppSpacing.md),
                 const LinearProgressIndicator(),
@@ -222,6 +278,82 @@ class _CopyLocationsPanel extends StatelessWidget {
         },
       ),
     );
+  }
+}
+
+class _ManualBackupPanel extends StatelessWidget {
+  const _ManualBackupPanel();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return AppPanel(
+      child: BlocBuilder<ManualBackupBloc, ManualBackupState>(
+        builder: (context, backupState) {
+          final backupRootConfigured =
+              context.watch<CopySettingsBloc>().state.backupRoot != null;
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: AppSpacing.sm,
+                runSpacing: AppSpacing.xs,
+                children: [
+                  const Icon(
+                    Icons.backup_outlined,
+                    color: AppColors.accentTeal,
+                  ),
+                  Text(
+                    l10n.settingsManualBackupTitle,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Text(l10n.settingsManualBackupBody),
+              const SizedBox(height: AppSpacing.lg),
+              AppPrimaryButton(
+                label: l10n.settingsManualBackupButton,
+                icon: Icons.save_outlined,
+                onPressed: backupRootConfigured && !backupState.busy
+                    ? () => _confirmAndBackup(context)
+                    : null,
+              ),
+              if (backupState.busy) ...[
+                const SizedBox(height: AppSpacing.md),
+                const LinearProgressIndicator(),
+              ],
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+Future<void> _confirmAndBackup(BuildContext context) async {
+  final l10n = AppLocalizations.of(context);
+  final bloc = context.read<ManualBackupBloc>();
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: Text(l10n.settingsManualBackupDialogTitle),
+      content: Text(l10n.settingsManualBackupDialogContent),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(dialogContext).pop(false),
+          child: Text(l10n.settingsDialogCancel),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(dialogContext).pop(true),
+          child: Text(l10n.settingsManualBackupDialogConfirm),
+        ),
+      ],
+    ),
+  );
+  if (confirmed == true && !bloc.isClosed) {
+    bloc.add(const ManualBackupRequested());
   }
 }
 

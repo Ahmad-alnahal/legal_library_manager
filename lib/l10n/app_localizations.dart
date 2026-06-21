@@ -1342,6 +1342,66 @@ abstract class AppLocalizations {
   /// **'تعذّر اعتماد المجلد المحدد. اختر مجلدًا موجودًا وآمنًا.'**
   String get settingsSnackFallback;
 
+  /// No description provided for @settingsManualBackupTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'النسخ الاحتياطي اليدوي لقاعدة البيانات'**
+  String get settingsManualBackupTitle;
+
+  /// No description provided for @settingsManualBackupBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'تُنشئ نسخة احتياطية من سجلات قاعدة بيانات مرجعي (البيانات الوصفية والتصنيفات فقط) في مجلد النسخ الاحتياطي المُهيأ. الملفات القانونية الأصلية وملفات PDF المدارة لا تُدرج في النسخة الاحتياطية ولا تتأثر.'**
+  String get settingsManualBackupBody;
+
+  /// No description provided for @settingsManualBackupButton.
+  ///
+  /// In ar, this message translates to:
+  /// **'إنشاء نسخة احتياطية'**
+  String get settingsManualBackupButton;
+
+  /// No description provided for @settingsManualBackupDialogTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'إنشاء نسخة احتياطية من قاعدة البيانات'**
+  String get settingsManualBackupDialogTitle;
+
+  /// No description provided for @settingsManualBackupDialogContent.
+  ///
+  /// In ar, this message translates to:
+  /// **'سيتم نسخ قاعدة البيانات المحلية (البيانات الوصفية فقط) إلى مجلد النسخ الاحتياطي المُهيأ.\n\nالملفات القانونية الأصلية وملفات PDF المدارة لا تُدرج في النسخة الاحتياطية ولا يتأثر أي ملف موجود.'**
+  String get settingsManualBackupDialogContent;
+
+  /// No description provided for @settingsManualBackupDialogConfirm.
+  ///
+  /// In ar, this message translates to:
+  /// **'إنشاء النسخة'**
+  String get settingsManualBackupDialogConfirm;
+
+  /// No description provided for @settingsSnackBackupSuccess.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم إنشاء النسخة الاحتياطية بنجاح.'**
+  String get settingsSnackBackupSuccess;
+
+  /// No description provided for @settingsSnackBackupNotConfigured.
+  ///
+  /// In ar, this message translates to:
+  /// **'لم يتم تهيئة مجلد النسخ الاحتياطي. اختر مجلدًا من إعدادات المواقع أدناه.'**
+  String get settingsSnackBackupNotConfigured;
+
+  /// No description provided for @settingsSnackBackupRootMissing.
+  ///
+  /// In ar, this message translates to:
+  /// **'مجلد النسخ الاحتياطي غير متاح. أعد إنشاءه أو اختر مجلدًا آخر من الإعدادات.'**
+  String get settingsSnackBackupRootMissing;
+
+  /// No description provided for @settingsSnackBackupFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر إنشاء النسخة الاحتياطية. تحقق من مساحة القرص وصلاحيات الكتابة.'**
+  String get settingsSnackBackupFailed;
+
   /// No description provided for @duplicatesReviewStatusReviewed.
   ///
   /// In ar, this message translates to:

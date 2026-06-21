@@ -64,8 +64,10 @@ import '../../features/managed_copy/domain/services/documents_directory_resolver
 import '../../features/managed_copy/domain/services/managed_library_filesystem.dart';
 import '../../features/managed_copy/domain/services/operation_id_generator.dart';
 import '../../features/managed_copy/domain/services/path_canonicalizer.dart';
+import '../../features/managed_copy/application/create_manual_backup.dart';
 import '../../features/managed_copy/presentation/bloc/copy_settings_bloc.dart';
 import '../../features/managed_copy/presentation/bloc/managed_copy_bloc.dart';
+import '../../features/managed_copy/presentation/bloc/manual_backup_bloc.dart';
 import '../../features/file_open/data/repositories/drift_file_open_repository.dart';
 import '../../features/file_open/data/services/file_system_existence_checker.dart';
 import '../../features/file_open/data/services/windows_os_file_opener.dart';
@@ -82,7 +84,7 @@ import '../time/clock.dart';
 /// Global service locator.
 final GetIt getIt = GetIt.instance;
 
-/// Registers application dependencies (M1 shell + M4 import + M5 documents + M7 file open + M8.1–M8.6 managed copy + M9.1 duplicate review + M10.1 dashboard).
+/// Registers application dependencies (M1 shell + M4 import + M5 documents + M7 file open + M8.1–M8.6 managed copy + M9.1 duplicate review + M10.1 dashboard + M11.1 manual backup).
 ///
 /// The production [AppDatabase] is a single lazy singleton (its connection opens
 /// lazily on first query and closes on [GetIt.reset]). Tests may register an
@@ -311,6 +313,19 @@ void configureDependencies() {
     )
     ..registerFactory<ManagedCopyBloc>(
       () => ManagedCopyBloc(getIt<ManagedCopyUseCase>()),
+    )
+    // M11.1 manual database backup: use case and BLoC.
+    ..registerLazySingleton<CreateManualBackup>(
+      () => CreateManualBackup(
+        repository: getIt<ManagedCopyRepository>(),
+        backupService: getIt<DatabaseBackupService>(),
+        filesystem: getIt<ManagedLibraryFilesystem>(),
+        operationIdGenerator: getIt<OperationIdGenerator>(),
+        clock: getIt<Clock>(),
+      ),
+    )
+    ..registerFactory<ManualBackupBloc>(
+      () => ManualBackupBloc(getIt<CreateManualBackup>()),
     )
     ..registerFactory<CopySettingsBloc>(
       () => CopySettingsBloc(
