@@ -8,6 +8,8 @@ import 'package:legal_library_manager/core/di/injection.dart';
 import 'package:legal_library_manager/features/managed_copy/application/initialize_copy_roots.dart';
 import 'package:legal_library_manager/features/managed_copy/application/repair_copy_root.dart';
 import 'package:legal_library_manager/features/managed_copy/domain/entities/copy_roots_setup_report.dart';
+import 'package:legal_library_manager/features/managed_copy/domain/entities/startup_recovery_report.dart';
+import 'package:legal_library_manager/features/managed_copy/domain/repositories/managed_copy_repository.dart';
 import 'package:legal_library_manager/features/managed_copy/domain/services/copy_root_picker.dart';
 import 'package:legal_library_manager/features/settings/presentation/pages/settings_page.dart';
 import 'package:legal_library_manager/l10n/app_localizations.dart';
@@ -142,6 +144,35 @@ void main() {
     expect(find.text(_missingChip), findsOneWidget);
     expect(find.text(_automaticChip), findsOneWidget);
     expect(find.textContaining(_attentionBanner), findsOneWidget);
+  });
+
+  testWidgets('shows startup recovery attention without raw paths', (
+    tester,
+  ) async {
+    await getIt<ManagedCopyRepository>().saveStartupRecoveryReport(
+      const StartupRecoveryReport(
+        status: StartupRecoveryStatus.requiresAttention,
+        artifactCount: 2,
+      ),
+    );
+
+    await _pumpSettings(
+      tester,
+      const CopyRootsSetupReport(
+        outcome: CopyRootsSetupOutcome.alreadyConfigured,
+        managedRoot: _defManaged,
+        backupRoot: _defBackup,
+        managedStatus: CopyRootStatus.automatic,
+        backupStatus: CopyRootStatus.automatic,
+      ),
+    );
+
+    expect(find.textContaining('ملفات عمل غير مكتملة'), findsOneWidget);
+    expect(find.textContaining('عدد العناصر: 2'), findsOneWidget);
+    expect(
+      find.textContaining(RegExp(r'ملفات عمل غير مكتملة.*C:\\')),
+      findsNothing,
+    );
   });
 
   testWidgets('shows re-create action only beside the missing managed root', (

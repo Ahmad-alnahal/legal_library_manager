@@ -47,6 +47,28 @@ abstract class ManagedLibraryFilesystem {
     String documentCode,
   );
 
+  /// Startup-level, non-recursive inspection for strict MARJIY-owned managed
+  /// copy artifacts directly inside [managedFilesDir].
+  ///
+  /// Returns null when the directory cannot be inspected safely. Implementations
+  /// must not delete, move, rename, overwrite, or modify anything.
+  Future<List<String>?> findStartupRecoveryArtifacts(
+    String managedFilesDir,
+    List<String> documentCodes,
+  ) => throw UnimplementedError(
+    'Startup recovery artifact inspection is not implemented.',
+  );
+
+  /// Startup-level, non-recursive inspection for strict MARJIY-owned database
+  /// backup artifacts directly inside [backupRoot].
+  ///
+  /// Returns null when the directory cannot be inspected safely. Implementations
+  /// must not delete, move, rename, overwrite, or modify anything.
+  Future<List<String>?> findStartupBackupArtifacts(String backupRoot) =>
+      throw UnimplementedError(
+        'Startup backup artifact inspection is not implemented.',
+      );
+
   /// Deletes the file at [path]. Used only on app-owned managed-library paths
   /// (never on source files) to remove a conflicting or unverifiable managed
   /// copy before writing a fresh, verified copy.

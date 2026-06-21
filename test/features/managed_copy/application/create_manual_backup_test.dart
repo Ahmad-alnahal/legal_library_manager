@@ -9,6 +9,7 @@ import 'package:legal_library_manager/features/managed_copy/domain/entities/mana
 import 'package:legal_library_manager/features/managed_copy/domain/entities/managed_file_ref.dart';
 import 'package:legal_library_manager/features/managed_copy/domain/entities/manual_backup_result.dart';
 import 'package:legal_library_manager/features/managed_copy/domain/entities/source_file_candidate.dart';
+import 'package:legal_library_manager/features/managed_copy/domain/entities/startup_recovery_report.dart';
 import 'package:legal_library_manager/features/managed_copy/domain/repositories/managed_copy_repository.dart';
 import 'package:legal_library_manager/features/managed_copy/domain/services/database_backup_service.dart';
 import 'package:legal_library_manager/features/managed_copy/domain/services/managed_library_filesystem.dart';
@@ -66,6 +67,13 @@ class _FakeRepository implements ManagedCopyRepository {
       const [];
   @override
   Future<List<String>> loadAllSourcePaths() async => const [];
+  @override
+  Future<List<String>> loadManagedDocumentCodes() async => const [];
+  @override
+  Future<void> saveStartupRecoveryReport(StartupRecoveryReport report) async {}
+  @override
+  Future<StartupRecoveryReport> loadStartupRecoveryReport() async =>
+      StartupRecoveryReport.healthy;
   @override
   Future<List<SourceFileCandidate>> loadEligibleSources(int documentId) async =>
       const [];
@@ -152,6 +160,16 @@ class _FakeFilesystem implements ManagedLibraryFilesystem {
     String managedFilesDir,
     String documentCode,
   ) async => const [];
+
+  @override
+  Future<List<String>?> findStartupRecoveryArtifacts(
+    String managedFilesDir,
+    List<String> documentCodes,
+  ) async => const [];
+
+  @override
+  Future<List<String>?> findStartupBackupArtifacts(String backupRoot) async =>
+      const [];
 
   @override
   Future<FilesystemOperationResult> deleteFile(String path) async =>

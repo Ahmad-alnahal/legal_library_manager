@@ -116,6 +116,21 @@ class _FakeFilesystem implements ManagedLibraryFilesystem {
   }
 
   @override
+  Future<List<String>?> findStartupRecoveryArtifacts(
+    String managedFilesDir,
+    List<String> documentCodes,
+  ) async {
+    forbiddenCalls.add('findStartupRecoveryArtifacts');
+    return const [];
+  }
+
+  @override
+  Future<List<String>?> findStartupBackupArtifacts(String backupRoot) async {
+    forbiddenCalls.add('findStartupBackupArtifacts');
+    return const [];
+  }
+
+  @override
   Future<FilesystemOperationResult> deleteFile(String path) async {
     forbiddenCalls.add('deleteFile');
     return const FilesystemSuccess();

@@ -253,6 +253,14 @@
   "settingsSnackBackupNotConfigured": "لم يتم تهيئة مجلد النسخ الاحتياطي. اختر مجلدًا من إعدادات المواقع أدناه.",
   "settingsSnackBackupRootMissing": "مجلد النسخ الاحتياطي غير متاح. أعد إنشاءه أو اختر مجلدًا آخر من الإعدادات.",
   "settingsSnackBackupFailed": "تعذّر إنشاء النسخة الاحتياطية. تحقق من مساحة القرص وصلاحيات الكتابة.",
+  "settingsStartupRecoveryAttention": "توجد ملفات عمل غير مكتملة داخل مجلدات مرجعي تحتاج إلى مراجعة آمنة قبل متابعة النسخ. عدد العناصر: {count}. لم يتم نقل أو حذف أي ملف.",
+  "@settingsStartupRecoveryAttention": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
 
   "duplicatesReviewStatusReviewed": "تمت المراجعة",
   "duplicatesReviewStatusDeferred": "مؤجلة",

@@ -6,6 +6,8 @@ import '../../application/configure_copy_roots.dart';
 import '../../application/initialize_copy_roots.dart';
 import '../../application/repair_copy_root.dart';
 import '../../domain/entities/copy_roots_setup_report.dart';
+import '../../domain/entities/startup_recovery_report.dart';
+import '../../domain/repositories/managed_copy_repository.dart';
 import '../../domain/services/copy_root_picker.dart';
 
 sealed class CopySettingsEvent extends Equatable {
@@ -50,6 +52,8 @@ class CopySettingsState extends Equatable {
     this.managedStatus = CopyRootStatus.notConfigured,
     this.backupStatus = CopyRootStatus.notConfigured,
     this.requiresAttention = false,
+    this.startupRecoveryRequiresAttention = false,
+    this.startupRecoveryArtifactCount = 0,
     this.messageKey,
     this.sequence = 0,
   });
@@ -61,6 +65,8 @@ class CopySettingsState extends Equatable {
   final CopyRootStatus managedStatus;
   final CopyRootStatus backupStatus;
   final bool requiresAttention;
+  final bool startupRecoveryRequiresAttention;
+  final int startupRecoveryArtifactCount;
   final String? messageKey;
   final int sequence;
 
@@ -73,6 +79,8 @@ class CopySettingsState extends Equatable {
     managedStatus,
     backupStatus,
     requiresAttention,
+    startupRecoveryRequiresAttention,
+    startupRecoveryArtifactCount,
     messageKey,
     sequence,
   ];
@@ -85,6 +93,7 @@ class CopySettingsBloc extends Bloc<CopySettingsEvent, CopySettingsState> {
     this._initializeRoots,
     this._repairRoot,
     this._applyDefaultRoots,
+    this._repository,
   ) : super(const CopySettingsState()) {
     on<CopySettingsStarted>(_onStarted);
     on<CopyRootSelectionRequested>(_onPick);
@@ -97,6 +106,7 @@ class CopySettingsBloc extends Bloc<CopySettingsEvent, CopySettingsState> {
   final InitializeCopyRoots _initializeRoots;
   final RepairCopyRoot _repairRoot;
   final ApplyDefaultCopyRoots _applyDefaultRoots;
+  final ManagedCopyRepository _repository;
 
   Future<void> _onStarted(
     CopySettingsStarted event,
@@ -105,7 +115,7 @@ class CopySettingsBloc extends Bloc<CopySettingsEvent, CopySettingsState> {
     // Idempotent: describes the configured roots, fills missing configuration
     // with safe defaults, and recreates missing default directories only.
     final report = await _initializeRoots();
-    emit(_fromReport(report));
+    emit(await _fromReport(report));
   }
 
   Future<void> _onPick(
@@ -136,7 +146,7 @@ class CopySettingsBloc extends Bloc<CopySettingsEvent, CopySettingsState> {
       // Refresh per-root statuses (automatic vs custom) from the same
       // idempotent initialization report used on startup.
       final report = await _initializeRoots();
-      emit(_fromReport(report, messageKey: message));
+      emit(await _fromReport(report, messageKey: message));
       return;
     }
     final keepSelection = result == ConfigureCopyRootsResult.chooseBoth;
@@ -148,6 +158,9 @@ class CopySettingsBloc extends Bloc<CopySettingsEvent, CopySettingsState> {
         managedStatus: state.managedStatus,
         backupStatus: state.backupStatus,
         requiresAttention: state.requiresAttention,
+        startupRecoveryRequiresAttention:
+            state.startupRecoveryRequiresAttention,
+        startupRecoveryArtifactCount: state.startupRecoveryArtifactCount,
         messageKey: message,
         sequence: state.sequence + 1,
       ),
@@ -169,7 +182,7 @@ class CopySettingsBloc extends Bloc<CopySettingsEvent, CopySettingsState> {
     if (result == RepairCopyRootResult.repaired ||
         result == RepairCopyRootResult.alreadyExists) {
       final report = await _initializeRoots();
-      emit(_fromReport(report, messageKey: 'recreated'));
+      emit(await _fromReport(report, messageKey: 'recreated'));
       return;
     }
 
@@ -188,6 +201,9 @@ class CopySettingsBloc extends Bloc<CopySettingsEvent, CopySettingsState> {
         managedStatus: state.managedStatus,
         backupStatus: state.backupStatus,
         requiresAttention: state.requiresAttention,
+        startupRecoveryRequiresAttention:
+            state.startupRecoveryRequiresAttention,
+        startupRecoveryArtifactCount: state.startupRecoveryArtifactCount,
         messageKey: messageKey,
         sequence: state.sequence + 1,
       ),
@@ -207,7 +223,7 @@ class CopySettingsBloc extends Bloc<CopySettingsEvent, CopySettingsState> {
       // Refresh per-root statuses from the initialization report so both roots
       // are shown as automatic.
       final report = await _initializeRoots();
-      emit(_fromReport(report, messageKey: 'defaults_applied'));
+      emit(await _fromReport(report, messageKey: 'defaults_applied'));
       return;
     }
 
@@ -227,16 +243,21 @@ class CopySettingsBloc extends Bloc<CopySettingsEvent, CopySettingsState> {
         managedStatus: state.managedStatus,
         backupStatus: state.backupStatus,
         requiresAttention: state.requiresAttention,
+        startupRecoveryRequiresAttention:
+            state.startupRecoveryRequiresAttention,
+        startupRecoveryArtifactCount: state.startupRecoveryArtifactCount,
         messageKey: messageKey,
         sequence: state.sequence + 1,
       ),
     );
   }
 
-  CopySettingsState _fromReport(
+  Future<CopySettingsState> _fromReport(
     CopyRootsSetupReport report, {
     String? messageKey,
-  }) {
+  }) async {
+    final StartupRecoveryReport recovery = await _repository
+        .loadStartupRecoveryReport();
     return CopySettingsState(
       loading: false,
       managedRoot: report.managedRoot,
@@ -244,6 +265,8 @@ class CopySettingsBloc extends Bloc<CopySettingsEvent, CopySettingsState> {
       managedStatus: report.managedStatus,
       backupStatus: report.backupStatus,
       requiresAttention: report.requiresAttention,
+      startupRecoveryRequiresAttention: recovery.requiresAttention,
+      startupRecoveryArtifactCount: recovery.artifactCount,
       messageKey: messageKey,
       sequence: messageKey == null ? state.sequence : state.sequence + 1,
     );
@@ -258,6 +281,8 @@ class CopySettingsBloc extends Bloc<CopySettingsEvent, CopySettingsState> {
       managedStatus: source.managedStatus,
       backupStatus: source.backupStatus,
       requiresAttention: source.requiresAttention,
+      startupRecoveryRequiresAttention: source.startupRecoveryRequiresAttention,
+      startupRecoveryArtifactCount: source.startupRecoveryArtifactCount,
       sequence: source.sequence,
     );
   }

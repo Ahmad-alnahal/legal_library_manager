@@ -139,4 +139,75 @@ class WindowsManagedLibraryFilesystem implements ManagedLibraryFilesystem {
       return null;
     }
   }
+
+  @override
+  Future<List<String>?> findStartupRecoveryArtifacts(
+    String managedFilesDir,
+    List<String> documentCodes,
+  ) async {
+    try {
+      final dir = Directory(managedFilesDir);
+      if (!dir.existsSync()) return const [];
+      final knownCodes = documentCodes.toSet();
+      final copyingName = RegExp(
+        r'^(DOC-[0-9]{7})\.pdf\.[A-Za-z0-9_-]+\.copying$',
+      );
+      final finalName = RegExp(r'^(DOC-[0-9]{7})\.pdf$');
+      final artifacts = <String>[];
+      for (final entity in dir.listSync(followLinks: false)) {
+        if (FileSystemEntity.typeSync(entity.path, followLinks: false) !=
+            FileSystemEntityType.file) {
+          continue;
+        }
+        final name = entity.uri.pathSegments.isEmpty
+            ? ''
+            : entity.uri.pathSegments.last;
+        final copyingMatch = copyingName.firstMatch(name);
+        if (copyingMatch != null) {
+          artifacts.add(entity.path);
+          continue;
+        }
+        final finalMatch = finalName.firstMatch(name);
+        final code = finalMatch?.group(1);
+        if (code != null && !knownCodes.contains(code)) {
+          artifacts.add(entity.path);
+        }
+      }
+      artifacts.sort();
+      return artifacts;
+    } on FileSystemException {
+      return null;
+    }
+  }
+
+  @override
+  Future<List<String>?> findStartupBackupArtifacts(String backupRoot) async {
+    try {
+      final dir = Directory(backupRoot);
+      if (!dir.existsSync()) return const [];
+      final backupName = RegExp(
+        r'^legal_library_backup_[0-9]{4}-[0-9]{2}-[0-9]{2}_'
+        r'[0-9]{6}_[A-Za-z0-9_-]+\.sqlite$',
+      );
+      final artifacts = <String>[];
+      for (final entity in dir.listSync(followLinks: false)) {
+        if (FileSystemEntity.typeSync(entity.path, followLinks: false) !=
+            FileSystemEntityType.file) {
+          continue;
+        }
+        final name = entity.uri.pathSegments.isEmpty
+            ? ''
+            : entity.uri.pathSegments.last;
+        if (!backupName.hasMatch(name)) continue;
+        final size = await fileSize(entity.path);
+        if (size == null || size < 100) {
+          artifacts.add(entity.path);
+        }
+      }
+      artifacts.sort();
+      return artifacts;
+    } on FileSystemException {
+      return null;
+    }
+  }
 }

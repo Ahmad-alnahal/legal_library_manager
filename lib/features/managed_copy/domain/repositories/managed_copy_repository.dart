@@ -5,6 +5,7 @@ import '../entities/document_copy_state.dart';
 import '../entities/managed_copy_persistence_data.dart';
 import '../entities/managed_file_ref.dart';
 import '../entities/source_file_candidate.dart';
+import '../entities/startup_recovery_report.dart';
 
 /// Persistence boundary for the managed-copy workflow.
 ///
@@ -36,6 +37,22 @@ abstract class ManagedCopyRepository {
   /// Returns every registered original-source path for settings-level root
   /// validation.
   Future<List<String>> loadAllSourcePaths() async => const [];
+
+  /// Returns assigned document codes used to identify MARJIY-owned managed
+  /// files during startup inspection. Implementations should return only
+  /// non-null codes already persisted in the database.
+  Future<List<String>> loadManagedDocumentCodes() async => const [];
+
+  /// Persists the latest startup recovery inspection result as safe settings
+  /// metadata. This is intentionally coarse; it never stores file contents.
+  Future<void> saveStartupRecoveryReport(StartupRecoveryReport report) =>
+      throw UnimplementedError(
+        'Startup recovery persistence is not implemented.',
+      );
+
+  /// Loads the latest startup recovery inspection result.
+  Future<StartupRecoveryReport> loadStartupRecoveryReport() async =>
+      StartupRecoveryReport.healthy;
 
   /// Returns source_original candidate files for [documentId].
   ///

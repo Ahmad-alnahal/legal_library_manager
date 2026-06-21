@@ -731,6 +731,11 @@ class AppLocalizationsAr extends AppLocalizations {
       'تعذّر إنشاء النسخة الاحتياطية. تحقق من مساحة القرص وصلاحيات الكتابة.';
 
   @override
+  String settingsStartupRecoveryAttention(int count) {
+    return 'توجد ملفات عمل غير مكتملة داخل مجلدات مرجعي تحتاج إلى مراجعة آمنة قبل متابعة النسخ. عدد العناصر: $count. لم يتم نقل أو حذف أي ملف.';
+  }
+
+  @override
   String get duplicatesReviewStatusReviewed => 'تمت المراجعة';
 
   @override

@@ -207,6 +207,12 @@ class _CopyLocationsPanel extends StatelessWidget {
               Text(l10n.settingsCopyLocationsBody),
               const SizedBox(height: AppSpacing.xs),
               Text(l10n.settingsCopyLocationsWarning),
+              if (state.startupRecoveryRequiresAttention) ...[
+                const SizedBox(height: AppSpacing.md),
+                _StartupRecoveryBanner(
+                  artifactCount: state.startupRecoveryArtifactCount,
+                ),
+              ],
               const SizedBox(height: AppSpacing.md),
               Align(
                 alignment: AlignmentDirectional.centerStart,
@@ -471,6 +477,40 @@ class _AttentionBanner extends StatelessWidget {
           Expanded(
             child: Text(
               l10n.settingsAttentionBannerBody,
+              style: TextStyle(color: accent.foreground),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _StartupRecoveryBanner extends StatelessWidget {
+  const _StartupRecoveryBanner({required this.artifactCount});
+
+  final int artifactCount;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    const accent = AppStatusColors.warning;
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.all(AppSpacing.sm),
+      decoration: BoxDecoration(
+        color: accent.background,
+        borderRadius: AppRadii.card,
+        border: Border.all(color: accent.foreground.withValues(alpha: 0.3)),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Icon(Icons.pending_actions_outlined, color: accent.foreground),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Text(
+              l10n.settingsStartupRecoveryAttention(artifactCount),
               style: TextStyle(color: accent.foreground),
             ),
           ),

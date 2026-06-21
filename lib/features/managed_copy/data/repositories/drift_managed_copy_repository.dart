@@ -10,6 +10,7 @@ import '../../domain/entities/document_copy_state.dart';
 import '../../domain/entities/managed_copy_persistence_data.dart';
 import '../../domain/entities/managed_file_ref.dart';
 import '../../domain/entities/source_file_candidate.dart';
+import '../../domain/entities/startup_recovery_report.dart';
 import '../../domain/repositories/managed_copy_repository.dart';
 
 /// Drift-backed [ManagedCopyRepository].
@@ -25,6 +26,9 @@ class DriftManagedCopyRepository implements ManagedCopyRepository {
 
   static const String _managedLibraryKey = 'managed_library_root';
   static const String _backupRootKey = 'database_backup_root';
+  static const String _startupRecoveryStatusKey = 'startup_recovery_status';
+  static const String _startupRecoveryArtifactCountKey =
+      'startup_recovery_artifact_count';
 
   // ── Document state ─────────────────────────────────────────────────────────
 
@@ -117,6 +121,60 @@ class DriftManagedCopyRepository implements ManagedCopyRepository {
       _db.documentFiles,
     )..where((f) => f.fileRoleKey.equals('source_original'))).get();
     return rows.map((row) => row.absolutePath).toList(growable: false);
+  }
+
+  @override
+  Future<List<String>> loadManagedDocumentCodes() async {
+    final rows =
+        await (_db.selectOnly(_db.documents)
+              ..addColumns([_db.documents.documentCode])
+              ..where(_db.documents.documentCode.isNotNull()))
+            .get();
+    return rows
+        .map((row) => row.read(_db.documents.documentCode))
+        .whereType<String>()
+        .where((code) => RegExp(r'^DOC-[0-9]{7}$').hasMatch(code))
+        .toSet()
+        .toList()
+      ..sort();
+  }
+
+  @override
+  Future<void> saveStartupRecoveryReport(StartupRecoveryReport report) {
+    return _db.transaction(() async {
+      final now = _clock.nowUtc().toIso8601String();
+      for (final entry in {
+        _startupRecoveryStatusKey: report.status.name,
+        _startupRecoveryArtifactCountKey: report.artifactCount.toString(),
+      }.entries) {
+        await _db
+            .into(_db.settings)
+            .insertOnConflictUpdate(
+              SettingsCompanion.insert(
+                key: entry.key,
+                value: entry.value,
+                updatedAt: now,
+              ),
+            );
+      }
+    });
+  }
+
+  @override
+  Future<StartupRecoveryReport> loadStartupRecoveryReport() async {
+    final rawStatus = await _setting(_startupRecoveryStatusKey);
+    final status = StartupRecoveryStatus.values.where(
+      (s) => s.name == rawStatus,
+    );
+    final parsedStatus = status.isEmpty
+        ? StartupRecoveryStatus.healthy
+        : status.first;
+    final rawCount = await _setting(_startupRecoveryArtifactCountKey);
+    final artifactCount = int.tryParse(rawCount ?? '') ?? 0;
+    return StartupRecoveryReport(
+      status: parsedStatus,
+      artifactCount: artifactCount < 0 ? 0 : artifactCount,
+    );
   }
 
   @override

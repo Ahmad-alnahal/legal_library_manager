@@ -48,6 +48,7 @@ import '../../features/managed_copy/application/apply_default_copy_roots.dart';
 import '../../features/managed_copy/application/check_managed_copy_health.dart';
 import '../../features/managed_copy/application/configure_copy_roots.dart';
 import '../../features/managed_copy/application/initialize_copy_roots.dart';
+import '../../features/managed_copy/application/inspect_startup_recovery.dart';
 import '../../features/managed_copy/application/managed_copy_use_case.dart';
 import '../../features/managed_copy/application/repair_copy_root.dart';
 import '../../features/managed_copy/data/repositories/drift_managed_copy_repository.dart';
@@ -282,6 +283,12 @@ void configureDependencies() {
         configureCopyRoots: getIt<ConfigureCopyRoots>(),
       ),
     )
+    ..registerLazySingleton<InspectStartupRecovery>(
+      () => InspectStartupRecovery(
+        repository: getIt<ManagedCopyRepository>(),
+        filesystem: getIt<ManagedLibraryFilesystem>(),
+      ),
+    )
     // M8.5 explicit missing-folder repair: recreates exactly one configured
     // root after user confirmation, reusing the filesystem and canonicalizer.
     ..registerLazySingleton<RepairCopyRoot>(
@@ -334,6 +341,7 @@ void configureDependencies() {
         getIt<InitializeCopyRoots>(),
         getIt<RepairCopyRoot>(),
         getIt<ApplyDefaultCopyRoots>(),
+        getIt<ManagedCopyRepository>(),
       ),
     )
     // M9.1 duplicate review: read-only repository and BLoC.

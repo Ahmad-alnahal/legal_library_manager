@@ -1402,6 +1402,12 @@ abstract class AppLocalizations {
   /// **'تعذّر إنشاء النسخة الاحتياطية. تحقق من مساحة القرص وصلاحيات الكتابة.'**
   String get settingsSnackBackupFailed;
 
+  /// No description provided for @settingsStartupRecoveryAttention.
+  ///
+  /// In ar, this message translates to:
+  /// **'توجد ملفات عمل غير مكتملة داخل مجلدات مرجعي تحتاج إلى مراجعة آمنة قبل متابعة النسخ. عدد العناصر: {count}. لم يتم نقل أو حذف أي ملف.'**
+  String settingsStartupRecoveryAttention(int count);
+
   /// No description provided for @duplicatesReviewStatusReviewed.
   ///
   /// In ar, this message translates to:
