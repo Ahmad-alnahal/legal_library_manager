@@ -2,6 +2,10 @@
 
 import 'package:get_it/get_it.dart';
 
+import '../../features/dashboard/data/repositories/drift_dashboard_repository.dart';
+import '../../features/dashboard/domain/repositories/dashboard_repository.dart';
+import '../../features/dashboard/presentation/bloc/dashboard_bloc.dart'
+    show DashboardBloc;
 import '../../features/duplicates/data/repositories/drift_duplicate_review_repository.dart';
 import '../../features/duplicates/domain/repositories/duplicate_review_repository.dart';
 import '../../features/duplicates/presentation/bloc/duplicate_review_bloc.dart';
@@ -78,7 +82,7 @@ import '../time/clock.dart';
 /// Global service locator.
 final GetIt getIt = GetIt.instance;
 
-/// Registers application dependencies (M1 shell + M4 import + M5 documents + M7 file open + M8.1–M8.6 managed copy + M9.1 duplicate review).
+/// Registers application dependencies (M1 shell + M4 import + M5 documents + M7 file open + M8.1–M8.6 managed copy + M9.1 duplicate review + M10.1 dashboard).
 ///
 /// The production [AppDatabase] is a single lazy singleton (its connection opens
 /// lazily on first query and closes on [GetIt.reset]). Tests may register an
@@ -323,5 +327,12 @@ void configureDependencies() {
     )
     ..registerFactory<DuplicateReviewBloc>(
       () => DuplicateReviewBloc(repository: getIt<DuplicateReviewRepository>()),
+    )
+    // M10.1 dashboard: read-only Drift repository and BLoC.
+    ..registerLazySingleton<DashboardRepository>(
+      () => DriftDashboardRepository(getIt<AppDatabase>()),
+    )
+    ..registerFactory<DashboardBloc>(
+      () => DashboardBloc(repository: getIt<DashboardRepository>()),
     );
 }

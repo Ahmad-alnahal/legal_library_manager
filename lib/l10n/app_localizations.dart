@@ -220,6 +220,60 @@ abstract class AppLocalizations {
   /// **'أرقام عرض ثابتة لأغراض التصميم فقط، ولا تعكس بيانات فعلية بعد.'**
   String get dashboardStaticNotice;
 
+  /// No description provided for @dashboardLoadingMessage.
+  ///
+  /// In ar, this message translates to:
+  /// **'جارٍ تحميل بيانات لوحة القيادة...'**
+  String get dashboardLoadingMessage;
+
+  /// No description provided for @dashboardErrorMessage.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر تحميل بيانات لوحة القيادة.'**
+  String get dashboardErrorMessage;
+
+  /// No description provided for @dashboardRetry.
+  ///
+  /// In ar, this message translates to:
+  /// **'إعادة المحاولة'**
+  String get dashboardRetry;
+
+  /// No description provided for @dashboardRefreshTooltip.
+  ///
+  /// In ar, this message translates to:
+  /// **'تحديث البيانات'**
+  String get dashboardRefreshTooltip;
+
+  /// No description provided for @dashboardActivityTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'النشاط الأخير'**
+  String get dashboardActivityTitle;
+
+  /// No description provided for @dashboardActivityEmpty.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا يوجد نشاط مسجّل بعد.'**
+  String get dashboardActivityEmpty;
+
+  /// No description provided for @dashboardActivityFileEvent.
+  ///
+  /// In ar, this message translates to:
+  /// **'حدث ملف'**
+  String get dashboardActivityFileEvent;
+
+  /// No description provided for @dashboardActivityOpenEvent.
+  ///
+  /// In ar, this message translates to:
+  /// **'فتح ملف'**
+  String get dashboardActivityOpenEvent;
+
+  /// No description provided for @dashboardActivityImportBatch.
+  ///
+  /// In ar, this message translates to:
+  /// **'دفعة استيراد'**
+  String get dashboardActivityImportBatch;
+
   /// No description provided for @metricTotalImported.
   ///
   /// In ar, this message translates to:
@@ -1065,6 +1119,270 @@ abstract class AppLocalizations {
   /// In ar, this message translates to:
   /// **'لا يمكن فتح الملف مباشرةً؛ الملف تالف أو غير قابل للقراءة أو مفقود. يمكنك فتح المجلد بدلًا من ذلك.'**
   String get fileOpenErrorUnhealthyFile;
+
+  /// No description provided for @settingsCopyLocationsTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'مواقع النسخ الآمن'**
+  String get settingsCopyLocationsTitle;
+
+  /// No description provided for @settingsCopyLocationsBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'تُحفظ ملفات PDF المدارة داخل مجلد files، وتبقى النسخ الاحتياطية في مجلد منفصل. يجهّز التطبيق هذه المواقع تلقائيًا، ويمكن تغييرها كخيار متقدم.'**
+  String get settingsCopyLocationsBody;
+
+  /// No description provided for @settingsCopyLocationsWarning.
+  ///
+  /// In ar, this message translates to:
+  /// **'تغيير المواقع لا ينقل الملفات المدارة أو النسخ الاحتياطية السابقة؛ تبقى في مكانها الحالي.'**
+  String get settingsCopyLocationsWarning;
+
+  /// No description provided for @settingsManagedRootTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'جذر المكتبة المدارة'**
+  String get settingsManagedRootTitle;
+
+  /// No description provided for @settingsBackupRootTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'مجلد النسخ الاحتياطي لقاعدة البيانات'**
+  String get settingsBackupRootTitle;
+
+  /// No description provided for @settingsResetToDefaults.
+  ///
+  /// In ar, this message translates to:
+  /// **'استخدام المجلدات الافتراضية'**
+  String get settingsResetToDefaults;
+
+  /// No description provided for @settingsResetWarning.
+  ///
+  /// In ar, this message translates to:
+  /// **'تغيير المسارات إلى الافتراضي لا ينقل الملفات المدارة أو النسخ الاحتياطية من مواقعها الحالية.'**
+  String get settingsResetWarning;
+
+  /// No description provided for @settingsAttentionBannerBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'يتطلب إعداد مواقع النسخ الآمن انتباهك. يبقى النسخ إلى المكتبة المدارة متوقفًا حتى يكتمل الإعداد، دون أي تأثير على الملفات الحالية.'**
+  String get settingsAttentionBannerBody;
+
+  /// No description provided for @settingsLocationNotChosen.
+  ///
+  /// In ar, this message translates to:
+  /// **'لم يتم الاختيار بعد'**
+  String get settingsLocationNotChosen;
+
+  /// No description provided for @settingsRecreateFolder.
+  ///
+  /// In ar, this message translates to:
+  /// **'إعادة إنشاء المجلد'**
+  String get settingsRecreateFolder;
+
+  /// No description provided for @settingsChooseButton.
+  ///
+  /// In ar, this message translates to:
+  /// **'اختيار'**
+  String get settingsChooseButton;
+
+  /// No description provided for @settingsChangeButton.
+  ///
+  /// In ar, this message translates to:
+  /// **'تغيير'**
+  String get settingsChangeButton;
+
+  /// No description provided for @settingsStatusAutomatic.
+  ///
+  /// In ar, this message translates to:
+  /// **'مُهيأ تلقائيًا'**
+  String get settingsStatusAutomatic;
+
+  /// No description provided for @settingsStatusCustom.
+  ///
+  /// In ar, this message translates to:
+  /// **'موقع مخصص'**
+  String get settingsStatusCustom;
+
+  /// No description provided for @settingsStatusMissing.
+  ///
+  /// In ar, this message translates to:
+  /// **'المجلد غير متاح — يتطلب الانتباه'**
+  String get settingsStatusMissing;
+
+  /// No description provided for @settingsStatusNotConfigured.
+  ///
+  /// In ar, this message translates to:
+  /// **'غير مُهيأ بعد'**
+  String get settingsStatusNotConfigured;
+
+  /// No description provided for @settingsDialogCancel.
+  ///
+  /// In ar, this message translates to:
+  /// **'إلغاء'**
+  String get settingsDialogCancel;
+
+  /// No description provided for @settingsDialogRecreateTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'إعادة إنشاء المجلد'**
+  String get settingsDialogRecreateTitle;
+
+  /// No description provided for @settingsDialogRecreateContent.
+  ///
+  /// In ar, this message translates to:
+  /// **'سيتم إنشاء المجلد المفقود في نفس المسار المُهيأ فقط، بعد التحقق من سلامته. لا يتم نقل أو نسخ أو تعديل أو حذف أي ملفات موجودة.'**
+  String get settingsDialogRecreateContent;
+
+  /// No description provided for @settingsDialogRecreateConfirm.
+  ///
+  /// In ar, this message translates to:
+  /// **'إعادة الإنشاء'**
+  String get settingsDialogRecreateConfirm;
+
+  /// No description provided for @settingsDialogResetTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'استخدام المجلدات الافتراضية'**
+  String get settingsDialogResetTitle;
+
+  /// No description provided for @settingsDialogResetContent.
+  ///
+  /// In ar, this message translates to:
+  /// **'سيتم تعيين مجلدَي المكتبة المدارة والنسخ الاحتياطي إلى المواقع الافتراضية لمرجعي داخل مجلد المستندات.\n\nتنبيه: هذا لا ينقل الملفات المدارة أو النسخ الاحتياطية السابقة؛ تبقى في مواقعها الحالية ولا يتأثر أي ملف موجود.'**
+  String get settingsDialogResetContent;
+
+  /// No description provided for @settingsDialogResetConfirm.
+  ///
+  /// In ar, this message translates to:
+  /// **'تطبيق الافتراضي'**
+  String get settingsDialogResetConfirm;
+
+  /// No description provided for @settingsDialogChangeTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'تغيير {label}'**
+  String settingsDialogChangeTitle(String label);
+
+  /// No description provided for @settingsDialogChangeContent.
+  ///
+  /// In ar, this message translates to:
+  /// **'بعد اختيار المجلد الجديد، سيتم حفظه فقط إذا اجتاز التحقق من السلامة.\n\nالملفات المدارة والنسخ الاحتياطية الحالية تبقى في مواقعها الأصلية ولا يُنقل أو يُحذف أي ملف موجود.'**
+  String get settingsDialogChangeContent;
+
+  /// No description provided for @settingsDialogChangeContinue.
+  ///
+  /// In ar, this message translates to:
+  /// **'متابعة واختيار مجلد'**
+  String get settingsDialogChangeContinue;
+
+  /// No description provided for @settingsSnackSaved.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم حفظ مواقع المكتبة المدارة والنسخ الاحتياطي بأمان.'**
+  String get settingsSnackSaved;
+
+  /// No description provided for @settingsSnackChooseBoth.
+  ///
+  /// In ar, this message translates to:
+  /// **'اختر مجلدي المكتبة المدارة والنسخ الاحتياطي.'**
+  String get settingsSnackChooseBoth;
+
+  /// No description provided for @settingsSnackUnsafeOverlap.
+  ///
+  /// In ar, this message translates to:
+  /// **'يجب أن تكون المجلدات منفصلة عن بعضها وعن قاعدة البيانات.'**
+  String get settingsSnackUnsafeOverlap;
+
+  /// No description provided for @settingsSnackRecreated.
+  ///
+  /// In ar, this message translates to:
+  /// **'تمت إعادة إنشاء المجلد المفقود بأمان دون أي تغيير على الملفات الحالية.'**
+  String get settingsSnackRecreated;
+
+  /// No description provided for @settingsSnackRecreateUnsafe.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّرت إعادة الإنشاء: يجب أن يكون المجلد منفصلًا عن المجلدات الأخرى وقاعدة البيانات ومجلدات المصدر.'**
+  String get settingsSnackRecreateUnsafe;
+
+  /// No description provided for @settingsSnackRecreateInvalid.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّرت إعادة الإنشاء: مسار المجلد المُهيأ غير صالح.'**
+  String get settingsSnackRecreateInvalid;
+
+  /// No description provided for @settingsSnackRecreateFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّرت إعادة إنشاء المجلد. يبقى الإعداد بحاجة إلى الانتباه دون أي تغيير على الملفات الحالية.'**
+  String get settingsSnackRecreateFailed;
+
+  /// No description provided for @settingsSnackDefaultsApplied.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم تطبيق المجلدات الافتراضية لمرجعي. الملفات المدارة والنسخ الاحتياطية السابقة في مواقعها الأصلية.'**
+  String get settingsSnackDefaultsApplied;
+
+  /// No description provided for @settingsSnackDefaultsResolutionFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر تحديد مجلد المستندات. تحقق من صلاحيات النظام.'**
+  String get settingsSnackDefaultsResolutionFailed;
+
+  /// No description provided for @settingsSnackDefaultsCreationFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر إنشاء المجلدات الافتراضية. تحقق من المساحة المتاحة وصلاحيات الكتابة.'**
+  String get settingsSnackDefaultsCreationFailed;
+
+  /// No description provided for @settingsSnackFallback.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر اعتماد المجلد المحدد. اختر مجلدًا موجودًا وآمنًا.'**
+  String get settingsSnackFallback;
+
+  /// No description provided for @duplicatesReviewStatusReviewed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تمت المراجعة'**
+  String get duplicatesReviewStatusReviewed;
+
+  /// No description provided for @duplicatesReviewStatusDeferred.
+  ///
+  /// In ar, this message translates to:
+  /// **'مؤجلة'**
+  String get duplicatesReviewStatusDeferred;
+
+  /// No description provided for @duplicatesReviewStatusUnreviewed.
+  ///
+  /// In ar, this message translates to:
+  /// **'غير مراجعة'**
+  String get duplicatesReviewStatusUnreviewed;
+
+  /// No description provided for @dashboardRelativeDays.
+  ///
+  /// In ar, this message translates to:
+  /// **'{n}ي'**
+  String dashboardRelativeDays(int n);
+
+  /// No description provided for @dashboardRelativeHours.
+  ///
+  /// In ar, this message translates to:
+  /// **'{n}س'**
+  String dashboardRelativeHours(int n);
+
+  /// No description provided for @dashboardRelativeMinutes.
+  ///
+  /// In ar, this message translates to:
+  /// **'{n}د'**
+  String dashboardRelativeMinutes(int n);
+
+  /// No description provided for @dashboardRelativeNow.
+  ///
+  /// In ar, this message translates to:
+  /// **'الآن'**
+  String get dashboardRelativeNow;
 }
 
 class _AppLocalizationsDelegate

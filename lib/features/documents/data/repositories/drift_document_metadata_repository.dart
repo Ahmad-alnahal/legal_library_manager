@@ -89,10 +89,15 @@ class DriftDocumentMetadataRepository implements DocumentMetadataRepository {
         .where((f) => f.fileRoleKey == 'source_original')
         .map((f) => f.id)
         .toList(growable: false);
-    final Set<int> hiddenSourceFileIds =
-        await _hiddenDuplicateFileIds(sourceFileIds);
+    final Set<int> hiddenSourceFileIds = await _hiddenDuplicateFileIds(
+      sourceFileIds,
+    );
     final List<DocumentFile> files = allFiles
-        .where((f) => f.fileRoleKey != 'source_original' || !hiddenSourceFileIds.contains(f.id))
+        .where(
+          (f) =>
+              f.fileRoleKey != 'source_original' ||
+              !hiddenSourceFileIds.contains(f.id),
+        )
         .toList(growable: false);
     final List<DocumentFileRef> fileRefs = files
         .map(

@@ -17,7 +17,19 @@ void main() {
   late Directory root;
 
   setUp(() => root = makeTempDir('hash'));
-  tearDown(() => root.deleteSync(recursive: true));
+  // On Windows a worker isolate may hold a file handle briefly after the
+  // Future resolves. Retry deletion a few times before letting it throw.
+  tearDown(() async {
+    for (var attempt = 0; attempt < 5; attempt++) {
+      try {
+        root.deleteSync(recursive: true);
+        return;
+      } catch (_) {
+        await Future<void>.delayed(const Duration(milliseconds: 60));
+      }
+    }
+    root.deleteSync(recursive: true);
+  });
 
   test('known content yields the correct lowercase 64-hex SHA-256', () async {
     // SHA-256("abc") is a published test vector.

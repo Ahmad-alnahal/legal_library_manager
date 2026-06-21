@@ -38,25 +38,19 @@ class _SettingsBody extends StatelessWidget {
       listenWhen: (a, b) => a.sequence != b.sequence && b.messageKey != null,
       listener: (context, state) {
         final text = switch (state.messageKey) {
-          'saved' => 'تم حفظ مواقع المكتبة المدارة والنسخ الاحتياطي بأمان.',
-          'choose_both' => 'اختر مجلدي المكتبة المدارة والنسخ الاحتياطي.',
-          'unsafe_overlap' =>
-            'يجب أن تكون المجلدات منفصلة عن بعضها وعن قاعدة البيانات.',
-          'recreated' =>
-            'تمت إعادة إنشاء المجلد المفقود بأمان دون أي تغيير على الملفات الحالية.',
-          'recreate_unsafe' =>
-            'تعذّرت إعادة الإنشاء: يجب أن يكون المجلد منفصلًا عن المجلدات الأخرى وقاعدة البيانات ومجلدات المصدر.',
-          'recreate_invalid' =>
-            'تعذّرت إعادة الإنشاء: مسار المجلد المُهيأ غير صالح.',
-          'recreate_failed' =>
-            'تعذّرت إعادة إنشاء المجلد. يبقى الإعداد بحاجة إلى الانتباه دون أي تغيير على الملفات الحالية.',
-          'defaults_applied' =>
-            'تم تطبيق المجلدات الافتراضية لمرجعي. الملفات المدارة والنسخ الاحتياطية السابقة في مواقعها الأصلية.',
+          'saved' => l10n.settingsSnackSaved,
+          'choose_both' => l10n.settingsSnackChooseBoth,
+          'unsafe_overlap' => l10n.settingsSnackUnsafeOverlap,
+          'recreated' => l10n.settingsSnackRecreated,
+          'recreate_unsafe' => l10n.settingsSnackRecreateUnsafe,
+          'recreate_invalid' => l10n.settingsSnackRecreateInvalid,
+          'recreate_failed' => l10n.settingsSnackRecreateFailed,
+          'defaults_applied' => l10n.settingsSnackDefaultsApplied,
           'defaults_resolution_failed' =>
-            'تعذّر تحديد مجلد المستندات. تحقق من صلاحيات النظام.',
+            l10n.settingsSnackDefaultsResolutionFailed,
           'defaults_creation_failed' =>
-            'تعذّر إنشاء المجلدات الافتراضية. تحقق من المساحة المتاحة وصلاحيات الكتابة.',
-          _ => 'تعذّر اعتماد المجلد المحدد. اختر مجلدًا موجودًا وآمنًا.',
+            l10n.settingsSnackDefaultsCreationFailed,
+          _ => l10n.settingsSnackFallback,
         };
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
@@ -127,6 +121,7 @@ class _CopyLocationsPanel extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return AppPanel(
       child: BlocBuilder<CopySettingsBloc, CopySettingsState>(
         builder: (context, state) {
@@ -147,33 +142,31 @@ class _CopyLocationsPanel extends StatelessWidget {
                     color: AppColors.accentTeal,
                   ),
                   Text(
-                    'مواقع النسخ الآمن',
+                    l10n.settingsCopyLocationsTitle,
                     style: Theme.of(context).textTheme.titleMedium,
                   ),
                 ],
               ),
               const SizedBox(height: AppSpacing.sm),
-              const Text(
-                'تُحفظ ملفات PDF المدارة داخل مجلد files، وتبقى النسخ الاحتياطية في مجلد منفصل. '
-                'يجهّز التطبيق هذه المواقع تلقائيًا، ويمكن تغييرها كخيار متقدم.',
-              ),
+              Text(l10n.settingsCopyLocationsBody),
               const SizedBox(height: AppSpacing.xs),
-              const Text(
-                'تغيير المواقع لا ينقل الملفات المدارة أو النسخ الاحتياطية السابقة؛ تبقى في مكانها الحالي.',
-              ),
+              Text(l10n.settingsCopyLocationsWarning),
               if (state.requiresAttention) ...[
                 const SizedBox(height: AppSpacing.md),
                 const _AttentionBanner(),
               ],
               const SizedBox(height: AppSpacing.lg),
               _LocationRow(
-                title: 'جذر المكتبة المدارة',
+                title: l10n.settingsManagedRootTitle,
                 value: state.managedRoot,
                 status: state.managedStatus,
                 icon: Icons.library_books_outlined,
                 enabled: !state.busy,
-                onChoose: () => bloc.add(
-                  const CopyRootSelectionRequested(CopyRootKind.managedLibrary),
+                onChoose: () => _confirmAndChange(
+                  context,
+                  bloc,
+                  CopyRootKind.managedLibrary,
+                  hasCurrent: state.managedRoot != null,
                 ),
                 onRecreate: state.managedStatus == CopyRootStatus.missing
                     ? () => _confirmAndRecreate(
@@ -185,13 +178,16 @@ class _CopyLocationsPanel extends StatelessWidget {
               ),
               const Divider(height: AppSpacing.xl),
               _LocationRow(
-                title: 'مجلد النسخ الاحتياطي لقاعدة البيانات',
+                title: l10n.settingsBackupRootTitle,
                 value: state.backupRoot,
                 status: state.backupStatus,
                 icon: Icons.backup_outlined,
                 enabled: !state.busy,
-                onChoose: () => bloc.add(
-                  const CopyRootSelectionRequested(CopyRootKind.databaseBackup),
+                onChoose: () => _confirmAndChange(
+                  context,
+                  bloc,
+                  CopyRootKind.databaseBackup,
+                  hasCurrent: state.backupRoot != null,
                 ),
                 onRecreate: state.backupStatus == CopyRootStatus.missing
                     ? () => _confirmAndRecreate(
@@ -205,7 +201,7 @@ class _CopyLocationsPanel extends StatelessWidget {
               Align(
                 alignment: AlignmentDirectional.centerStart,
                 child: AppSecondaryButton(
-                  label: 'استخدام المجلدات الافتراضية',
+                  label: l10n.settingsResetToDefaults,
                   icon: Icons.restore_outlined,
                   onPressed: !state.busy
                       ? () => _confirmResetToDefaults(context, bloc)
@@ -213,10 +209,9 @@ class _CopyLocationsPanel extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: AppSpacing.xs),
-              const Text(
-                'تغيير المسارات إلى الافتراضي لا ينقل الملفات المدارة أو النسخ '
-                'الاحتياطية من مواقعها الحالية.',
-                style: TextStyle(fontSize: 12),
+              Text(
+                l10n.settingsResetWarning,
+                style: const TextStyle(fontSize: 12),
               ),
               if (state.busy) ...[
                 const SizedBox(height: AppSpacing.md),
@@ -230,30 +225,25 @@ class _CopyLocationsPanel extends StatelessWidget {
   }
 }
 
-/// Asks the user to confirm before any directory is created, then dispatches
-/// the explicit repair request (M8.5). Creation never happens without this
-/// confirmed click.
 Future<void> _confirmAndRecreate(
   BuildContext context,
   CopySettingsBloc bloc,
   CopyRootKind kind,
 ) async {
+  final l10n = AppLocalizations.of(context);
   final confirmed = await showDialog<bool>(
     context: context,
     builder: (dialogContext) => AlertDialog(
-      title: const Text('إعادة إنشاء المجلد'),
-      content: const Text(
-        'سيتم إنشاء المجلد المفقود في نفس المسار المُهيأ فقط، بعد التحقق من سلامته. '
-        'لا يتم نقل أو نسخ أو تعديل أو حذف أي ملفات موجودة.',
-      ),
+      title: Text(l10n.settingsDialogRecreateTitle),
+      content: Text(l10n.settingsDialogRecreateContent),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(dialogContext).pop(false),
-          child: const Text('إلغاء'),
+          child: Text(l10n.settingsDialogCancel),
         ),
         FilledButton(
           onPressed: () => Navigator.of(dialogContext).pop(true),
-          child: const Text('إعادة الإنشاء'),
+          child: Text(l10n.settingsDialogRecreateConfirm),
         ),
       ],
     ),
@@ -263,30 +253,24 @@ Future<void> _confirmAndRecreate(
   }
 }
 
-/// Asks the user to confirm before resetting both roots to the MARJIY defaults
-/// (M8.6 Part A). Warns clearly that files are never moved.
 Future<void> _confirmResetToDefaults(
   BuildContext context,
   CopySettingsBloc bloc,
 ) async {
+  final l10n = AppLocalizations.of(context);
   final confirmed = await showDialog<bool>(
     context: context,
     builder: (dialogContext) => AlertDialog(
-      title: const Text('استخدام المجلدات الافتراضية'),
-      content: const Text(
-        'سيتم تعيين مجلدَي المكتبة المدارة والنسخ الاحتياطي إلى المواقع '
-        'الافتراضية لمرجعي داخل مجلد المستندات.\n\n'
-        'تنبيه: هذا لا ينقل الملفات المدارة أو النسخ الاحتياطية السابقة؛ '
-        'تبقى في مواقعها الحالية ولا يتأثر أي ملف موجود.',
-      ),
+      title: Text(l10n.settingsDialogResetTitle),
+      content: Text(l10n.settingsDialogResetContent),
       actions: [
         TextButton(
           onPressed: () => Navigator.of(dialogContext).pop(false),
-          child: const Text('إلغاء'),
+          child: Text(l10n.settingsDialogCancel),
         ),
         FilledButton(
           onPressed: () => Navigator.of(dialogContext).pop(true),
-          child: const Text('تطبيق الافتراضي'),
+          child: Text(l10n.settingsDialogResetConfirm),
         ),
       ],
     ),
@@ -296,11 +280,48 @@ Future<void> _confirmResetToDefaults(
   }
 }
 
+Future<void> _confirmAndChange(
+  BuildContext context,
+  CopySettingsBloc bloc,
+  CopyRootKind kind, {
+  required bool hasCurrent,
+}) async {
+  if (!hasCurrent) {
+    if (!bloc.isClosed) bloc.add(CopyRootSelectionRequested(kind));
+    return;
+  }
+  final l10n = AppLocalizations.of(context);
+  final label = kind == CopyRootKind.managedLibrary
+      ? l10n.settingsManagedRootTitle
+      : l10n.settingsBackupRootTitle;
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: Text(l10n.settingsDialogChangeTitle(label)),
+      content: Text(l10n.settingsDialogChangeContent),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(dialogContext).pop(false),
+          child: Text(l10n.settingsDialogCancel),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(dialogContext).pop(true),
+          child: Text(l10n.settingsDialogChangeContinue),
+        ),
+      ],
+    ),
+  );
+  if (confirmed == true && !bloc.isClosed) {
+    bloc.add(CopyRootSelectionRequested(kind));
+  }
+}
+
 class _AttentionBanner extends StatelessWidget {
   const _AttentionBanner();
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     const accent = AppStatusColors.warning;
     return Container(
       width: double.infinity,
@@ -317,8 +338,7 @@ class _AttentionBanner extends StatelessWidget {
           const SizedBox(width: AppSpacing.sm),
           Expanded(
             child: Text(
-              'يتطلب إعداد مواقع النسخ الآمن انتباهك. يبقى النسخ إلى المكتبة المدارة '
-              'متوقفًا حتى يكتمل الإعداد، دون أي تأثير على الملفات الحالية.',
+              l10n.settingsAttentionBannerBody,
               style: TextStyle(color: accent.foreground),
             ),
           ),
@@ -345,13 +365,11 @@ class _LocationRow extends StatelessWidget {
   final IconData icon;
   final bool enabled;
   final VoidCallback onChoose;
-
-  /// Non-null only when this configured root is missing/inaccessible. Renders
-  /// the explicit "إعادة إنشاء المجلد" action beside the missing folder.
   final VoidCallback? onRecreate;
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Semantics(
       label: title,
       child: LayoutBuilder(
@@ -367,7 +385,7 @@ class _LocationRow extends StatelessWidget {
                   children: [
                     Text(title, style: Theme.of(context).textTheme.labelLarge),
                     const SizedBox(height: AppSpacing.xs),
-                    SelectableText(value ?? 'لم يتم الاختيار بعد'),
+                    SelectableText(value ?? l10n.settingsLocationNotChosen),
                     const SizedBox(height: AppSpacing.xs),
                     _StatusChip(status: status),
                     if (onRecreate != null) ...[
@@ -375,7 +393,7 @@ class _LocationRow extends StatelessWidget {
                       Align(
                         alignment: AlignmentDirectional.centerStart,
                         child: AppPrimaryButton(
-                          label: 'إعادة إنشاء المجلد',
+                          label: l10n.settingsRecreateFolder,
                           icon: Icons.create_new_folder_outlined,
                           onPressed: enabled ? onRecreate : null,
                         ),
@@ -387,7 +405,9 @@ class _LocationRow extends StatelessWidget {
             ],
           );
           final button = AppSecondaryButton(
-            label: value == null ? 'اختيار' : 'تغيير',
+            label: value == null
+                ? l10n.settingsChooseButton
+                : l10n.settingsChangeButton,
             icon: Icons.folder_open_outlined,
             onPressed: enabled ? onChoose : null,
           );
@@ -425,15 +445,22 @@ class _StatusChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final (label, color) = switch (status) {
-      CopyRootStatus.automatic => ('مُهيأ تلقائيًا', AppStatusColors.success),
-      CopyRootStatus.custom => ('موقع مخصص', AppStatusColors.info),
+      CopyRootStatus.automatic => (
+        l10n.settingsStatusAutomatic,
+        AppStatusColors.success,
+      ),
+      CopyRootStatus.custom => (
+        l10n.settingsStatusCustom,
+        AppStatusColors.info,
+      ),
       CopyRootStatus.missing => (
-        'المجلد غير متاح — يتطلب الانتباه',
+        l10n.settingsStatusMissing,
         AppStatusColors.warning,
       ),
       CopyRootStatus.notConfigured => (
-        'غير مُهيأ بعد',
+        l10n.settingsStatusNotConfigured,
         AppStatusColors.neutral,
       ),
     };

@@ -68,7 +68,8 @@ void main() {
     testWidgets('no overflow on any page at $size', (tester) async {
       await _pumpAt(tester, size);
 
-      // Dashboard renders without overflow and still shows its metric cards.
+      // Dashboard renders without overflow and still shows its metric cards
+      // backed by real (empty) database data — all counts are '0'.
       expect(tester.takeException(), isNull, reason: 'dashboard @ $size');
       expect(find.byType(MetricCard), findsWidgets, reason: 'metrics @ $size');
 
@@ -90,8 +91,8 @@ void main() {
       expect(cardSize.width, greaterThan(120), reason: 'card too narrow');
       expect(cardSize.height, greaterThan(0));
     }
-    // A representative formatted value is still present (not clipped away).
-    expect(find.text('23,450'), findsOneWidget);
+    // With a real empty database, total imported files = 0.
+    expect(find.text('0'), findsWidgets);
   });
 
   testWidgets('resizing the dashboard wide -> narrow -> wide never overflows', (

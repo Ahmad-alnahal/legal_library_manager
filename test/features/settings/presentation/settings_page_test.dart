@@ -50,6 +50,17 @@ class _SequencedInitializeCopyRoots implements InitializeCopyRoots {
   }
 }
 
+/// Records picker calls; returns null (simulates user cancelling the OS dialog).
+class _FakeCopyRootPicker implements CopyRootPicker {
+  int callCount = 0;
+
+  @override
+  Future<String?> pick(CopyRootKind kind) async {
+    callCount++;
+    return null;
+  }
+}
+
 /// Records the requested kind and returns a scripted repair result.
 class _FakeRepairCopyRoot implements RepairCopyRoot {
   _FakeRepairCopyRoot(this.result);
@@ -262,15 +273,177 @@ void main() {
       await tester.pumpAndSettle(const Duration(seconds: 5));
     },
   );
+
+  // ── M10.2: copy-only policy and safety wording ────────────────────────────
+
+  group('copy-only policy panel', () {
+    testWidgets('copy-only policy title and active badge are visible', (
+      tester,
+    ) async {
+      await _pumpSettings(
+        tester,
+        const CopyRootsSetupReport(
+          outcome: CopyRootsSetupOutcome.alreadyConfigured,
+          managedRoot: _defManaged,
+          backupRoot: _defBackup,
+          managedStatus: CopyRootStatus.automatic,
+          backupStatus: CopyRootStatus.automatic,
+        ),
+      );
+
+      // settingsCopyPolicyTitle = "سياسة «نسخ فقط»"
+      expect(find.textContaining('سياسة «نسخ فقط»'), findsOneWidget);
+      // settingsCopyPolicyActive = "سياسة نشطة ومفروضة"
+      expect(find.text('سياسة نشطة ومفروضة'), findsOneWidget);
+    });
+
+    testWidgets('copy-only policy body explicitly states no mutations', (
+      tester,
+    ) async {
+      await _pumpSettings(
+        tester,
+        const CopyRootsSetupReport(
+          outcome: CopyRootsSetupOutcome.alreadyConfigured,
+          managedRoot: _defManaged,
+          backupRoot: _defBackup,
+          managedStatus: CopyRootStatus.automatic,
+          backupStatus: CopyRootStatus.automatic,
+        ),
+      );
+
+      // settingsCopyPolicyBody states: "لا ينقلها ولا يعيد تسميتها ولا يحذفها"
+      expect(
+        find.textContaining('لا ينقلها ولا يعيد تسميتها ولا يحذفها'),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('locations panel states changing paths does not move files', (
+      tester,
+    ) async {
+      await _pumpSettings(
+        tester,
+        const CopyRootsSetupReport(
+          outcome: CopyRootsSetupOutcome.alreadyConfigured,
+          managedRoot: _defManaged,
+          backupRoot: _defBackup,
+          managedStatus: CopyRootStatus.automatic,
+          backupStatus: CopyRootStatus.automatic,
+        ),
+      );
+
+      // The locations panel disclaimer: "تغيير المواقع لا ينقل الملفات..."
+      expect(find.textContaining('لا ينقل الملفات'), findsWidgets);
+    });
+  });
+
+  // ── M10.2: location-change confirmation ───────────────────────────────────
+
+  group('location change confirmation', () {
+    testWidgets(
+      'changing an already-configured root shows a confirmation dialog',
+      (tester) async {
+        final picker = _FakeCopyRootPicker();
+        await _pumpSettings(
+          tester,
+          const CopyRootsSetupReport(
+            outcome: CopyRootsSetupOutcome.alreadyConfigured,
+            managedRoot: _defManaged,
+            backupRoot: _defBackup,
+            managedStatus: CopyRootStatus.automatic,
+            backupStatus: CopyRootStatus.automatic,
+          ),
+          picker: picker,
+        );
+
+        // Both roots are set — the button label is "تغيير".
+        final changeButtons = find.text('تغيير');
+        expect(changeButtons, findsWidgets);
+
+        await tester.tap(changeButtons.first);
+        await tester.pumpAndSettle();
+
+        // Confirmation dialog must appear.
+        expect(find.byType(AlertDialog), findsOneWidget);
+        expect(find.textContaining('تغيير'), findsWidgets);
+        expect(
+          find.textContaining('ولا يُنقل أو يُحذف أي ملف موجود'),
+          findsOneWidget,
+        );
+
+        // Cancel the dialog.
+        await tester.tap(find.text('إلغاء'));
+        await tester.pumpAndSettle();
+      },
+    );
+
+    testWidgets(
+      'cancelling the confirmation dialog does not invoke the folder picker',
+      (tester) async {
+        final picker = _FakeCopyRootPicker();
+        await _pumpSettings(
+          tester,
+          const CopyRootsSetupReport(
+            outcome: CopyRootsSetupOutcome.alreadyConfigured,
+            managedRoot: _defManaged,
+            backupRoot: _defBackup,
+            managedStatus: CopyRootStatus.automatic,
+            backupStatus: CopyRootStatus.automatic,
+          ),
+          picker: picker,
+        );
+
+        await tester.tap(find.text('تغيير').first);
+        await tester.pumpAndSettle();
+        await tester.tap(find.text('إلغاء'));
+        await tester.pumpAndSettle();
+
+        // Dialog dismissed; picker must not have been called.
+        expect(picker.callCount, 0);
+        expect(find.byType(AlertDialog), findsNothing);
+      },
+    );
+
+    testWidgets(
+      'first-time setup (no current value) opens picker without a dialog',
+      (tester) async {
+        final picker = _FakeCopyRootPicker();
+        // Only managed root is unconfigured.
+        await _pumpSettings(
+          tester,
+          const CopyRootsSetupReport(
+            outcome: CopyRootsSetupOutcome.requiresAttention,
+            managedRoot: null,
+            backupRoot: _defBackup,
+            managedStatus: CopyRootStatus.notConfigured,
+            backupStatus: CopyRootStatus.automatic,
+          ),
+          picker: picker,
+        );
+
+        // "اختيار" appears only for the unconfigured root.
+        expect(find.text('اختيار'), findsOneWidget);
+
+        await tester.tap(find.text('اختيار'));
+        await tester.pumpAndSettle();
+
+        // No dialog — picker called directly.
+        expect(find.byType(AlertDialog), findsNothing);
+        expect(picker.callCount, 1);
+      },
+    );
+  });
 }
 
 Future<void> _pumpSettings(
   WidgetTester tester,
   CopyRootsSetupReport report, {
   Size size = const Size(1280, 800),
+  CopyRootPicker? picker,
 }) => _pumpSettingsWith(
   tester,
   init: _FakeInitializeCopyRoots(report),
+  picker: picker,
   size: size,
 );
 
@@ -278,6 +451,7 @@ Future<void> _pumpSettingsWith(
   WidgetTester tester, {
   required InitializeCopyRoots init,
   RepairCopyRoot? repair,
+  CopyRootPicker? picker,
   Size size = const Size(1280, 800),
 }) async {
   if (getIt.isRegistered<InitializeCopyRoots>()) {
@@ -290,6 +464,13 @@ Future<void> _pumpSettingsWith(
       getIt.unregister<RepairCopyRoot>();
     }
     getIt.registerSingleton<RepairCopyRoot>(repair);
+  }
+
+  if (picker != null) {
+    if (getIt.isRegistered<CopyRootPicker>()) {
+      getIt.unregister<CopyRootPicker>();
+    }
+    getIt.registerSingleton<CopyRootPicker>(picker);
   }
 
   tester.view.devicePixelRatio = 1;

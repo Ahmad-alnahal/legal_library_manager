@@ -21,7 +21,7 @@ void main() {
 
     tearDown(() => db.close());
 
-    // â”€â”€ helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // helpers
 
     Future<int> addDocument({
       String? title,
@@ -90,7 +90,7 @@ void main() {
           ),
         );
 
-    // â”€â”€ getGroups â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // getGroups
 
     test('returns empty page when no groups exist', () async {
       final page = await repository.getGroups();
@@ -113,7 +113,7 @@ void main() {
     });
 
     test('includes groups with exactly 2 members', () async {
-      final doc = await addDocument(title: 'Ù‚Ø§Ù†ÙˆÙ†');
+      final doc = await addDocument(title: 'قانون');
       final f1 = await addFile(doc, path: '/a.pdf');
       final f2 = await addFile(doc, path: '/b.pdf', name: 'b.pdf');
       final groupId = await addGroup(hash: 'deadbeef01');
@@ -233,22 +233,17 @@ void main() {
       expect(() => repository.getGroups(limit: 201), throwsArgumentError);
     });
 
-    // â”€â”€ getGroupDetails â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+    // getGroupDetails
 
     test('getGroupDetails returns group with notes and all members', () async {
-      final doc = await addDocument(title: 'Ø¹Ù‚Ø¯', code: 'DOC-0001');
+      final doc = await addDocument(title: 'عقد', code: 'DOC-0001');
       final f1 = await addFile(doc, path: '/x.pdf', isPreferred: true);
       final f2 = await addFile(doc, path: '/y.pdf', name: 'y.pdf');
       final groupId = await addGroup(hash: 'abc', code: 'GRP-X');
 
       // Add notes via direct DB update.
-      await (db.update(
-        db.duplicateGroups,
-      )..where((g) => g.id.equals(groupId))).write(
-        const DuplicateGroupsCompanion(
-          notes: Value('Ù…Ù„Ø§Ø­Ø¸Ø© Ø§Ø®ØªØ¨Ø§Ø±'),
-        ),
-      );
+      await (db.update(db.duplicateGroups)..where((g) => g.id.equals(groupId)))
+          .write(const DuplicateGroupsCompanion(notes: Value('ملاحظة اختبار')));
 
       await addMember(groupId, f1);
       await addMember(groupId, f2);
@@ -258,12 +253,12 @@ void main() {
       expect(details.summary.groupCode, 'GRP-X');
       expect(details.summary.sha256Hash, 'abc');
       expect(details.summary.userLabel, isNot(details.summary.groupCode));
-      expect(details.notes, 'Ù…Ù„Ø§Ø­Ø¸Ø© Ø§Ø®ØªØ¨Ø§Ø±');
+      expect(details.notes, 'ملاحظة اختبار');
       expect(details.members.length, 2);
     });
 
     test('preferred member appears first in getGroupDetails', () async {
-      final doc = await addDocument(title: 'ÙˆØ«ÙŠÙ‚Ø©');
+      final doc = await addDocument(title: 'وثيقة');
       // Insert non-preferred first, then mark the second as preferred at the
       // duplicate-group level.
       final fNonPref = await addFile(doc, path: '/np.pdf', name: 'np.pdf');
@@ -281,10 +276,7 @@ void main() {
     });
 
     test('maps document title and code into member', () async {
-      final doc = await addDocument(
-        title: 'Ù‚Ø§Ù†ÙˆÙ† Ø§Ù„Ø£Ø­ÙˆØ§Ù„',
-        code: 'DOC-999',
-      );
+      final doc = await addDocument(title: 'قانون الأحوال', code: 'DOC-999');
       final f1 = await addFile(doc, path: '/p1.pdf');
       final f2 = await addFile(doc, path: '/p2.pdf', name: 'p2.pdf');
       final groupId = await addGroup(hash: 'meta-test');
@@ -295,8 +287,8 @@ void main() {
       final member = details.members.first;
 
       expect(member.documentCode, 'DOC-999');
-      expect(member.documentTitle, 'Ù‚Ø§Ù†ÙˆÙ† Ø§Ù„Ø£Ø­ÙˆØ§Ù„');
-      expect(member.displayName, 'Ù‚Ø§Ù†ÙˆÙ† Ø§Ù„Ø£Ø­ÙˆØ§Ù„');
+      expect(member.documentTitle, 'قانون الأحوال');
+      expect(member.displayName, 'قانون الأحوال');
     });
 
     test('displayName falls back to fileName when title is null', () async {
@@ -312,7 +304,7 @@ void main() {
       expect(details.members.first.displayName, isNotEmpty);
       expect(
         details.members.first.displayName,
-        isNot('Ù…Ø³ØªÙ†Ø¯ Ø¨Ù„Ø§ Ø¹Ù†ÙˆØ§Ù†'),
+        isNot('مستند بلا عنوان'),
         reason: 'fileName is available so the fallback should not be used',
       );
     });
@@ -346,7 +338,7 @@ void main() {
       final details = await repository.getGroupDetails(groupId);
 
       // Preferred ordering: both not preferred, order by document_code then id.
-      // f1 was inserted first â†’ lower id â†’ second after f2 by id ordering.
+      // f1 was inserted first, so its lower id keeps it first after sorting.
       // Actually the ORDER is: is_preferred DESC, document_code ASC, id ASC.
       // Both have no document_code and same order by id: f1 < f2.
       final hiddenMember = details.members.firstWhere((m) => m.fileId == f1);

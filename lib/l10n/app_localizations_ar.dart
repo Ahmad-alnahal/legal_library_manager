@@ -76,6 +76,33 @@ class AppLocalizationsAr extends AppLocalizations {
       'أرقام عرض ثابتة لأغراض التصميم فقط، ولا تعكس بيانات فعلية بعد.';
 
   @override
+  String get dashboardLoadingMessage => 'جارٍ تحميل بيانات لوحة القيادة...';
+
+  @override
+  String get dashboardErrorMessage => 'تعذّر تحميل بيانات لوحة القيادة.';
+
+  @override
+  String get dashboardRetry => 'إعادة المحاولة';
+
+  @override
+  String get dashboardRefreshTooltip => 'تحديث البيانات';
+
+  @override
+  String get dashboardActivityTitle => 'النشاط الأخير';
+
+  @override
+  String get dashboardActivityEmpty => 'لا يوجد نشاط مسجّل بعد.';
+
+  @override
+  String get dashboardActivityFileEvent => 'حدث ملف';
+
+  @override
+  String get dashboardActivityOpenEvent => 'فتح ملف';
+
+  @override
+  String get dashboardActivityImportBatch => 'دفعة استيراد';
+
+  @override
   String get metricTotalImported => 'إجمالي المستورد';
 
   @override
@@ -534,4 +561,162 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get fileOpenErrorUnhealthyFile =>
       'لا يمكن فتح الملف مباشرةً؛ الملف تالف أو غير قابل للقراءة أو مفقود. يمكنك فتح المجلد بدلًا من ذلك.';
+
+  @override
+  String get settingsCopyLocationsTitle => 'مواقع النسخ الآمن';
+
+  @override
+  String get settingsCopyLocationsBody =>
+      'تُحفظ ملفات PDF المدارة داخل مجلد files، وتبقى النسخ الاحتياطية في مجلد منفصل. يجهّز التطبيق هذه المواقع تلقائيًا، ويمكن تغييرها كخيار متقدم.';
+
+  @override
+  String get settingsCopyLocationsWarning =>
+      'تغيير المواقع لا ينقل الملفات المدارة أو النسخ الاحتياطية السابقة؛ تبقى في مكانها الحالي.';
+
+  @override
+  String get settingsManagedRootTitle => 'جذر المكتبة المدارة';
+
+  @override
+  String get settingsBackupRootTitle => 'مجلد النسخ الاحتياطي لقاعدة البيانات';
+
+  @override
+  String get settingsResetToDefaults => 'استخدام المجلدات الافتراضية';
+
+  @override
+  String get settingsResetWarning =>
+      'تغيير المسارات إلى الافتراضي لا ينقل الملفات المدارة أو النسخ الاحتياطية من مواقعها الحالية.';
+
+  @override
+  String get settingsAttentionBannerBody =>
+      'يتطلب إعداد مواقع النسخ الآمن انتباهك. يبقى النسخ إلى المكتبة المدارة متوقفًا حتى يكتمل الإعداد، دون أي تأثير على الملفات الحالية.';
+
+  @override
+  String get settingsLocationNotChosen => 'لم يتم الاختيار بعد';
+
+  @override
+  String get settingsRecreateFolder => 'إعادة إنشاء المجلد';
+
+  @override
+  String get settingsChooseButton => 'اختيار';
+
+  @override
+  String get settingsChangeButton => 'تغيير';
+
+  @override
+  String get settingsStatusAutomatic => 'مُهيأ تلقائيًا';
+
+  @override
+  String get settingsStatusCustom => 'موقع مخصص';
+
+  @override
+  String get settingsStatusMissing => 'المجلد غير متاح — يتطلب الانتباه';
+
+  @override
+  String get settingsStatusNotConfigured => 'غير مُهيأ بعد';
+
+  @override
+  String get settingsDialogCancel => 'إلغاء';
+
+  @override
+  String get settingsDialogRecreateTitle => 'إعادة إنشاء المجلد';
+
+  @override
+  String get settingsDialogRecreateContent =>
+      'سيتم إنشاء المجلد المفقود في نفس المسار المُهيأ فقط، بعد التحقق من سلامته. لا يتم نقل أو نسخ أو تعديل أو حذف أي ملفات موجودة.';
+
+  @override
+  String get settingsDialogRecreateConfirm => 'إعادة الإنشاء';
+
+  @override
+  String get settingsDialogResetTitle => 'استخدام المجلدات الافتراضية';
+
+  @override
+  String get settingsDialogResetContent =>
+      'سيتم تعيين مجلدَي المكتبة المدارة والنسخ الاحتياطي إلى المواقع الافتراضية لمرجعي داخل مجلد المستندات.\n\nتنبيه: هذا لا ينقل الملفات المدارة أو النسخ الاحتياطية السابقة؛ تبقى في مواقعها الحالية ولا يتأثر أي ملف موجود.';
+
+  @override
+  String get settingsDialogResetConfirm => 'تطبيق الافتراضي';
+
+  @override
+  String settingsDialogChangeTitle(String label) {
+    return 'تغيير $label';
+  }
+
+  @override
+  String get settingsDialogChangeContent =>
+      'بعد اختيار المجلد الجديد، سيتم حفظه فقط إذا اجتاز التحقق من السلامة.\n\nالملفات المدارة والنسخ الاحتياطية الحالية تبقى في مواقعها الأصلية ولا يُنقل أو يُحذف أي ملف موجود.';
+
+  @override
+  String get settingsDialogChangeContinue => 'متابعة واختيار مجلد';
+
+  @override
+  String get settingsSnackSaved =>
+      'تم حفظ مواقع المكتبة المدارة والنسخ الاحتياطي بأمان.';
+
+  @override
+  String get settingsSnackChooseBoth =>
+      'اختر مجلدي المكتبة المدارة والنسخ الاحتياطي.';
+
+  @override
+  String get settingsSnackUnsafeOverlap =>
+      'يجب أن تكون المجلدات منفصلة عن بعضها وعن قاعدة البيانات.';
+
+  @override
+  String get settingsSnackRecreated =>
+      'تمت إعادة إنشاء المجلد المفقود بأمان دون أي تغيير على الملفات الحالية.';
+
+  @override
+  String get settingsSnackRecreateUnsafe =>
+      'تعذّرت إعادة الإنشاء: يجب أن يكون المجلد منفصلًا عن المجلدات الأخرى وقاعدة البيانات ومجلدات المصدر.';
+
+  @override
+  String get settingsSnackRecreateInvalid =>
+      'تعذّرت إعادة الإنشاء: مسار المجلد المُهيأ غير صالح.';
+
+  @override
+  String get settingsSnackRecreateFailed =>
+      'تعذّرت إعادة إنشاء المجلد. يبقى الإعداد بحاجة إلى الانتباه دون أي تغيير على الملفات الحالية.';
+
+  @override
+  String get settingsSnackDefaultsApplied =>
+      'تم تطبيق المجلدات الافتراضية لمرجعي. الملفات المدارة والنسخ الاحتياطية السابقة في مواقعها الأصلية.';
+
+  @override
+  String get settingsSnackDefaultsResolutionFailed =>
+      'تعذّر تحديد مجلد المستندات. تحقق من صلاحيات النظام.';
+
+  @override
+  String get settingsSnackDefaultsCreationFailed =>
+      'تعذّر إنشاء المجلدات الافتراضية. تحقق من المساحة المتاحة وصلاحيات الكتابة.';
+
+  @override
+  String get settingsSnackFallback =>
+      'تعذّر اعتماد المجلد المحدد. اختر مجلدًا موجودًا وآمنًا.';
+
+  @override
+  String get duplicatesReviewStatusReviewed => 'تمت المراجعة';
+
+  @override
+  String get duplicatesReviewStatusDeferred => 'مؤجلة';
+
+  @override
+  String get duplicatesReviewStatusUnreviewed => 'غير مراجعة';
+
+  @override
+  String dashboardRelativeDays(int n) {
+    return '$nي';
+  }
+
+  @override
+  String dashboardRelativeHours(int n) {
+    return '$nس';
+  }
+
+  @override
+  String dashboardRelativeMinutes(int n) {
+    return '$nد';
+  }
+
+  @override
+  String get dashboardRelativeNow => 'الآن';
 }

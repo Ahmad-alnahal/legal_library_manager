@@ -41,7 +41,10 @@ class DuplicateReviewPage extends StatelessWidget {
             ..showSnackBar(
               SnackBar(
                 content: Text(
-                  _messageForKey(AppLocalizations.of(context), state.messageKey!),
+                  _messageForKey(
+                    AppLocalizations.of(context),
+                    state.messageKey!,
+                  ),
                 ),
               ),
             );
@@ -310,10 +313,10 @@ class _GroupListPanelState extends State<_GroupListPanel> {
 
 // ─── Review-status helpers (shared by _GroupTile and _GroupDetailsBodyState) ───
 
-String _reviewStatusLabel(String key) => switch (key) {
-  'reviewed' => 'تمت المراجعة',
-  'archived_for_later' => 'مؤجلة',
-  _ => 'غير مراجعة',
+String _reviewStatusLabel(AppLocalizations l10n, String key) => switch (key) {
+  'reviewed' => l10n.duplicatesReviewStatusReviewed,
+  'archived_for_later' => l10n.duplicatesReviewStatusDeferred,
+  _ => l10n.duplicatesReviewStatusUnreviewed,
 };
 
 StatusColor _reviewStatusColor(String key) => switch (key) {
@@ -333,6 +336,7 @@ class _GroupTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final l10n = AppLocalizations.of(context);
     return InkWell(
       onTap: () => context.read<DuplicateReviewBloc>().add(
         DuplicateReviewGroupSelected(group.id),
@@ -361,7 +365,7 @@ class _GroupTile extends StatelessWidget {
                     ),
                   ),
                   StatusChip(
-                    label: _reviewStatusLabel(group.reviewStatusKey),
+                    label: _reviewStatusLabel(l10n, group.reviewStatusKey),
                     status: _reviewStatusColor(group.reviewStatusKey),
                   ),
                 ],
@@ -406,7 +410,6 @@ class _GroupTile extends StatelessWidget {
       ),
     );
   }
-
 }
 
 // â”€â”€â”€ Group detail (right panel) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
@@ -544,7 +547,7 @@ class _GroupDetailsBodyState extends State<_GroupDetailsBody> {
                     ),
                   ),
                   StatusChip(
-                    label: _reviewStatusLabel(s.reviewStatusKey),
+                    label: _reviewStatusLabel(l10n, s.reviewStatusKey),
                     status: _reviewStatusColor(s.reviewStatusKey),
                   ),
                 ],
@@ -631,15 +634,24 @@ class _GroupDetailsBodyState extends State<_GroupDetailsBody> {
                               items: [
                                 DropdownMenuItem(
                                   value: 'unreviewed',
-                                  child: Text(_reviewStatusLabel('unreviewed')),
+                                  child: Text(
+                                    _reviewStatusLabel(l10n, 'unreviewed'),
+                                  ),
                                 ),
                                 DropdownMenuItem(
                                   value: 'reviewed',
-                                  child: Text(_reviewStatusLabel('reviewed')),
+                                  child: Text(
+                                    _reviewStatusLabel(l10n, 'reviewed'),
+                                  ),
                                 ),
                                 DropdownMenuItem(
                                   value: 'archived_for_later',
-                                  child: Text(_reviewStatusLabel('archived_for_later')),
+                                  child: Text(
+                                    _reviewStatusLabel(
+                                      l10n,
+                                      'archived_for_later',
+                                    ),
+                                  ),
                                 ),
                               ],
                               onChanged: saving
@@ -651,7 +663,9 @@ class _GroupDetailsBodyState extends State<_GroupDetailsBody> {
                             ),
                           ),
                           AppPrimaryButton(
-                            label: saving ? l10n.duplicatesSaving : l10n.duplicatesSaveReview,
+                            label: saving
+                                ? l10n.duplicatesSaving
+                                : l10n.duplicatesSaveReview,
                             icon: Icons.save_outlined,
                             onPressed: saving
                                 ? null

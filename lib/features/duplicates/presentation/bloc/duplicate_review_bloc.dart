@@ -293,8 +293,9 @@ class DuplicateReviewBloc
   }) async {
     final detailVersion = ++_detailVersion;
     final listVersion = ++_listVersion;
-    final reloadLimit =
-        state.groups.length > pageSize ? state.groups.length : pageSize;
+    final reloadLimit = state.groups.length > pageSize
+        ? state.groups.length
+        : pageSize;
 
     // Confirm the write immediately so the snackbar always reflects the real
     // outcome — if the subsequent reload fails the user still knows the save
