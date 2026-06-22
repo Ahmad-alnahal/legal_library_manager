@@ -23,7 +23,19 @@ import 'support/import_test_support.dart';
 void main() {
   test('source files are unchanged after a full import pipeline run', () async {
     final Directory root = makeTempDir('pipeline');
-    addTearDown(() => root.deleteSync(recursive: true));
+    // On Windows a worker isolate may hold a file handle briefly after the
+    // Future resolves. Retry deletion a few times before letting it throw.
+    addTearDown(() async {
+      for (var attempt = 0; attempt < 5; attempt++) {
+        try {
+          root.deleteSync(recursive: true);
+          return;
+        } catch (_) {
+          await Future<void>.delayed(const Duration(milliseconds: 60));
+        }
+      }
+      root.deleteSync(recursive: true);
+    });
     final Directory source = Directory(p.join(root.path, 'src'))..createSync();
     final Directory dbRoot = Directory(p.join(root.path, 'app_support'))
       ..createSync();
