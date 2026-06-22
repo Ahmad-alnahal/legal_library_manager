@@ -32,6 +32,40 @@ void main() {
     expect(find.byKey(readyKey), findsOneWidget);
   });
 
+  testWidgets('startup loading screen shows app title and logo mark', (
+    tester,
+  ) async {
+    final completer = Completer<void>();
+
+    await tester.pumpWidget(
+      MarjiyBootstrap(
+        initializer: () => completer.future,
+        errorReporter: (_, _) {},
+        readyHome: const SizedBox(key: readyKey),
+      ),
+    );
+
+    // Brand identity is visible while loading.
+    expect(find.text('مرجعي'), findsOneWidget);
+    // Logo mark asset rendered as Image.asset.
+    expect(
+      find.byWidgetPredicate(
+        (w) =>
+            w is Image &&
+            w.image is AssetImage &&
+            (w.image as AssetImage).assetName == 'assets/images/logo_mark.png',
+      ),
+      findsOneWidget,
+    );
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+    completer.complete();
+    await tester.pumpAndSettle();
+    // The ready home replaces the loading view entirely.
+    expect(find.byKey(readyKey), findsOneWidget);
+    expect(find.byType(CircularProgressIndicator), findsNothing);
+  });
+
   testWidgets('shows a safe failure screen and retries startup', (
     tester,
   ) async {

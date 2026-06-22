@@ -157,19 +157,7 @@ class _Header extends StatelessWidget {
       padding: const EdgeInsets.all(AppSpacing.lg),
       child: Row(
         children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              color: AppColors.primary,
-              borderRadius: AppRadii.control,
-            ),
-            child: const Icon(
-              Icons.account_balance_outlined,
-              color: AppColors.onPrimary,
-              size: 20,
-            ),
-          ),
+          Image.asset('assets/images/logo_mark.png', width: 36, height: 36),
           if (extended) ...[
             const SizedBox(width: AppSpacing.md),
             Expanded(

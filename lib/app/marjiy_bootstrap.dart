@@ -110,6 +110,7 @@ class _StartupLoadingView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final text = Theme.of(context).textTheme;
     return Scaffold(
       body: Center(
         child: Semantics(
@@ -118,6 +119,11 @@ class _StartupLoadingView extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              // App logo mark — matches the shell header brand block.
+              Image.asset('assets/images/logo_mark.png', width: 64, height: 64),
+              const SizedBox(height: AppSpacing.md),
+              Text(l10n.appTitle, style: text.titleLarge),
+              const SizedBox(height: AppSpacing.xxl),
               const SizedBox(
                 width: 32,
                 height: 32,
