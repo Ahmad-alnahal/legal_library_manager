@@ -545,6 +545,56 @@ void main() {
     });
   });
 
+  // ── M11.5: verified backup guard ─────────────────────────────────────────
+
+  group('M11.5 run_with_verified_backup.dart safety', () {
+    const String guardPath =
+        'lib/features/managed_copy/application/run_with_verified_backup.dart';
+
+    late String src;
+    setUpAll(() => src = read(guardPath));
+
+    test('guard has no dart:io, Drift, or Windows-specific import', () {
+      expect(src.contains("import 'dart:io'"), isFalse);
+      expect(src.contains('package:drift/'), isFalse);
+      expect(src.contains('package:win32/'), isFalse);
+    });
+
+    test(
+      'guard operation callback takes no parameters (zero-arity closure)',
+      () {
+        // Future<T> Function() — the callback cannot receive file paths.
+        expect(src.contains('Future<T> Function()'), isTrue);
+      },
+    );
+
+    test('guard contains no file-mutation tokens', () {
+      for (final token in [
+        '.delete(',
+        '.deleteSync(',
+        '.rename(',
+        '.renameSync(',
+        '.copy(',
+        'copyFile(',
+        'finalizeFile(',
+      ]) {
+        expect(
+          src.contains(token),
+          isFalse,
+          reason: 'run_with_verified_backup.dart must not contain $token',
+        );
+      }
+    });
+
+    test(
+      'guard depends only on domain abstractions (no data-layer imports)',
+      () {
+        // All imports must be from domain or core — never from data layer.
+        expect(src.contains('/data/'), isFalse);
+      },
+    );
+  });
+
   group('M8.4 documents resolver respects Clean Architecture layering', () {
     test('domain abstraction has no path_provider or dart:io import', () {
       final src = read(
