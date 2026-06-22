@@ -105,6 +105,15 @@ class _FakeRepository implements ManagedCopyRepository {
     required int documentId,
     required DateTime now,
   }) async {}
+  @override
+  Future<List<ManagedFileRef>> loadAllManagedCopyFiles() async => const [];
+  @override
+  Future<void> markManagedFileCorrupted({
+    required int fileId,
+    required int documentId,
+    required String operationId,
+    required DateTime now,
+  }) async {}
 }
 
 class _FakeBackupService implements DatabaseBackupService {

@@ -215,6 +215,17 @@ class _FakeRepo implements ManagedCopyRepository {
       ),
     );
   }
+
+  @override
+  Future<List<ManagedFileRef>> loadAllManagedCopyFiles() async => managedFiles;
+
+  @override
+  Future<void> markManagedFileCorrupted({
+    required int fileId,
+    required int documentId,
+    required String operationId,
+    required DateTime now,
+  }) async {}
 }
 
 /// Path canonicalizer fake. By default returns the path unchanged (identity).

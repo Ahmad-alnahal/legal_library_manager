@@ -789,6 +789,28 @@ class AppLocalizationsAr extends AppLocalizations {
       'لا توجد ملفات مؤهلة للحذف الآمن.';
 
   @override
+  String get settingsIntegrityTitle => 'سلامة النسخ المدارة';
+
+  @override
+  String get settingsIntegrityBody =>
+      'يفحص هذا الاختبار جميع ملفات PDF المسجلة في مكتبة مرجعي ويكتشف الملفات المفقودة أو التي تغيّر محتواها. لا يُعدّل الملفات على القرص ولا يُنشئها.';
+
+  @override
+  String get settingsIntegrityButton => 'فحص النسخ المدارة';
+
+  @override
+  String get settingsSnackIntegrityClean => 'جميع النسخ المدارة سليمة.';
+
+  @override
+  String settingsSnackIntegrityIssues(int count) {
+    return 'اكتُشف $count ملف مشكل في النسخ المدارة.';
+  }
+
+  @override
+  String get settingsSnackIntegrityFailed =>
+      'تعذّر فحص النسخ المدارة. حاول مرة أخرى.';
+
+  @override
   String get duplicatesReviewStatusReviewed => 'تمت المراجعة';
 
   @override

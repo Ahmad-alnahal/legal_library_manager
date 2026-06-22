@@ -286,6 +286,20 @@
   "settingsSnackRecoveryFailed": "تعذّر الحذف. تحقق من صلاحيات الوصول.",
   "settingsSnackRecoveryNothingToClean": "لا توجد ملفات مؤهلة للحذف الآمن.",
 
+  "settingsIntegrityTitle": "سلامة النسخ المدارة",
+  "settingsIntegrityBody": "يفحص هذا الاختبار جميع ملفات PDF المسجلة في مكتبة مرجعي ويكتشف الملفات المفقودة أو التي تغيّر محتواها. لا يُعدّل الملفات على القرص ولا يُنشئها.",
+  "settingsIntegrityButton": "فحص النسخ المدارة",
+  "settingsSnackIntegrityClean": "جميع النسخ المدارة سليمة.",
+  "settingsSnackIntegrityIssues": "اكتُشف {count} ملف مشكل في النسخ المدارة.",
+  "@settingsSnackIntegrityIssues": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "settingsSnackIntegrityFailed": "تعذّر فحص النسخ المدارة. حاول مرة أخرى.",
+
   "duplicatesReviewStatusReviewed": "تمت المراجعة",
   "duplicatesReviewStatusDeferred": "مؤجلة",
   "duplicatesReviewStatusUnreviewed": "غير مراجعة",

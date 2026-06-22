@@ -105,6 +105,30 @@ abstract class ManagedCopyRepository {
   /// [documentId], in any health state.
   Future<List<ManagedFileRef>> loadManagedCopyFiles(int documentId);
 
+  // ── M11.4: Bulk managed-copy integrity reconciliation ─────────────────────
+
+  /// Returns all document_files rows with file_role_key = 'managed_copy'
+  /// across every document, in any health state. Never returns source_original
+  /// rows. Used for bulk integrity checks; prefer [loadManagedCopyFiles] for
+  /// single-document operations.
+  Future<List<ManagedFileRef>> loadAllManagedCopyFiles() =>
+      throw UnimplementedError('loadAllManagedCopyFiles is not implemented.');
+
+  /// Marks a managed-copy file as having content that does not match the stored
+  /// SHA-256 hash or file size (M11.4). The physical file is left untouched.
+  ///
+  /// 1. Updates document_files.file_health_key to 'corrupted' for [fileId].
+  /// 2. Appends a 'content_mismatch' file_event with result_key = 'warning'.
+  ///
+  /// Source files are never mutated by this method.
+  Future<void> markManagedFileCorrupted({
+    required int fileId,
+    required int documentId,
+    required String operationId,
+    required DateTime now,
+  }) =>
+      throw UnimplementedError('markManagedFileCorrupted is not implemented.');
+
   /// Marks a single managed-copy file row as physically missing (M8.6).
   ///
   /// 1. Updates document_files.file_health_key to 'missing' for [fileId].

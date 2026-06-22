@@ -1492,6 +1492,42 @@ abstract class AppLocalizations {
   /// **'لا توجد ملفات مؤهلة للحذف الآمن.'**
   String get settingsSnackRecoveryNothingToClean;
 
+  /// No description provided for @settingsIntegrityTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'سلامة النسخ المدارة'**
+  String get settingsIntegrityTitle;
+
+  /// No description provided for @settingsIntegrityBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'يفحص هذا الاختبار جميع ملفات PDF المسجلة في مكتبة مرجعي ويكتشف الملفات المفقودة أو التي تغيّر محتواها. لا يُعدّل الملفات على القرص ولا يُنشئها.'**
+  String get settingsIntegrityBody;
+
+  /// No description provided for @settingsIntegrityButton.
+  ///
+  /// In ar, this message translates to:
+  /// **'فحص النسخ المدارة'**
+  String get settingsIntegrityButton;
+
+  /// No description provided for @settingsSnackIntegrityClean.
+  ///
+  /// In ar, this message translates to:
+  /// **'جميع النسخ المدارة سليمة.'**
+  String get settingsSnackIntegrityClean;
+
+  /// No description provided for @settingsSnackIntegrityIssues.
+  ///
+  /// In ar, this message translates to:
+  /// **'اكتُشف {count} ملف مشكل في النسخ المدارة.'**
+  String settingsSnackIntegrityIssues(int count);
+
+  /// No description provided for @settingsSnackIntegrityFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر فحص النسخ المدارة. حاول مرة أخرى.'**
+  String get settingsSnackIntegrityFailed;
+
   /// No description provided for @duplicatesReviewStatusReviewed.
   ///
   /// In ar, this message translates to:

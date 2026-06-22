@@ -68,6 +68,8 @@ import '../../features/managed_copy/domain/services/path_canonicalizer.dart';
 import '../../features/managed_copy/application/cleanup_recovery_artifacts.dart';
 import '../../features/managed_copy/application/create_manual_backup.dart';
 import '../../features/managed_copy/application/load_recovery_review.dart';
+import '../../features/managed_copy/application/reconcile_managed_copy_integrity.dart';
+import '../../features/managed_copy/presentation/bloc/copy_integrity_bloc.dart';
 import '../../features/managed_copy/presentation/bloc/copy_settings_bloc.dart';
 import '../../features/managed_copy/presentation/bloc/managed_copy_bloc.dart';
 import '../../features/managed_copy/presentation/bloc/manual_backup_bloc.dart';
@@ -88,7 +90,7 @@ import '../time/clock.dart';
 /// Global service locator.
 final GetIt getIt = GetIt.instance;
 
-/// Registers application dependencies (M1 shell + M4 import + M5 documents + M7 file open + M8.1–M8.6 managed copy + M9.1 duplicate review + M10.1 dashboard + M11.1 manual backup).
+/// Registers application dependencies (M1 shell + M4 import + M5 documents + M7 file open + M8.1–M8.6 managed copy + M9.1 duplicate review + M10.1 dashboard + M11.1–M11.4 maintenance).
 ///
 /// The production [AppDatabase] is a single lazy singleton (its connection opens
 /// lazily on first query and closes on [GetIt.reset]). Tests may register an
@@ -366,6 +368,19 @@ void configureDependencies() {
         getIt<LoadRecoveryReview>(),
         getIt<CleanupRecoveryArtifacts>(),
       ),
+    )
+    // M11.4 managed-copy integrity reconciliation: bulk health check use case and BLoC.
+    ..registerLazySingleton<ReconcileManagedCopyIntegrity>(
+      () => ReconcileManagedCopyIntegrity(
+        repository: getIt<ManagedCopyRepository>(),
+        filesystem: getIt<ManagedLibraryFilesystem>(),
+        hasher: getIt<FileHasher>(),
+        operationIdGenerator: getIt<OperationIdGenerator>(),
+        clock: getIt<Clock>(),
+      ),
+    )
+    ..registerFactory<CopyIntegrityBloc>(
+      () => CopyIntegrityBloc(getIt<ReconcileManagedCopyIntegrity>().call),
     )
     // M9.1 duplicate review: read-only repository and BLoC.
     ..registerLazySingleton<DuplicateReviewRepository>(

@@ -562,6 +562,57 @@ class DriftManagedCopyRepository implements ManagedCopyRepository {
         );
   }
 
+  // ── M11.4: Bulk managed-copy integrity reconciliation ─────────────────────
+
+  @override
+  Future<List<ManagedFileRef>> loadAllManagedCopyFiles() async {
+    final rows = await (_db.select(
+      _db.documentFiles,
+    )..where((f) => f.fileRoleKey.equals('managed_copy'))).get();
+    return rows
+        .map(
+          (r) => ManagedFileRef(
+            fileId: r.id,
+            documentId: r.documentId,
+            absolutePath: r.absolutePath,
+            fileHealthKey: r.fileHealthKey,
+            fileSizeBytes: r.fileSizeBytes,
+            sha256Hash: r.sha256Hash,
+          ),
+        )
+        .toList(growable: false);
+  }
+
+  @override
+  Future<void> markManagedFileCorrupted({
+    required int fileId,
+    required int documentId,
+    required String operationId,
+    required DateTime now,
+  }) async {
+    final String ts = now.toIso8601String();
+    await (_db.update(
+      _db.documentFiles,
+    )..where((f) => f.id.equals(fileId))).write(
+      DocumentFilesCompanion(
+        fileHealthKey: const Value('corrupted'),
+        updatedAt: Value(ts),
+      ),
+    );
+    await _db
+        .into(_db.fileEvents)
+        .insert(
+          FileEventsCompanion.insert(
+            documentId: Value(documentId),
+            fileId: Value(fileId),
+            eventTypeKey: 'content_mismatch',
+            operationId: operationId,
+            resultKey: 'warning',
+            createdAt: ts,
+          ),
+        );
+  }
+
   // ── Private helpers ────────────────────────────────────────────────────────
 
   Future<String?> _setting(String key) async {

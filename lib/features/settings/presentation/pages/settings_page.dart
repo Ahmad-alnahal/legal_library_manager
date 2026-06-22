@@ -13,6 +13,7 @@ import '../../../../core/widgets/screen_container.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../managed_copy/domain/entities/copy_roots_setup_report.dart';
 import '../../../managed_copy/domain/services/copy_root_picker.dart';
+import '../../../managed_copy/presentation/bloc/copy_integrity_bloc.dart';
 import '../../../managed_copy/presentation/bloc/copy_settings_bloc.dart';
 import '../../../managed_copy/presentation/bloc/manual_backup_bloc.dart';
 import '../../../managed_copy/presentation/bloc/recovery_review_bloc.dart';
@@ -29,6 +30,7 @@ class SettingsPage extends StatelessWidget {
               getIt<CopySettingsBloc>()..add(const CopySettingsStarted()),
         ),
         BlocProvider(create: (_) => getIt<ManualBackupBloc>()),
+        BlocProvider(create: (_) => getIt<CopyIntegrityBloc>()),
       ],
       child: const _SettingsBody(),
     );
@@ -111,6 +113,20 @@ class _SettingsBody extends StatelessWidget {
               ..showSnackBar(SnackBar(content: Text(text)));
           },
         ),
+        BlocListener<CopyIntegrityBloc, CopyIntegrityState>(
+          listenWhen: (a, b) =>
+              a.sequence != b.sequence && b.messageKey != null,
+          listener: (context, state) {
+            final text = switch (state.messageKey) {
+              'clean' => l10n.settingsSnackIntegrityClean,
+              'issues' => l10n.settingsSnackIntegrityIssues(state.issueCount),
+              _ => l10n.settingsSnackIntegrityFailed,
+            };
+            ScaffoldMessenger.of(context)
+              ..hideCurrentSnackBar()
+              ..showSnackBar(SnackBar(content: Text(text)));
+          },
+        ),
       ],
       child: ScreenContainer(
         children: [
@@ -141,7 +157,17 @@ class _SettingsPanels extends StatelessWidget {
             children: [
               Expanded(flex: 3, child: _CopyLocationsPanel()),
               SizedBox(width: AppSpacing.lg),
-              SizedBox(width: 360, child: _ManualBackupPanel()),
+              SizedBox(
+                width: 360,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    _ManualBackupPanel(),
+                    SizedBox(height: AppSpacing.lg),
+                    _CopyIntegrityPanel(),
+                  ],
+                ),
+              ),
             ],
           );
         }
@@ -149,6 +175,8 @@ class _SettingsPanels extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _ManualBackupPanel(),
+            SizedBox(height: AppSpacing.lg),
+            _CopyIntegrityPanel(),
             SizedBox(height: AppSpacing.lg),
             _CopyLocationsPanel(),
           ],
@@ -483,6 +511,58 @@ Future<void> _confirmAndChange(
   if (confirmed == true && !bloc.isClosed) {
     bloc.add(CopyRootSelectionRequested(kind));
   }
+}
+
+class _CopyIntegrityPanel extends StatelessWidget {
+  const _CopyIntegrityPanel();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return AppPanel(
+      child: BlocBuilder<CopyIntegrityBloc, CopyIntegrityState>(
+        builder: (context, state) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Wrap(
+                crossAxisAlignment: WrapCrossAlignment.center,
+                spacing: AppSpacing.sm,
+                runSpacing: AppSpacing.xs,
+                children: [
+                  const Icon(
+                    Icons.verified_outlined,
+                    color: AppColors.accentTeal,
+                  ),
+                  Text(
+                    l10n.settingsIntegrityTitle,
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.sm),
+              Text(l10n.settingsIntegrityBody),
+              const SizedBox(height: AppSpacing.lg),
+              AppPrimaryButton(
+                label: l10n.settingsIntegrityButton,
+                icon: Icons.health_and_safety_outlined,
+                onPressed: state.busy ? null : _onCheckPressed(context),
+              ),
+              if (state.busy) ...[
+                const SizedBox(height: AppSpacing.md),
+                const LinearProgressIndicator(),
+              ],
+            ],
+          );
+        },
+      ),
+    );
+  }
+
+  VoidCallback _onCheckPressed(BuildContext context) =>
+      () => context.read<CopyIntegrityBloc>().add(
+        const CopyIntegrityCheckRequested(),
+      );
 }
 
 class _AttentionBanner extends StatelessWidget {
