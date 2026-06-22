@@ -174,4 +174,10 @@ class _FakeFilesystem implements ManagedLibraryFilesystem {
   @override
   Future<FilesystemOperationResult> deleteFile(String path) =>
       throw UnimplementedError();
+
+  @override
+  Future<FilesystemOperationResult> deleteRecoveryArtifact(
+    String path,
+    String allowedRoot,
+  ) => throw UnimplementedError();
 }

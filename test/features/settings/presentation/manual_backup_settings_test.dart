@@ -151,6 +151,12 @@ class _FakeFilesystem implements ManagedLibraryFilesystem {
   @override
   Future<FilesystemOperationResult> deleteFile(String path) async =>
       const FilesystemSuccess();
+
+  @override
+  Future<FilesystemOperationResult> deleteRecoveryArtifact(
+    String path,
+    String allowedRoot,
+  ) async => throw UnimplementedError();
 }
 
 class _FakeOpGen implements OperationIdGenerator {

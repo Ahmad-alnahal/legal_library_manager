@@ -65,10 +65,13 @@ import '../../features/managed_copy/domain/services/documents_directory_resolver
 import '../../features/managed_copy/domain/services/managed_library_filesystem.dart';
 import '../../features/managed_copy/domain/services/operation_id_generator.dart';
 import '../../features/managed_copy/domain/services/path_canonicalizer.dart';
+import '../../features/managed_copy/application/cleanup_recovery_artifacts.dart';
 import '../../features/managed_copy/application/create_manual_backup.dart';
+import '../../features/managed_copy/application/load_recovery_review.dart';
 import '../../features/managed_copy/presentation/bloc/copy_settings_bloc.dart';
 import '../../features/managed_copy/presentation/bloc/managed_copy_bloc.dart';
 import '../../features/managed_copy/presentation/bloc/manual_backup_bloc.dart';
+import '../../features/managed_copy/presentation/bloc/recovery_review_bloc.dart';
 import '../../features/file_open/data/repositories/drift_file_open_repository.dart';
 import '../../features/file_open/data/services/file_system_existence_checker.dart';
 import '../../features/file_open/data/services/windows_os_file_opener.dart';
@@ -342,6 +345,26 @@ void configureDependencies() {
         getIt<RepairCopyRoot>(),
         getIt<ApplyDefaultCopyRoots>(),
         getIt<ManagedCopyRepository>(),
+      ),
+    )
+    // M11.3 recovery review: typed summary loader, safe cleanup use case, BLoC.
+    ..registerLazySingleton<LoadRecoveryReview>(
+      () => LoadRecoveryReview(
+        repository: getIt<ManagedCopyRepository>(),
+        filesystem: getIt<ManagedLibraryFilesystem>(),
+      ),
+    )
+    ..registerLazySingleton<CleanupRecoveryArtifacts>(
+      () => CleanupRecoveryArtifacts(
+        repository: getIt<ManagedCopyRepository>(),
+        filesystem: getIt<ManagedLibraryFilesystem>(),
+        inspectStartupRecovery: getIt<InspectStartupRecovery>(),
+      ),
+    )
+    ..registerFactory<RecoveryReviewBloc>(
+      () => RecoveryReviewBloc(
+        getIt<LoadRecoveryReview>(),
+        getIt<CleanupRecoveryArtifacts>(),
       ),
     )
     // M9.1 duplicate review: read-only repository and BLoC.

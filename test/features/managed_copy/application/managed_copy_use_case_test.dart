@@ -331,6 +331,12 @@ class _FakeFilesystem implements ManagedLibraryFilesystem {
     deleteCalls.add(path);
     return deleteResult;
   }
+
+  @override
+  Future<FilesystemOperationResult> deleteRecoveryArtifact(
+    String path,
+    String allowedRoot,
+  ) async => throw UnimplementedError();
 }
 
 class _FakeBackupService implements DatabaseBackupService {

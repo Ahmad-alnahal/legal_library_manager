@@ -75,6 +75,24 @@ abstract class ManagedLibraryFilesystem {
   ///
   /// A pre-copy database backup MUST exist before this is called.
   Future<FilesystemOperationResult> deleteFile(String path);
+
+  /// Deletes a confirmed app-owned recovery artifact at [path].
+  ///
+  /// Only proceeds when [path] names a regular file that sits directly inside
+  /// [allowedRoot] with no subdirectory nesting. Returns [FilesystemSuccess]
+  /// when the file is deleted or already absent (idempotent). Returns
+  /// [FilesystemFailure] when path/root validation fails, the target is not a
+  /// regular file, or deletion fails for any OS reason.
+  ///
+  /// Must NOT be called for source files or registered healthy managed copies.
+  /// The use case is responsible for verifying artifact eligibility before
+  /// calling this method.
+  Future<FilesystemOperationResult> deleteRecoveryArtifact(
+    String path,
+    String allowedRoot,
+  ) => throw UnimplementedError(
+    'Recovery artifact deletion is not implemented.',
+  );
 }
 
 /// Result of a filesystem boundary call.

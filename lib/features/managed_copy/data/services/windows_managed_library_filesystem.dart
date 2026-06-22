@@ -141,6 +141,47 @@ class WindowsManagedLibraryFilesystem implements ManagedLibraryFilesystem {
   }
 
   @override
+  Future<FilesystemOperationResult> deleteRecoveryArtifact(
+    String path,
+    String allowedRoot,
+  ) async {
+    try {
+      if (path.trim().isEmpty || allowedRoot.trim().isEmpty) {
+        return const FilesystemFailure(safeMessage: 'Empty path or root.');
+      }
+      final normPath = path.replaceAll('/', r'\');
+      final normRoot = allowedRoot.replaceAll('/', r'\');
+      final rootWithSep = normRoot.endsWith(r'\') ? normRoot : '$normRoot\\';
+      if (!normPath.toLowerCase().startsWith(rootWithSep.toLowerCase())) {
+        return const FilesystemFailure(
+          safeMessage: 'Path is outside allowed root.',
+        );
+      }
+      final remainder = normPath.substring(rootWithSep.length);
+      if (remainder.isEmpty || remainder.contains(r'\')) {
+        return const FilesystemFailure(
+          safeMessage: 'Path is nested or invalid.',
+        );
+      }
+      final type = FileSystemEntity.typeSync(path, followLinks: false);
+      if (type == FileSystemEntityType.notFound) {
+        return const FilesystemSuccess();
+      }
+      if (type != FileSystemEntityType.file) {
+        return const FilesystemFailure(
+          safeMessage: 'Target is not a regular file.',
+        );
+      }
+      await File(path).delete();
+      return const FilesystemSuccess();
+    } on FileSystemException {
+      return const FilesystemFailure(
+        safeMessage: 'Recovery artifact deletion failed.',
+      );
+    }
+  }
+
+  @override
   Future<List<String>?> findStartupRecoveryArtifacts(
     String managedFilesDir,
     List<String> documentCodes,

@@ -1408,6 +1408,90 @@ abstract class AppLocalizations {
   /// **'توجد ملفات عمل غير مكتملة داخل مجلدات مرجعي تحتاج إلى مراجعة آمنة قبل متابعة النسخ. عدد العناصر: {count}. لم يتم نقل أو حذف أي ملف.'**
   String settingsStartupRecoveryAttention(int count);
 
+  /// No description provided for @settingsRecoveryReviewButton.
+  ///
+  /// In ar, this message translates to:
+  /// **'مراجعة'**
+  String get settingsRecoveryReviewButton;
+
+  /// No description provided for @settingsRecoveryReviewDialogTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'مراجعة ملفات الاسترداد'**
+  String get settingsRecoveryReviewDialogTitle;
+
+  /// No description provided for @settingsRecoveryReviewCopyingCount.
+  ///
+  /// In ar, this message translates to:
+  /// **'ملفات نسخ مؤقتة: {count} (مؤهلة للحذف)'**
+  String settingsRecoveryReviewCopyingCount(int count);
+
+  /// No description provided for @settingsRecoveryReviewBackupCount.
+  ///
+  /// In ar, this message translates to:
+  /// **'نسخ احتياطية منقوصة: {count} (مؤهلة للحذف)'**
+  String settingsRecoveryReviewBackupCount(int count);
+
+  /// No description provided for @settingsRecoveryReviewUnregisteredCount.
+  ///
+  /// In ar, this message translates to:
+  /// **'ملفات PDF غير مسجلة: {count} (تحتاج مراجعة يدوية)'**
+  String settingsRecoveryReviewUnregisteredCount(int count);
+
+  /// No description provided for @settingsRecoveryReviewCleanupButton.
+  ///
+  /// In ar, this message translates to:
+  /// **'حذف الملفات المؤهلة'**
+  String get settingsRecoveryReviewCleanupButton;
+
+  /// No description provided for @settingsRecoveryReviewConfirmTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'تأكيد الحذف الآمن'**
+  String get settingsRecoveryReviewConfirmTitle;
+
+  /// No description provided for @settingsRecoveryReviewConfirmContent.
+  ///
+  /// In ar, this message translates to:
+  /// **'سيتم حذف ملفات النسخ المؤقتة وملفات النسخ الاحتياطية المنقوصة فقط.\n\nلن تُمس ملفات PDF المسجلة أو الملفات الأصلية.'**
+  String get settingsRecoveryReviewConfirmContent;
+
+  /// No description provided for @settingsRecoveryReviewConfirmAction.
+  ///
+  /// In ar, this message translates to:
+  /// **'حذف الآن'**
+  String get settingsRecoveryReviewConfirmAction;
+
+  /// No description provided for @settingsRecoveryReviewLoadFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر تحميل تقرير الاسترداد. حاول مرة أخرى.'**
+  String get settingsRecoveryReviewLoadFailed;
+
+  /// No description provided for @settingsSnackRecoveryCleaned.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم حذف الملفات المؤهلة بنجاح.'**
+  String get settingsSnackRecoveryCleaned;
+
+  /// No description provided for @settingsSnackRecoveryPartialFailure.
+  ///
+  /// In ar, this message translates to:
+  /// **'اكتمل الحذف جزئياً. تعذّر حذف بعض الملفات.'**
+  String get settingsSnackRecoveryPartialFailure;
+
+  /// No description provided for @settingsSnackRecoveryFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر الحذف. تحقق من صلاحيات الوصول.'**
+  String get settingsSnackRecoveryFailed;
+
+  /// No description provided for @settingsSnackRecoveryNothingToClean.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا توجد ملفات مؤهلة للحذف الآمن.'**
+  String get settingsSnackRecoveryNothingToClean;
+
   /// No description provided for @duplicatesReviewStatusReviewed.
   ///
   /// In ar, this message translates to:

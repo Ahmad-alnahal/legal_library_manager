@@ -135,6 +135,15 @@ class _FakeFilesystem implements ManagedLibraryFilesystem {
     forbiddenCalls.add('deleteFile');
     return const FilesystemSuccess();
   }
+
+  @override
+  Future<FilesystemOperationResult> deleteRecoveryArtifact(
+    String path,
+    String allowedRoot,
+  ) async {
+    forbiddenCalls.add('deleteRecoveryArtifact');
+    return const FilesystemSuccess();
+  }
 }
 
 /// Identity canonicalizer with optional redirects (to simulate junctions that

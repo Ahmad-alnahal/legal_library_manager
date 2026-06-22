@@ -736,6 +736,59 @@ class AppLocalizationsAr extends AppLocalizations {
   }
 
   @override
+  String get settingsRecoveryReviewButton => 'مراجعة';
+
+  @override
+  String get settingsRecoveryReviewDialogTitle => 'مراجعة ملفات الاسترداد';
+
+  @override
+  String settingsRecoveryReviewCopyingCount(int count) {
+    return 'ملفات نسخ مؤقتة: $count (مؤهلة للحذف)';
+  }
+
+  @override
+  String settingsRecoveryReviewBackupCount(int count) {
+    return 'نسخ احتياطية منقوصة: $count (مؤهلة للحذف)';
+  }
+
+  @override
+  String settingsRecoveryReviewUnregisteredCount(int count) {
+    return 'ملفات PDF غير مسجلة: $count (تحتاج مراجعة يدوية)';
+  }
+
+  @override
+  String get settingsRecoveryReviewCleanupButton => 'حذف الملفات المؤهلة';
+
+  @override
+  String get settingsRecoveryReviewConfirmTitle => 'تأكيد الحذف الآمن';
+
+  @override
+  String get settingsRecoveryReviewConfirmContent =>
+      'سيتم حذف ملفات النسخ المؤقتة وملفات النسخ الاحتياطية المنقوصة فقط.\n\nلن تُمس ملفات PDF المسجلة أو الملفات الأصلية.';
+
+  @override
+  String get settingsRecoveryReviewConfirmAction => 'حذف الآن';
+
+  @override
+  String get settingsRecoveryReviewLoadFailed =>
+      'تعذّر تحميل تقرير الاسترداد. حاول مرة أخرى.';
+
+  @override
+  String get settingsSnackRecoveryCleaned => 'تم حذف الملفات المؤهلة بنجاح.';
+
+  @override
+  String get settingsSnackRecoveryPartialFailure =>
+      'اكتمل الحذف جزئياً. تعذّر حذف بعض الملفات.';
+
+  @override
+  String get settingsSnackRecoveryFailed =>
+      'تعذّر الحذف. تحقق من صلاحيات الوصول.';
+
+  @override
+  String get settingsSnackRecoveryNothingToClean =>
+      'لا توجد ملفات مؤهلة للحذف الآمن.';
+
+  @override
   String get duplicatesReviewStatusReviewed => 'تمت المراجعة';
 
   @override

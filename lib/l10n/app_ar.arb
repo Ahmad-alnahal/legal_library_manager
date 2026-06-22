@@ -262,6 +262,30 @@
     }
   },
 
+  "settingsRecoveryReviewButton": "مراجعة",
+  "settingsRecoveryReviewDialogTitle": "مراجعة ملفات الاسترداد",
+  "settingsRecoveryReviewCopyingCount": "ملفات نسخ مؤقتة: {count} (مؤهلة للحذف)",
+  "@settingsRecoveryReviewCopyingCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "settingsRecoveryReviewBackupCount": "نسخ احتياطية منقوصة: {count} (مؤهلة للحذف)",
+  "@settingsRecoveryReviewBackupCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "settingsRecoveryReviewUnregisteredCount": "ملفات PDF غير مسجلة: {count} (تحتاج مراجعة يدوية)",
+  "@settingsRecoveryReviewUnregisteredCount": {
+    "placeholders": { "count": { "type": "int" } }
+  },
+  "settingsRecoveryReviewCleanupButton": "حذف الملفات المؤهلة",
+  "settingsRecoveryReviewConfirmTitle": "تأكيد الحذف الآمن",
+  "settingsRecoveryReviewConfirmContent": "سيتم حذف ملفات النسخ المؤقتة وملفات النسخ الاحتياطية المنقوصة فقط.\n\nلن تُمس ملفات PDF المسجلة أو الملفات الأصلية.",
+  "settingsRecoveryReviewConfirmAction": "حذف الآن",
+  "settingsRecoveryReviewLoadFailed": "تعذّر تحميل تقرير الاسترداد. حاول مرة أخرى.",
+  "settingsSnackRecoveryCleaned": "تم حذف الملفات المؤهلة بنجاح.",
+  "settingsSnackRecoveryPartialFailure": "اكتمل الحذف جزئياً. تعذّر حذف بعض الملفات.",
+  "settingsSnackRecoveryFailed": "تعذّر الحذف. تحقق من صلاحيات الوصول.",
+  "settingsSnackRecoveryNothingToClean": "لا توجد ملفات مؤهلة للحذف الآمن.",
+
   "duplicatesReviewStatusReviewed": "تمت المراجعة",
   "duplicatesReviewStatusDeferred": "مؤجلة",
   "duplicatesReviewStatusUnreviewed": "غير مراجعة",

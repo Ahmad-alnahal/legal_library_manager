@@ -161,6 +161,15 @@ class _FakeFilesystem implements ManagedLibraryFilesystem {
     forbiddenCalls.add('deleteFile');
     return const FilesystemSuccess();
   }
+
+  @override
+  Future<FilesystemOperationResult> deleteRecoveryArtifact(
+    String path,
+    String allowedRoot,
+  ) async {
+    forbiddenCalls.add('deleteRecoveryArtifact');
+    return const FilesystemSuccess();
+  }
 }
 
 class _IdentityCanonicalizer implements PathCanonicalizer {

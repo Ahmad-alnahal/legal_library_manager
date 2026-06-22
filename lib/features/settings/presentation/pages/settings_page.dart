@@ -15,6 +15,7 @@ import '../../../managed_copy/domain/entities/copy_roots_setup_report.dart';
 import '../../../managed_copy/domain/services/copy_root_picker.dart';
 import '../../../managed_copy/presentation/bloc/copy_settings_bloc.dart';
 import '../../../managed_copy/presentation/bloc/manual_backup_bloc.dart';
+import '../../../managed_copy/presentation/bloc/recovery_review_bloc.dart';
 
 class SettingsPage extends StatelessWidget {
   const SettingsPage({super.key});
@@ -31,6 +32,35 @@ class SettingsPage extends StatelessWidget {
       ],
       child: const _SettingsBody(),
     );
+  }
+}
+
+Future<void> _openRecoveryReview(BuildContext context) async {
+  final copySettingsBloc = context.read<CopySettingsBloc>();
+  final reviewBloc = getIt<RecoveryReviewBloc>()
+    ..add(const RecoveryReviewStarted());
+  final messageKey = await showDialog<String?>(
+    context: context,
+    barrierDismissible: false,
+    builder: (_) => BlocProvider<RecoveryReviewBloc>.value(
+      value: reviewBloc,
+      child: const _RecoveryReviewDialog(),
+    ),
+  );
+  reviewBloc.close();
+  if (!context.mounted) return;
+  if (messageKey != null) {
+    final l10n = AppLocalizations.of(context);
+    final text = switch (messageKey) {
+      'cleaned' => l10n.settingsSnackRecoveryCleaned,
+      'partial_failure' => l10n.settingsSnackRecoveryPartialFailure,
+      'nothing_to_clean' => l10n.settingsSnackRecoveryNothingToClean,
+      _ => l10n.settingsSnackRecoveryFailed,
+    };
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(text)));
+    copySettingsBloc.add(const CopySettingsStarted());
   }
 }
 
@@ -211,6 +241,7 @@ class _CopyLocationsPanel extends StatelessWidget {
                 const SizedBox(height: AppSpacing.md),
                 _StartupRecoveryBanner(
                   artifactCount: state.startupRecoveryArtifactCount,
+                  onReview: () => _openRecoveryReview(context),
                 ),
               ],
               const SizedBox(height: AppSpacing.md),
@@ -487,9 +518,13 @@ class _AttentionBanner extends StatelessWidget {
 }
 
 class _StartupRecoveryBanner extends StatelessWidget {
-  const _StartupRecoveryBanner({required this.artifactCount});
+  const _StartupRecoveryBanner({
+    required this.artifactCount,
+    required this.onReview,
+  });
 
   final int artifactCount;
+  final VoidCallback onReview;
 
   @override
   Widget build(BuildContext context) {
@@ -504,7 +539,7 @@ class _StartupRecoveryBanner extends StatelessWidget {
         border: Border.all(color: accent.foreground.withValues(alpha: 0.3)),
       ),
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.start,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Icon(Icons.pending_actions_outlined, color: accent.foreground),
           const SizedBox(width: AppSpacing.sm),
@@ -514,9 +549,130 @@ class _StartupRecoveryBanner extends StatelessWidget {
               style: TextStyle(color: accent.foreground),
             ),
           ),
+          const SizedBox(width: AppSpacing.sm),
+          AppSecondaryButton(
+            label: l10n.settingsRecoveryReviewButton,
+            icon: Icons.search_outlined,
+            onPressed: onReview,
+          ),
         ],
       ),
     );
+  }
+}
+
+class _RecoveryReviewDialog extends StatelessWidget {
+  const _RecoveryReviewDialog();
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    return BlocListener<RecoveryReviewBloc, RecoveryReviewState>(
+      listenWhen: (a, b) =>
+          a.sequence != b.sequence && b.cleanupMessageKey != null,
+      listener: (context, state) =>
+          Navigator.of(context).pop(state.cleanupMessageKey),
+      child: BlocBuilder<RecoveryReviewBloc, RecoveryReviewState>(
+        builder: (context, state) {
+          if (state.loading) {
+            return AlertDialog(
+              title: Text(l10n.settingsRecoveryReviewDialogTitle),
+              content: const SizedBox(
+                height: 64,
+                child: Center(child: CircularProgressIndicator()),
+              ),
+            );
+          }
+
+          final summary = state.summary;
+          if (summary == null) {
+            return AlertDialog(
+              title: Text(l10n.settingsRecoveryReviewDialogTitle),
+              content: Text(l10n.settingsRecoveryReviewLoadFailed),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(context).pop(null),
+                  child: Text(l10n.settingsDialogCancel),
+                ),
+              ],
+            );
+          }
+
+          return AlertDialog(
+            title: Text(l10n.settingsRecoveryReviewDialogTitle),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  l10n.settingsRecoveryReviewCopyingCount(
+                    summary.copyingFiles.length,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  l10n.settingsRecoveryReviewBackupCount(
+                    summary.incompleteBackups.length,
+                  ),
+                ),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  l10n.settingsRecoveryReviewUnregisteredCount(
+                    summary.unregisteredFinalPdfs.length,
+                  ),
+                ),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: state.cleaningUp
+                    ? null
+                    : () => Navigator.of(context).pop(null),
+                child: Text(l10n.settingsDialogCancel),
+              ),
+              if (summary.hasEligibleForCleanup)
+                FilledButton(
+                  onPressed: state.cleaningUp
+                      ? null
+                      : () => _confirmAndCleanup(context),
+                  child: state.cleaningUp
+                      ? const SizedBox(
+                          width: 16,
+                          height: 16,
+                          child: CircularProgressIndicator(strokeWidth: 2),
+                        )
+                      : Text(l10n.settingsRecoveryReviewCleanupButton),
+                ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+Future<void> _confirmAndCleanup(BuildContext context) async {
+  final l10n = AppLocalizations.of(context);
+  final bloc = context.read<RecoveryReviewBloc>();
+  final confirmed = await showDialog<bool>(
+    context: context,
+    builder: (dialogContext) => AlertDialog(
+      title: Text(l10n.settingsRecoveryReviewConfirmTitle),
+      content: Text(l10n.settingsRecoveryReviewConfirmContent),
+      actions: [
+        TextButton(
+          onPressed: () => Navigator.of(dialogContext).pop(false),
+          child: Text(l10n.settingsDialogCancel),
+        ),
+        FilledButton(
+          onPressed: () => Navigator.of(dialogContext).pop(true),
+          child: Text(l10n.settingsRecoveryReviewConfirmAction),
+        ),
+      ],
+    ),
+  );
+  if (confirmed == true && !bloc.isClosed) {
+    bloc.add(const RecoveryReviewCleanupConfirmed());
   }
 }
 
