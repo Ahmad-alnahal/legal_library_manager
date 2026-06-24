@@ -3,7 +3,9 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../application/create_operator_account.dart';
 import '../../application/issue_temporary_password.dart';
 import '../../application/session_manager.dart';
-import '../../application/set_initial_admin_password.dart' show WeakPasswordException;
+import '../../application/set_initial_admin_password.dart'
+    show WeakPasswordException;
+import '../../application/step_up_required_exception.dart';
 import '../../application/unauthorized_exception.dart';
 import '../../application/update_operator_account.dart';
 import '../../domain/entities/account_status.dart';
@@ -34,8 +36,7 @@ class AccountManagementBloc
   final IssueTemporaryPassword _issueTempPassword;
   final SessionManager _sessionManager;
 
-  String get _actorId =>
-      _sessionManager.currentSession?.accountId ?? 'unknown';
+  String get _actorId => _sessionManager.currentSession?.accountId ?? 'unknown';
 
   Future<void> _onLoadRequested(
     AccountManagementLoadRequested event,
@@ -47,10 +48,12 @@ class AccountManagementBloc
       final admin = await _accounts.findById('admin');
       emit(AccountManagementLoaded(operators: operators, admin: admin));
     } catch (_) {
-      emit(const AccountManagementError(
-        messageKey: 'unexpectedError',
-        operators: [],
-      ));
+      emit(
+        const AccountManagementError(
+          messageKey: 'unexpectedError',
+          operators: [],
+        ),
+      );
     }
   }
 
@@ -60,10 +63,12 @@ class AccountManagementBloc
   ) async {
     final current = state;
     if (current is! AccountManagementLoaded) return;
-    emit(AccountManagementOperating(
-      operators: current.operators,
-      admin: current.admin,
-    ));
+    emit(
+      AccountManagementOperating(
+        operators: current.operators,
+        admin: current.admin,
+      ),
+    );
     try {
       await _createOperator.call(
         username: event.username,
@@ -74,29 +79,45 @@ class AccountManagementBloc
       final operators = await _accounts.listOperators();
       emit(AccountManagementLoaded(operators: operators, admin: current.admin));
     } on UnauthorizedException {
-      emit(AccountManagementError(
-        messageKey: 'unauthorized',
-        operators: current.operators,
-        admin: current.admin,
-      ));
+      emit(
+        AccountManagementError(
+          messageKey: 'unauthorized',
+          operators: current.operators,
+          admin: current.admin,
+        ),
+      );
+    } on StepUpRequiredException {
+      emit(
+        AccountManagementError(
+          messageKey: 'stepUpRequired',
+          operators: current.operators,
+          admin: current.admin,
+        ),
+      );
     } on DuplicateUsernameException {
-      emit(AccountManagementError(
-        messageKey: 'duplicateUsername',
-        operators: current.operators,
-        admin: current.admin,
-      ));
+      emit(
+        AccountManagementError(
+          messageKey: 'duplicateUsername',
+          operators: current.operators,
+          admin: current.admin,
+        ),
+      );
     } on WeakPasswordException {
-      emit(AccountManagementError(
-        messageKey: 'passwordTooShort',
-        operators: current.operators,
-        admin: current.admin,
-      ));
+      emit(
+        AccountManagementError(
+          messageKey: 'passwordTooShort',
+          operators: current.operators,
+          admin: current.admin,
+        ),
+      );
     } catch (_) {
-      emit(AccountManagementError(
-        messageKey: 'unexpectedError',
-        operators: current.operators,
-        admin: current.admin,
-      ));
+      emit(
+        AccountManagementError(
+          messageKey: 'unexpectedError',
+          operators: current.operators,
+          admin: current.admin,
+        ),
+      );
     }
   }
 
@@ -121,10 +142,12 @@ class AccountManagementBloc
   ) async {
     final current = state;
     if (current is! AccountManagementLoaded) return;
-    emit(AccountManagementOperating(
-      operators: current.operators,
-      admin: current.admin,
-    ));
+    emit(
+      AccountManagementOperating(
+        operators: current.operators,
+        admin: current.admin,
+      ),
+    );
     try {
       await _updateOperator.call(
         operatorId: operatorId,
@@ -134,17 +157,29 @@ class AccountManagementBloc
       final operators = await _accounts.listOperators();
       emit(AccountManagementLoaded(operators: operators, admin: current.admin));
     } on UnauthorizedException {
-      emit(AccountManagementError(
-        messageKey: 'unauthorized',
-        operators: current.operators,
-        admin: current.admin,
-      ));
+      emit(
+        AccountManagementError(
+          messageKey: 'unauthorized',
+          operators: current.operators,
+          admin: current.admin,
+        ),
+      );
+    } on StepUpRequiredException {
+      emit(
+        AccountManagementError(
+          messageKey: 'stepUpRequired',
+          operators: current.operators,
+          admin: current.admin,
+        ),
+      );
     } catch (_) {
-      emit(AccountManagementError(
-        messageKey: 'unexpectedError',
-        operators: current.operators,
-        admin: current.admin,
-      ));
+      emit(
+        AccountManagementError(
+          messageKey: 'unexpectedError',
+          operators: current.operators,
+          admin: current.admin,
+        ),
+      );
     }
   }
 
@@ -154,10 +189,12 @@ class AccountManagementBloc
   ) async {
     final current = state;
     if (current is! AccountManagementLoaded) return;
-    emit(AccountManagementOperating(
-      operators: current.operators,
-      admin: current.admin,
-    ));
+    emit(
+      AccountManagementOperating(
+        operators: current.operators,
+        admin: current.admin,
+      ),
+    );
     try {
       await _issueTempPassword.call(
         operatorId: event.operatorId,
@@ -167,23 +204,37 @@ class AccountManagementBloc
       final operators = await _accounts.listOperators();
       emit(AccountManagementLoaded(operators: operators, admin: current.admin));
     } on UnauthorizedException {
-      emit(AccountManagementError(
-        messageKey: 'unauthorized',
-        operators: current.operators,
-        admin: current.admin,
-      ));
+      emit(
+        AccountManagementError(
+          messageKey: 'unauthorized',
+          operators: current.operators,
+          admin: current.admin,
+        ),
+      );
+    } on StepUpRequiredException {
+      emit(
+        AccountManagementError(
+          messageKey: 'stepUpRequired',
+          operators: current.operators,
+          admin: current.admin,
+        ),
+      );
     } on WeakPasswordException {
-      emit(AccountManagementError(
-        messageKey: 'passwordTooShort',
-        operators: current.operators,
-        admin: current.admin,
-      ));
+      emit(
+        AccountManagementError(
+          messageKey: 'passwordTooShort',
+          operators: current.operators,
+          admin: current.admin,
+        ),
+      );
     } catch (_) {
-      emit(AccountManagementError(
-        messageKey: 'unexpectedError',
-        operators: current.operators,
-        admin: current.admin,
-      ));
+      emit(
+        AccountManagementError(
+          messageKey: 'unexpectedError',
+          operators: current.operators,
+          admin: current.admin,
+        ),
+      );
     }
   }
 
@@ -193,10 +244,12 @@ class AccountManagementBloc
   ) {
     final current = state;
     if (current is AccountManagementError) {
-      emit(AccountManagementLoaded(
-        operators: current.operators,
-        admin: current.admin,
-      ));
+      emit(
+        AccountManagementLoaded(
+          operators: current.operators,
+          admin: current.admin,
+        ),
+      );
     }
   }
 }

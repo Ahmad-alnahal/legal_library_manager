@@ -94,7 +94,9 @@ import '../../features/security/application/first_login_password_change.dart';
 import '../../features/security/application/issue_temporary_password.dart';
 import '../../features/security/application/session_manager.dart';
 import '../../features/security/application/set_initial_admin_password.dart';
+import '../../features/security/application/step_up_manager.dart';
 import '../../features/security/application/update_operator_account.dart';
+import '../../features/security/application/verify_admin_step_up.dart';
 import '../../features/security/data/repositories/drift_account_repository.dart';
 import '../../features/security/data/repositories/drift_security_audit_repository.dart';
 import '../../features/security/data/services/argon2id_password_hasher.dart';
@@ -108,6 +110,7 @@ import '../../features/security/presentation/bloc/initial_setup_bloc.dart';
 import '../../features/security/presentation/bloc/login_bloc.dart';
 import '../../features/security/presentation/bloc/password_change_bloc.dart';
 import '../../features/security/presentation/bloc/recovery_bloc.dart';
+import '../../features/security/presentation/bloc/step_up_bloc.dart';
 import '../../features/shell/presentation/bloc/navigation_bloc.dart';
 import '../database/app_database.dart';
 import '../time/clock.dart';
@@ -299,6 +302,7 @@ void configureDependencies() {
         getIt<ManagedLibraryFilesystem>(),
         getIt<PathCanonicalizer>(),
         sessionManager: getIt<SessionManager>(),
+        stepUpManager: getIt<StepUpManager>(),
       ),
     )
     // M8.4 automatic safe copy-root setup: resolves the Documents folder in
@@ -336,6 +340,7 @@ void configureDependencies() {
         filesystem: getIt<ManagedLibraryFilesystem>(),
         configureCopyRoots: getIt<ConfigureCopyRoots>(),
         sessionManager: getIt<SessionManager>(),
+        stepUpManager: getIt<StepUpManager>(),
       ),
     )
     // M8.6 Part B: detects a physically missing managed-copy file and
@@ -361,6 +366,7 @@ void configureDependencies() {
         operationIdGenerator: getIt<OperationIdGenerator>(),
         clock: getIt<Clock>(),
         sessionManager: getIt<SessionManager>(),
+        stepUpManager: getIt<StepUpManager>(),
       ),
     )
     ..registerFactory<ManualBackupBloc>(
@@ -415,6 +421,7 @@ void configureDependencies() {
         operationIdGenerator: getIt<OperationIdGenerator>(),
         clock: getIt<Clock>(),
         sessionManager: getIt<SessionManager>(),
+        stepUpManager: getIt<StepUpManager>(),
       ),
     )
     ..registerFactory<CopyIntegrityBloc>(
@@ -450,8 +457,12 @@ void configureDependencies() {
       ),
     )
     // M14.3 security: session lifecycle, login, first-run admin setup.
+    ..registerLazySingleton<StepUpManager>(
+      StepUpManager.new,
+      dispose: (m) => m.dispose(),
+    )
     ..registerLazySingleton<SessionManager>(
-      SessionManager.new,
+      () => SessionManager(stepUpManager: getIt<StepUpManager>()),
       dispose: (m) => m.dispose(),
     )
     ..registerLazySingleton<RecordFailedLogin>(
@@ -504,6 +515,7 @@ void configureDependencies() {
         auditLog: getIt<SecurityAuditRepository>(),
         clock: getIt<Clock>(),
         sessionManager: getIt<SessionManager>(),
+        stepUpManager: getIt<StepUpManager>(),
       ),
     )
     ..registerLazySingleton<UpdateOperatorAccount>(
@@ -512,6 +524,7 @@ void configureDependencies() {
         auditLog: getIt<SecurityAuditRepository>(),
         clock: getIt<Clock>(),
         sessionManager: getIt<SessionManager>(),
+        stepUpManager: getIt<StepUpManager>(),
       ),
     )
     ..registerLazySingleton<IssueTemporaryPassword>(
@@ -521,6 +534,7 @@ void configureDependencies() {
         auditLog: getIt<SecurityAuditRepository>(),
         clock: getIt<Clock>(),
         sessionManager: getIt<SessionManager>(),
+        stepUpManager: getIt<StepUpManager>(),
       ),
     )
     ..registerLazySingleton<ChangeOwnPassword>(
@@ -553,9 +567,20 @@ void configureDependencies() {
       ),
     )
     ..registerFactory<RecoveryBloc>(
-      () => RecoveryBloc(
-        redeemRecoveryKey: getIt<RedeemRecoveryKey>(),
+      () => RecoveryBloc(redeemRecoveryKey: getIt<RedeemRecoveryKey>()),
+    )
+    // M14.8 step-up authentication: verifier use case and dialog BLoC.
+    ..registerLazySingleton<VerifyAdminStepUp>(
+      () => VerifyAdminStepUp(
+        accounts: getIt<AccountRepository>(),
+        hasher: getIt<PasswordHasher>(),
+        auditLog: getIt<SecurityAuditRepository>(),
+        sessionManager: getIt<SessionManager>(),
+        stepUpManager: getIt<StepUpManager>(),
       ),
+    )
+    ..registerFactory<StepUpBloc>(
+      () => StepUpBloc(verifyAdminStepUp: getIt<VerifyAdminStepUp>()),
     )
     // M14.7 audit log viewer: admin-guarded use case + factory BLoC.
     ..registerLazySingleton<LoadAuditLog>(

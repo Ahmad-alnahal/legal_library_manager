@@ -10,6 +10,7 @@ import '../../domain/entities/account_status.dart';
 import '../bloc/account_management_bloc.dart';
 import '../bloc/account_management_event.dart';
 import '../bloc/account_management_state.dart';
+import '../widgets/step_up_dialog.dart';
 
 /// Admin-only page for viewing and managing operator accounts.
 ///
@@ -21,8 +22,9 @@ class AccountManagementPage extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocProvider<AccountManagementBloc>(
-      create: (_) => getIt<AccountManagementBloc>()
-        ..add(const AccountManagementLoadRequested()),
+      create: (_) =>
+          getIt<AccountManagementBloc>()
+            ..add(const AccountManagementLoadRequested()),
       child: const _AccountManagementView(),
     );
   }
@@ -75,20 +77,20 @@ class _AccountManagementView extends StatelessWidget {
               BlocBuilder<AccountManagementBloc, AccountManagementState>(
                 builder: (context, state) {
                   return switch (state) {
-                    AccountManagementInitial() ||
-                    AccountManagementLoading() =>
+                    AccountManagementInitial() || AccountManagementLoading() =>
                       const Center(child: CircularProgressIndicator()),
-                    AccountManagementError(:final messageKey) =>
-                      _ErrorBanner(messageKey: messageKey),
+                    AccountManagementError(:final messageKey) => _ErrorBanner(
+                      messageKey: messageKey,
+                    ),
                     AccountManagementLoaded(:final operators, :final admin) ||
                     AccountManagementOperating(
                       :final operators,
-                      :final admin
+                      :final admin,
                     ) => _AccountList(
-                        operators: operators,
-                        admin: admin,
-                        isOperating: state is AccountManagementOperating,
-                      ),
+                      operators: operators,
+                      admin: admin,
+                      isOperating: state is AccountManagementOperating,
+                    ),
                   };
                 },
               ),
@@ -100,21 +102,23 @@ class _AccountManagementView extends StatelessWidget {
   }
 
   void _showCreateDialog(BuildContext context, AppLocalizations l10n) {
-    showDialog<void>(
-      context: context,
-      builder: (dialogContext) => _CreateOperatorDialog(
-        l10n: l10n,
-        onConfirm: (username, displayName, password) {
-          context.read<AccountManagementBloc>().add(
-                AccountManagementCreateOperator(
-                  username: username,
-                  displayName: displayName,
-                  temporaryPassword: password,
-                ),
-              );
-        },
-      ),
-    );
+    requireStepUp(context, () {
+      showDialog<void>(
+        context: context,
+        builder: (dialogContext) => _CreateOperatorDialog(
+          l10n: l10n,
+          onConfirm: (username, displayName, password) {
+            context.read<AccountManagementBloc>().add(
+              AccountManagementCreateOperator(
+                username: username,
+                displayName: displayName,
+                temporaryPassword: password,
+              ),
+            );
+          },
+        ),
+      );
+    });
   }
 }
 
@@ -149,17 +153,14 @@ class _AccountList extends StatelessWidget {
                 child: Text(
                   l10n.accountManagementNoOperators,
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.textSecondary,
-                      ),
+                    color: AppColors.textSecondary,
+                  ),
                 ),
               ),
             )
           else
             for (final op in operators)
-              _OperatorRow(
-                operator: op,
-                enabled: !isOperating,
-              ),
+              _OperatorRow(operator: op, enabled: !isOperating),
         ],
       ),
     );
@@ -177,9 +178,9 @@ class _SectionHeader extends StatelessWidget {
       child: Text(
         title,
         style: Theme.of(context).textTheme.labelLarge?.copyWith(
-              color: AppColors.textSecondary,
-              fontWeight: FontWeight.w600,
-            ),
+          color: AppColors.textSecondary,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }
@@ -230,14 +231,15 @@ class _OperatorRow extends StatelessWidget {
       child: ListTile(
         leading: Icon(
           Icons.person_outlined,
-          color:
-              isSuspended ? AppColors.textSecondary : AppColors.textPrimary,
+          color: isSuspended ? AppColors.textSecondary : AppColors.textPrimary,
         ),
         title: Text(
           operator.displayName,
           style: text.bodyLarge?.copyWith(
             fontWeight: FontWeight.w500,
-            color: isSuspended ? AppColors.textSecondary : AppColors.textPrimary,
+            color: isSuspended
+                ? AppColors.textSecondary
+                : AppColors.textPrimary,
           ),
         ),
         subtitle: Text(operator.username, style: text.bodySmall),
@@ -285,18 +287,20 @@ class _OperatorRow extends StatelessWidget {
     Account op,
     AppLocalizations l10n,
   ) {
-    switch (action) {
-      case _OperatorAction.suspend:
-        context.read<AccountManagementBloc>().add(
-              AccountManagementSuspend(op.internalId),
-            );
-      case _OperatorAction.reactivate:
-        context.read<AccountManagementBloc>().add(
-              AccountManagementReactivate(op.internalId),
-            );
-      case _OperatorAction.issueTempPassword:
-        _showIssueTempPasswordDialog(context, op, l10n);
-    }
+    requireStepUp(context, () {
+      switch (action) {
+        case _OperatorAction.suspend:
+          context.read<AccountManagementBloc>().add(
+            AccountManagementSuspend(op.internalId),
+          );
+        case _OperatorAction.reactivate:
+          context.read<AccountManagementBloc>().add(
+            AccountManagementReactivate(op.internalId),
+          );
+        case _OperatorAction.issueTempPassword:
+          _showIssueTempPasswordDialog(context, op, l10n);
+      }
+    });
   }
 
   void _showIssueTempPasswordDialog(
@@ -311,11 +315,11 @@ class _OperatorRow extends StatelessWidget {
         l10n: l10n,
         onConfirm: (password) {
           context.read<AccountManagementBloc>().add(
-                AccountManagementIssueTempPassword(
-                  operatorId: op.internalId,
-                  temporaryPassword: password,
-                ),
-              );
+            AccountManagementIssueTempPassword(
+              operatorId: op.internalId,
+              temporaryPassword: password,
+            ),
+          );
         },
       ),
     );
@@ -376,17 +380,17 @@ class _ErrorBanner extends StatelessWidget {
           Expanded(
             child: Text(
               message,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                    color: const Color(0xFF92400E),
-                  ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: const Color(0xFF92400E)),
             ),
           ),
           IconButton(
             icon: const Icon(Icons.close, size: 18),
             color: const Color(0xFF92400E),
-            onPressed: () => context
-                .read<AccountManagementBloc>()
-                .add(const AccountManagementErrorDismissed()),
+            onPressed: () => context.read<AccountManagementBloc>().add(
+              const AccountManagementErrorDismissed(),
+            ),
           ),
         ],
       ),
@@ -395,13 +399,10 @@ class _ErrorBanner extends StatelessWidget {
 }
 
 class _CreateOperatorDialog extends StatefulWidget {
-  const _CreateOperatorDialog({
-    required this.l10n,
-    required this.onConfirm,
-  });
+  const _CreateOperatorDialog({required this.l10n, required this.onConfirm});
   final AppLocalizations l10n;
   final void Function(String username, String displayName, String password)
-      onConfirm;
+  onConfirm;
 
   @override
   State<_CreateOperatorDialog> createState() => _CreateOperatorDialogState();

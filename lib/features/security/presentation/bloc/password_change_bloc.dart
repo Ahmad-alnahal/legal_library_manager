@@ -2,7 +2,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../application/change_own_password.dart';
 import '../../application/first_login_password_change.dart';
-import '../../application/set_initial_admin_password.dart' show WeakPasswordException;
+import '../../application/set_initial_admin_password.dart'
+    show WeakPasswordException;
 import '../../application/unauthorized_exception.dart';
 import 'password_change_event.dart';
 import 'password_change_state.dart';
@@ -10,7 +11,7 @@ import 'password_change_state.dart';
 class PasswordChangeBloc
     extends Bloc<PasswordChangeEvent, PasswordChangeState> {
   PasswordChangeBloc({required this._firstLoginPasswordChange})
-      : super(const PasswordChangeInitial()) {
+    : super(const PasswordChangeInitial()) {
     on<PasswordChangeSubmitted>(_onSubmitted);
     on<PasswordChangeErrorDismissed>(_onErrorDismissed);
   }
@@ -46,6 +47,5 @@ class PasswordChangeBloc
   void _onErrorDismissed(
     PasswordChangeErrorDismissed event,
     Emitter<PasswordChangeState> emit,
-  ) =>
-      emit(const PasswordChangeInitial());
+  ) => emit(const PasswordChangeInitial());
 }

@@ -78,9 +78,7 @@ class _RecoveryViewState extends State<_RecoveryView> {
               confirmed: _confirmed,
               copied: _copied,
               onCopy: () {
-                Clipboard.setData(
-                  ClipboardData(text: state.newRecoveryKey),
-                );
+                Clipboard.setData(ClipboardData(text: state.newRecoveryKey));
                 if (!mounted) return;
                 setState(() => _copied = true);
                 ScaffoldMessenger.of(context).showSnackBar(
@@ -88,9 +86,7 @@ class _RecoveryViewState extends State<_RecoveryView> {
                 );
               },
               onConfirmChanged: (v) => setState(() => _confirmed = v ?? false),
-              onContinue: _confirmed
-                  ? () => Navigator.of(context).pop()
-                  : null,
+              onContinue: _confirmed ? () => Navigator.of(context).pop() : null,
             );
           }
 
@@ -140,9 +136,7 @@ class _RecoveryViewState extends State<_RecoveryView> {
                           ),
                           const SizedBox(height: AppSpacing.lg),
                           if (state is RecoveryError)
-                            _ErrorBanner(
-                              message: _errorMessage(state, l10n),
-                            ),
+                            _ErrorBanner(message: _errorMessage(state, l10n)),
                           if (state is RecoveryError)
                             const SizedBox(height: AppSpacing.lg),
                           BlocBuilder<RecoveryBloc, RecoveryState>(
@@ -179,9 +173,7 @@ class _RecoveryViewState extends State<_RecoveryView> {
   }
 
   void _submit(BuildContext context) {
-    context
-        .read<RecoveryBloc>()
-        .add(RecoverySubmitted(_keyController.text));
+    context.read<RecoveryBloc>().add(RecoverySubmitted(_keyController.text));
   }
 
   String _errorMessage(RecoveryError state, AppLocalizations l10n) {
@@ -268,9 +260,7 @@ class _SuccessView extends StatelessWidget {
                     const SizedBox(height: AppSpacing.md),
                     OutlinedButton.icon(
                       onPressed: onCopy,
-                      icon: Icon(
-                        copied ? Icons.check : Icons.copy_outlined,
-                      ),
+                      icon: Icon(copied ? Icons.check : Icons.copy_outlined),
                       label: Text(l10n.recoverySuccessCopyButton),
                     ),
                     const SizedBox(height: AppSpacing.xl),
@@ -318,9 +308,9 @@ class _ErrorBanner extends StatelessWidget {
       ),
       child: Text(
         message,
-        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: const Color(0xFF92400E),
-            ),
+        style: Theme.of(
+          context,
+        ).textTheme.bodyMedium?.copyWith(color: const Color(0xFF92400E)),
       ),
     );
   }

@@ -7,6 +7,8 @@ import 'package:legal_library_manager/features/security/application/create_opera
 import 'package:legal_library_manager/features/security/application/issue_temporary_password.dart';
 import 'package:legal_library_manager/features/security/application/session_manager.dart';
 import 'package:legal_library_manager/features/security/application/set_initial_admin_password.dart';
+import 'package:legal_library_manager/features/security/application/step_up_manager.dart';
+import 'package:legal_library_manager/features/security/application/step_up_required_exception.dart';
 import 'package:legal_library_manager/features/security/application/unauthorized_exception.dart';
 import 'package:legal_library_manager/features/security/application/update_operator_account.dart';
 import 'package:legal_library_manager/features/security/data/repositories/drift_account_repository.dart';
@@ -27,6 +29,7 @@ void main() {
   late DriftAccountRepository accountRepo;
   late DriftSecurityAuditRepository auditRepo;
   late SessionManager sessionManager;
+  late StepUpManager stepUpManager;
   late CreateOperatorAccount createOperator;
   late UpdateOperatorAccount updateOperator;
   late IssueTemporaryPassword issueTempPassword;
@@ -39,7 +42,8 @@ void main() {
     db = AppDatabase.inMemory();
     accountRepo = DriftAccountRepository(db);
     auditRepo = DriftSecurityAuditRepository(db);
-    sessionManager = SessionManager();
+    stepUpManager = StepUpManager();
+    sessionManager = SessionManager(stepUpManager: stepUpManager);
 
     await BootstrapAdminAccount(
       accounts: accountRepo,
@@ -59,12 +63,14 @@ void main() {
       auditLog: auditRepo,
       clock: clock,
       sessionManager: sessionManager,
+      stepUpManager: stepUpManager,
     );
     updateOperator = UpdateOperatorAccount(
       accounts: accountRepo,
       auditLog: auditRepo,
       clock: clock,
       sessionManager: sessionManager,
+      stepUpManager: stepUpManager,
     );
     issueTempPassword = IssueTemporaryPassword(
       accounts: accountRepo,
@@ -72,6 +78,7 @@ void main() {
       auditLog: auditRepo,
       clock: clock,
       sessionManager: sessionManager,
+      stepUpManager: stepUpManager,
     );
     changeOwnPassword = ChangeOwnPassword(
       accounts: accountRepo,
@@ -83,6 +90,7 @@ void main() {
   });
 
   tearDown(() async {
+    stepUpManager.dispose();
     sessionManager.dispose();
     await db.close();
   });
@@ -96,8 +104,10 @@ void main() {
     ));
   }
 
+  /// Creates a test operator; uses admin session + step-up approval.
   Future<String> createTestOperator() async {
     loginAsAdmin();
+    stepUpManager.grant();
     final id = await createOperator.call(
       username: 'op1',
       displayName: 'مشغل',
@@ -139,8 +149,23 @@ void main() {
       );
     });
 
-    test('succeeds with admin session', () async {
+    test('throws StepUpRequiredException when admin but no step-up', () {
       loginAsAdmin();
+      // Step-up NOT granted.
+      expect(
+        () => createOperator.call(
+          username: 'op1',
+          displayName: 'مشغل',
+          password: 'TempPass1',
+          createdById: 'admin',
+        ),
+        throwsA(isA<StepUpRequiredException>()),
+      );
+    });
+
+    test('succeeds with admin session and step-up granted', () async {
+      loginAsAdmin();
+      stepUpManager.grant();
       final id = await createOperator.call(
         username: 'op1',
         displayName: 'مشغل',
@@ -183,9 +208,25 @@ void main() {
       );
     });
 
-    test('succeeds with admin session', () async {
+    test('throws StepUpRequiredException when admin but no step-up', () async {
       final opId = await createTestOperator();
       loginAsAdmin();
+      // Step-up revoked after createTestOperator cleared state on re-login.
+      stepUpManager.revoke();
+      expect(
+        () => updateOperator.call(
+          operatorId: opId,
+          displayName: 'اسم جديد',
+          actorAccountId: 'admin',
+        ),
+        throwsA(isA<StepUpRequiredException>()),
+      );
+    });
+
+    test('succeeds with admin session and step-up granted', () async {
+      final opId = await createTestOperator();
+      loginAsAdmin();
+      stepUpManager.grant();
       await expectLater(
         updateOperator.call(
           operatorId: opId,
@@ -229,9 +270,24 @@ void main() {
       );
     });
 
-    test('succeeds with admin session', () async {
+    test('throws StepUpRequiredException when admin but no step-up', () async {
       final opId = await createTestOperator();
       loginAsAdmin();
+      stepUpManager.revoke();
+      expect(
+        () => issueTempPassword.call(
+          operatorId: opId,
+          temporaryPassword: 'NewTemp1',
+          actorAccountId: 'admin',
+        ),
+        throwsA(isA<StepUpRequiredException>()),
+      );
+    });
+
+    test('succeeds with admin session and step-up granted', () async {
+      final opId = await createTestOperator();
+      loginAsAdmin();
+      stepUpManager.grant();
       await expectLater(
         issueTempPassword.call(
           operatorId: opId,
@@ -243,7 +299,7 @@ void main() {
     });
   });
 
-  group('ChangeOwnPassword — authorization', () {
+  group('ChangeOwnPassword — does not require step-up', () {
     test('throws UnauthorizedException when no session', () {
       expect(
         () => changeOwnPassword.call(
@@ -269,7 +325,7 @@ void main() {
       );
     });
 
-    test('succeeds when accountId matches the current session', () async {
+    test('succeeds with active session — no step-up required', () async {
       loginAsAdmin();
       await expectLater(
         changeOwnPassword.call(

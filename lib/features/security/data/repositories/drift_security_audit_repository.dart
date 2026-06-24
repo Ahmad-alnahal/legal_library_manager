@@ -22,7 +22,9 @@ class DriftSecurityAuditRepository implements SecurityAuditRepository {
     String? eventDataSafe,
   }) async {
     final now = DateTime.now().toUtc().toIso8601String();
-    await _db.into(_db.securityAuditLog).insert(
+    await _db
+        .into(_db.securityAuditLog)
+        .insert(
           SecurityAuditLogCompanion.insert(
             eventTypeKey: eventTypeKey,
             createdAt: now,
@@ -38,19 +40,20 @@ class DriftSecurityAuditRepository implements SecurityAuditRepository {
     required int limit,
     required int offset,
   }) async {
-    final rows = await (_db.select(_db.securityAuditLog)
-          ..orderBy([(r) => OrderingTerm.desc(r.createdAt)])
-          ..limit(limit, offset: offset))
-        .get();
+    final rows =
+        await (_db.select(_db.securityAuditLog)
+              ..orderBy([(r) => OrderingTerm.desc(r.createdAt)])
+              ..limit(limit, offset: offset))
+            .get();
     return rows.map(_toEvent).toList(growable: false);
   }
 
   SecurityAuditEvent _toEvent(SecurityAuditLogRow row) => SecurityAuditEvent(
-        id: row.id,
-        eventTypeKey: row.eventTypeKey,
-        createdAt: DateTime.parse(row.createdAt).toUtc(),
-        actorAccountId: row.actorAccountId,
-        targetAccountId: row.targetAccountId,
-        eventDataSafe: row.eventDataSafe,
-      );
+    id: row.id,
+    eventTypeKey: row.eventTypeKey,
+    createdAt: DateTime.parse(row.createdAt).toUtc(),
+    actorAccountId: row.actorAccountId,
+    targetAccountId: row.targetAccountId,
+    eventDataSafe: row.eventDataSafe,
+  );
 }

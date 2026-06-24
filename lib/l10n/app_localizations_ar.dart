@@ -811,8 +811,7 @@ class AppLocalizationsAr extends AppLocalizations {
       'تعذّر فحص النسخ المدارة. حاول مرة أخرى.';
 
   @override
-  String get settingsSnackUnauthorized =>
-      'هذه العملية تتطلب صلاحيات المشرف.';
+  String get settingsSnackUnauthorized => 'هذه العملية تتطلب صلاحيات المشرف.';
 
   @override
   String get duplicatesReviewStatusReviewed => 'تمت المراجعة';
@@ -1134,4 +1133,36 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get auditEventUnknown => 'حدث غير معروف';
+
+  @override
+  String get auditEventStepUpGranted => 'تحقق من هوية المدير';
+
+  @override
+  String get auditEventStepUpDenied => 'محاولة تحقق فاشلة';
+
+  @override
+  String get stepUpDialogTitle => 'التحقق من هوية المدير';
+
+  @override
+  String get stepUpDialogSubtitle => 'أدخل كلمة مرور المدير للمتابعة.';
+
+  @override
+  String get stepUpPasswordLabel => 'كلمة المرور';
+
+  @override
+  String get stepUpVerifyButton => 'تحقق';
+
+  @override
+  String get stepUpCancelButton => 'إلغاء';
+
+  @override
+  String get stepUpErrorWrongPassword =>
+      'كلمة المرور غير صحيحة. حاول مرة أخرى.';
+
+  @override
+  String get stepUpErrorUnexpected => 'حدث خطأ غير متوقع. حاول مرة أخرى.';
+
+  @override
+  String get settingsSnackStepUpRequired =>
+      'يجب التحقق من هوية المدير أولاً قبل تنفيذ هذه العملية.';
 }

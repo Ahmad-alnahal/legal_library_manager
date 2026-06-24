@@ -45,7 +45,7 @@ class AppShellPage extends StatelessWidget {
                   builder: (context, state) {
                     final bool isAdmin =
                         sessionManager.currentSession?.role ==
-                            AccountRole.admin;
+                        AccountRole.admin;
                     return Row(
                       children: [
                         // First child renders on the right under RTL.

@@ -33,10 +33,7 @@ class LoginBloc extends Bloc<LoginEvent, LoginState> {
     }
   }
 
-  void _onErrorDismissed(
-    LoginErrorDismissed event,
-    Emitter<LoginState> emit,
-  ) {
+  void _onErrorDismissed(LoginErrorDismissed event, Emitter<LoginState> emit) {
     emit(const LoginInitial());
   }
 }

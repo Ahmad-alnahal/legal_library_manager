@@ -35,10 +35,7 @@ class AdministrationPage extends StatelessWidget {
           ),
           const Expanded(
             child: TabBarView(
-              children: [
-                AccountManagementPage(),
-                AuditLogPage(),
-              ],
+              children: [AccountManagementPage(), AuditLogPage()],
             ),
           ),
         ],

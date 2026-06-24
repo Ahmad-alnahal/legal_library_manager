@@ -30,9 +30,9 @@ class Argon2idPasswordHasher implements PasswordHasher {
     int memoryKib = _kDefaultMemoryKib,
     int iterations = _kDefaultIterations,
     int lanes = _kDefaultLanes,
-  })  : _memoryKib = memoryKib,
-        _iterations = iterations,
-        _lanes = lanes;
+  }) : _memoryKib = memoryKib,
+       _iterations = iterations,
+       _lanes = lanes;
 
   final int _memoryKib;
   final int _iterations;
@@ -50,7 +50,12 @@ class Argon2idPasswordHasher implements PasswordHasher {
     try {
       final parsed = _parse(storedHash);
       final computed = _compute(
-          password, parsed.salt, parsed.memory, parsed.iterations, parsed.lanes);
+        password,
+        parsed.salt,
+        parsed.memory,
+        parsed.iterations,
+        parsed.lanes,
+      );
       return _constantTimeEqual(computed, parsed.hash);
     } catch (_) {
       // Malformed or sentinel hash — indistinguishable from wrong password.
@@ -61,7 +66,8 @@ class Argon2idPasswordHasher implements PasswordHasher {
   Uint8List _generateSalt() {
     final rng = Random.secure();
     return Uint8List.fromList(
-        List.generate(_kSaltLength, (_) => rng.nextInt(256)));
+      List.generate(_kSaltLength, (_) => rng.nextInt(256)),
+    );
   }
 
   Uint8List _compute(

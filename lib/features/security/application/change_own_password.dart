@@ -51,11 +51,14 @@ class ChangeOwnPassword {
     final session = _sessionManager.currentSession;
     if (session == null || session.accountId != accountId) {
       throw const UnauthorizedException(
-          'Cannot change another account\'s password.');
+        'Cannot change another account\'s password.',
+      );
     }
 
     if (newPassword.length < 8) {
-      throw const WeakPasswordException('Password must be at least 8 characters.');
+      throw const WeakPasswordException(
+        'Password must be at least 8 characters.',
+      );
     }
 
     final account = await _accounts.findById(accountId);

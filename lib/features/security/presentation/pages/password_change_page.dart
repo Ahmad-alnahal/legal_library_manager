@@ -52,12 +52,12 @@ class _PasswordChangeViewState extends State<_PasswordChangeView> {
 
   void _submit(BuildContext context) {
     context.read<PasswordChangeBloc>().add(
-          PasswordChangeSubmitted(
-            currentPassword: _currentController.text,
-            newPassword: _newController.text,
-            confirmPassword: _confirmController.text,
-          ),
-        );
+      PasswordChangeSubmitted(
+        currentPassword: _currentController.text,
+        newPassword: _newController.text,
+        confirmPassword: _confirmController.text,
+      ),
+    );
   }
 
   @override
@@ -100,8 +100,9 @@ class _PasswordChangeViewState extends State<_PasswordChangeView> {
                         controller: _currentController,
                         label: l10n.passwordChangeCurrentLabel,
                         obscured: _currentObscured,
-                        onToggle: () =>
-                            setState(() => _currentObscured = !_currentObscured),
+                        onToggle: () => setState(
+                          () => _currentObscured = !_currentObscured,
+                        ),
                         textInputAction: TextInputAction.next,
                       ),
                       const SizedBox(height: AppSpacing.lg),
@@ -119,8 +120,9 @@ class _PasswordChangeViewState extends State<_PasswordChangeView> {
                         controller: _confirmController,
                         label: l10n.passwordChangeConfirmLabel,
                         obscured: _confirmObscured,
-                        onToggle: () =>
-                            setState(() => _confirmObscured = !_confirmObscured),
+                        onToggle: () => setState(
+                          () => _confirmObscured = !_confirmObscured,
+                        ),
                         textInputAction: TextInputAction.done,
                         onFieldSubmitted: (_) => _submit(context),
                       ),
@@ -140,7 +142,9 @@ class _PasswordChangeViewState extends State<_PasswordChangeView> {
                         builder: (context, state) {
                           final isLoading = state is PasswordChangeInProgress;
                           return FilledButton(
-                            onPressed: isLoading ? null : () => _submit(context),
+                            onPressed: isLoading
+                                ? null
+                                : () => _submit(context),
                             child: isLoading
                                 ? const SizedBox(
                                     width: 20,
@@ -166,11 +170,11 @@ class _PasswordChangeViewState extends State<_PasswordChangeView> {
   }
 
   String _errorMessage(String key, AppLocalizations l10n) => switch (key) {
-        'passwordMismatch' => l10n.setupErrorPasswordMismatch,
-        'passwordTooShort' => l10n.setupErrorPasswordTooShort,
-        'incorrectCurrentPassword' => l10n.passwordChangeErrorIncorrectCurrent,
-        _ => l10n.setupErrorUnexpected,
-      };
+    'passwordMismatch' => l10n.setupErrorPasswordMismatch,
+    'passwordTooShort' => l10n.setupErrorPasswordTooShort,
+    'incorrectCurrentPassword' => l10n.passwordChangeErrorIncorrectCurrent,
+    _ => l10n.setupErrorUnexpected,
+  };
 }
 
 class _PasswordField extends StatelessWidget {
@@ -204,7 +208,9 @@ class _PasswordField extends StatelessWidget {
         border: const OutlineInputBorder(),
         suffixIcon: IconButton(
           icon: Icon(
-            obscured ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+            obscured
+                ? Icons.visibility_outlined
+                : Icons.visibility_off_outlined,
           ),
           onPressed: onToggle,
         ),
@@ -233,9 +239,9 @@ class _ErrorBanner extends StatelessWidget {
       ),
       child: Text(
         message,
-        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: const Color(0xFF92400E),
-            ),
+        style: Theme.of(
+          context,
+        ).textTheme.bodyMedium?.copyWith(color: const Color(0xFF92400E)),
       ),
     );
   }

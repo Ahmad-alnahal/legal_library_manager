@@ -6,6 +6,7 @@ import 'package:legal_library_manager/features/security/application/create_opera
 import 'package:legal_library_manager/features/security/application/session_manager.dart';
 import 'package:legal_library_manager/features/security/application/set_initial_admin_password.dart'
     show WeakPasswordException;
+import 'package:legal_library_manager/features/security/application/step_up_manager.dart';
 import 'package:legal_library_manager/features/security/application/unauthorized_exception.dart';
 import 'package:legal_library_manager/features/security/data/repositories/drift_account_repository.dart';
 import 'package:legal_library_manager/features/security/data/repositories/drift_security_audit_repository.dart';
@@ -26,6 +27,7 @@ void main() {
   late DriftAccountRepository accountRepo;
   late DriftSecurityAuditRepository auditRepo;
   late SessionManager sessionManager;
+  late StepUpManager stepUpManager;
   late CreateOperatorAccount useCase;
 
   const minimalHasher = Argon2idPasswordHasher(memoryKib: 256, iterations: 1);
@@ -35,7 +37,8 @@ void main() {
     db = AppDatabase.inMemory();
     accountRepo = DriftAccountRepository(db);
     auditRepo = DriftSecurityAuditRepository(db);
-    sessionManager = SessionManager();
+    stepUpManager = StepUpManager();
+    sessionManager = SessionManager(stepUpManager: stepUpManager);
 
     await BootstrapAdminAccount(
       accounts: accountRepo,
@@ -49,6 +52,7 @@ void main() {
       role: AccountRole.admin,
       startedAt: clock.nowUtc(),
     ));
+    stepUpManager.grant();
 
     useCase = CreateOperatorAccount(
       accounts: accountRepo,
@@ -56,10 +60,12 @@ void main() {
       auditLog: auditRepo,
       clock: clock,
       sessionManager: sessionManager,
+      stepUpManager: stepUpManager,
     );
   });
 
   tearDown(() async {
+    stepUpManager.dispose();
     sessionManager.dispose();
     await db.close();
   });

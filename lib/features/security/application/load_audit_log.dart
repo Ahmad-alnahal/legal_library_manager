@@ -9,10 +9,7 @@ import 'unauthorized_exception.dart';
 /// Enforces that only an active administrator session may read the audit log.
 /// Operators and unauthenticated callers receive [UnauthorizedException].
 class LoadAuditLog {
-  const LoadAuditLog({
-    required this._auditLog,
-    required this._sessionManager,
-  });
+  const LoadAuditLog({required this._auditLog, required this._sessionManager});
 
   final SecurityAuditRepository _auditLog;
   final SessionManager _sessionManager;
@@ -27,7 +24,8 @@ class LoadAuditLog {
     final session = _sessionManager.currentSession;
     if (session == null || session.role != AccountRole.admin) {
       throw const UnauthorizedException(
-          'Admin role required to view the security audit log.');
+        'Admin role required to view the security audit log.',
+      );
     }
     return _auditLog.loadEvents(limit: limit, offset: offset);
   }

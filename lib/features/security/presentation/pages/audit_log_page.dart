@@ -60,9 +60,7 @@ class _AuditLogView extends StatelessWidget {
                 child: BlocBuilder<AuditLogBloc, AuditLogState>(
                   builder: (context, state) {
                     if (state is AuditLogLoading) {
-                      return const Center(
-                        child: CircularProgressIndicator(),
-                      );
+                      return const Center(child: CircularProgressIndicator());
                     }
                     if (state is AuditLogError) {
                       return Center(
@@ -78,9 +76,9 @@ class _AuditLogView extends StatelessWidget {
                             ),
                             const SizedBox(height: AppSpacing.lg),
                             OutlinedButton(
-                              onPressed: () => context
-                                  .read<AuditLogBloc>()
-                                  .add(const AuditLogLoadRequested()),
+                              onPressed: () => context.read<AuditLogBloc>().add(
+                                const AuditLogLoadRequested(),
+                              ),
                               child: Text(l10n.auditLogRetry),
                             ),
                           ],
@@ -94,21 +92,22 @@ class _AuditLogView extends StatelessWidget {
                       _ => const <SecurityAuditEvent>[],
                     };
                     final isLoadingMore = state is AuditLogLoadingMore;
-                    final hasMore =
-                        state is AuditLogLoaded && state.hasMore;
+                    final hasMore = state is AuditLogLoaded && state.hasMore;
 
                     if (events.isEmpty) {
                       return Center(
                         child: Text(
                           l10n.auditLogEmpty,
-                          style: text.bodyMedium
-                              ?.copyWith(color: AppColors.textSecondary),
+                          style: text.bodyMedium?.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
                         ),
                       );
                     }
 
                     return ListView.separated(
-                      itemCount: events.length + (hasMore || isLoadingMore ? 1 : 0),
+                      itemCount:
+                          events.length + (hasMore || isLoadingMore ? 1 : 0),
                       separatorBuilder: (_, _) => const Divider(height: 1),
                       itemBuilder: (context, index) {
                         if (index == events.length) {
@@ -132,10 +131,7 @@ class _AuditLogView extends StatelessWidget {
                             ),
                           );
                         }
-                        return _EventRow(
-                          event: events[index],
-                          l10n: l10n,
-                        );
+                        return _EventRow(event: events[index], l10n: l10n);
                       },
                     );
                   },
@@ -216,6 +212,8 @@ class _EventRow extends StatelessWidget {
       'temp_password_issued' => l10n.auditEventTempPasswordIssued,
       'account_auto_suspended' => l10n.auditEventAccountAutoSuspended,
       'recovery_key_redeemed' => l10n.auditEventRecoveryKeyRedeemed,
+      'step_up_granted' => l10n.auditEventStepUpGranted,
+      'step_up_denied' => l10n.auditEventStepUpDenied,
       _ => l10n.auditEventUnknown,
     };
   }

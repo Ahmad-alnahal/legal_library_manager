@@ -33,6 +33,7 @@ import 'package:legal_library_manager/features/managed_copy/application/managed_
 import 'package:legal_library_manager/features/managed_copy/application/reconcile_managed_copy_integrity.dart';
 import 'package:legal_library_manager/features/managed_copy/data/repositories/drift_managed_copy_repository.dart';
 import 'package:legal_library_manager/features/security/application/session_manager.dart';
+import 'package:legal_library_manager/features/security/application/step_up_manager.dart';
 import 'package:legal_library_manager/features/security/domain/entities/account_role.dart';
 import 'package:legal_library_manager/features/security/domain/entities/session.dart';
 import 'package:legal_library_manager/features/managed_copy/data/services/default_operation_id_generator.dart';
@@ -333,13 +334,16 @@ void main() {
 
         // ── Phase 7: Integrity reconciliation — all healthy ──────────────────────
 
-        final workflowSessionManager = SessionManager();
+        final workflowStepUpManager = StepUpManager();
+        final workflowSessionManager =
+            SessionManager(stepUpManager: workflowStepUpManager);
         workflowSessionManager.login(Session(
           accountId: 'admin',
           username: 'marjiy@admin',
           role: AccountRole.admin,
           startedAt: DateTime.utc(2026, 6, 24, 9),
         ));
+        workflowStepUpManager.grant();
         final reconcile = ReconcileManagedCopyIntegrity(
           repository: repo,
           filesystem: const WindowsManagedLibraryFilesystem(),
@@ -347,6 +351,7 @@ void main() {
           operationIdGenerator: const DefaultOperationIdGenerator(),
           clock: const SystemClock(),
           sessionManager: workflowSessionManager,
+          stepUpManager: workflowStepUpManager,
         );
 
         final result1 = await reconcile();
@@ -365,8 +370,18 @@ void main() {
         // ── Phase 8: Simulate managed copy gone missing ─────────────────────────
 
         // Move the managed PDF out of the files directory.
+        // On Windows the async hasher may hold the OS handle briefly after the
+        // reconcile Future resolves — retry a few times before failing.
         final hiddenPath = p.join(root.path, '_hidden_beta.pdf');
-        managedPdf.renameSync(hiddenPath);
+        for (var attempt = 0;; attempt++) {
+          try {
+            managedPdf.renameSync(hiddenPath);
+            break;
+          } on PathAccessException {
+            if (attempt >= 4) rethrow;
+            await Future<void>.delayed(const Duration(milliseconds: 100));
+          }
+        }
         expect(
           managedPdf.existsSync(),
           isFalse,
@@ -461,6 +476,9 @@ void main() {
           p.basename(finalManagedPdfs.single.path),
           matches(r'^DOC-\d{7}\.pdf$'),
         );
+
+        workflowStepUpManager.dispose();
+        workflowSessionManager.dispose();
       },
       timeout: const Timeout(Duration(minutes: 3)),
     );

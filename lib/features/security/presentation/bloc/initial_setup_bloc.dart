@@ -6,7 +6,7 @@ import 'initial_setup_state.dart';
 
 class InitialSetupBloc extends Bloc<InitialSetupEvent, InitialSetupState> {
   InitialSetupBloc({required this._setInitialAdminPassword})
-      : super(const SetupInitial()) {
+    : super(const SetupInitial()) {
     on<SetupPasswordSubmitted>(_onPasswordSubmitted);
     on<SetupKeyConfirmed>(_onKeyConfirmed);
   }

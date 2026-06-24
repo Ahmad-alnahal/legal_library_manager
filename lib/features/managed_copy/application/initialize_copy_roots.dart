@@ -109,7 +109,10 @@ class InitializeCopyRoots {
         outcome: CopyRootsSetupOutcome.requiresAttention,
       );
     }
-    if (!await _isSafeToSave(defaults.managedLibrary, defaults.databaseBackups)) {
+    if (!await _isSafeToSave(
+      defaults.managedLibrary,
+      defaults.databaseBackups,
+    )) {
       return const CopyRootsSetupReport(
         outcome: CopyRootsSetupOutcome.requiresAttention,
       );

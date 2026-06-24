@@ -7,25 +7,15 @@ import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:legal_library_manager/core/database/app_database.dart';
 import 'package:legal_library_manager/core/di/injection.dart';
-import 'package:legal_library_manager/core/time/clock.dart';
 import 'package:legal_library_manager/features/managed_copy/application/create_manual_backup.dart';
-import 'package:legal_library_manager/features/managed_copy/domain/entities/copy_roots.dart';
-import 'package:legal_library_manager/features/security/application/session_manager.dart';
 import 'package:legal_library_manager/features/managed_copy/domain/entities/copy_roots_setup_report.dart';
-import 'package:legal_library_manager/features/managed_copy/domain/entities/document_copy_state.dart';
-import 'package:legal_library_manager/features/managed_copy/domain/entities/managed_copy_persistence_data.dart';
-import 'package:legal_library_manager/features/managed_copy/domain/entities/managed_file_ref.dart';
 import 'package:legal_library_manager/features/managed_copy/domain/entities/manual_backup_result.dart';
-import 'package:legal_library_manager/features/managed_copy/domain/entities/source_file_candidate.dart';
-import 'package:legal_library_manager/features/managed_copy/domain/entities/startup_recovery_report.dart';
-import 'package:legal_library_manager/features/managed_copy/domain/repositories/managed_copy_repository.dart';
-import 'package:legal_library_manager/features/managed_copy/domain/services/database_backup_service.dart';
-import 'package:legal_library_manager/features/managed_copy/domain/services/managed_library_filesystem.dart';
-import 'package:legal_library_manager/features/managed_copy/domain/services/operation_id_generator.dart';
 import 'package:legal_library_manager/features/managed_copy/presentation/bloc/manual_backup_bloc.dart';
 import 'package:legal_library_manager/features/managed_copy/application/initialize_copy_roots.dart';
 import 'package:legal_library_manager/features/settings/presentation/pages/settings_page.dart';
 import 'package:legal_library_manager/l10n/app_localizations.dart';
+
+import 'package:legal_library_manager/features/security/application/step_up_manager.dart';
 
 import '../../../support/security_test_doubles.dart';
 
@@ -40,162 +30,9 @@ const String _backupNotConfiguredSnack = 'لم يتم تهيئة مجلد الن
 const String _backupRootMissingSnack = 'مجلد النسخ الاحتياطي غير متاح';
 const String _backupFailedSnack = 'تعذّر إنشاء النسخة الاحتياطية';
 
-// Minimal fake repository — only loadCopyRoots and appendFileEvent matter.
-class _FakeRepo implements ManagedCopyRepository {
-  @override
-  Future<CopyRoots> loadCopyRoots() async =>
-      const CopyRoots(managedLibraryRoot: _defManaged, backupRoot: _defBackup);
-  @override
-  Future<void> appendFileEvent({
-    required int? documentId,
-    required int? fileId,
-    required String eventTypeKey,
-    required String operationId,
-    required String resultKey,
-    String? sourcePath,
-    String? destinationPath,
-    String? expectedSha256,
-    String? actualSha256,
-    String? errorCode,
-    String? messageSafe,
-  }) async {}
-  @override
-  Future<DocumentCopyState?> loadDocumentState(int documentId) async => null;
-  @override
-  Future<void> saveCopyRoots({
-    required String managedLibraryRoot,
-    required String backupRoot,
-  }) async {}
-  @override
-  Future<String> loadDatabaseRoot() async => r'C:\AppData';
-  @override
-  Future<List<String>> loadDocumentSourcePaths(int documentId) async => [];
-  @override
-  Future<List<String>> loadAllSourcePaths() async => [];
-  @override
-  Future<List<String>> loadManagedDocumentCodes() async => [];
-  @override
-  Future<void> saveStartupRecoveryReport(StartupRecoveryReport report) async {}
-  @override
-  Future<StartupRecoveryReport> loadStartupRecoveryReport() async =>
-      StartupRecoveryReport.healthy;
-  @override
-  Future<List<SourceFileCandidate>> loadEligibleSources(int documentId) async =>
-      [];
-  @override
-  Future<String> allocateDocumentCode(int documentId) async => 'DOC-0000001';
-  @override
-  Future<int> persistManagedCopySuccess(
-    ManagedCopyPersistenceData data,
-  ) async => 0;
-  @override
-  Future<List<ManagedFileRef>> loadManagedCopyFiles(int documentId) async => [];
-  @override
-  Future<void> markManagedFileMissing({
-    required int fileId,
-    required int documentId,
-    required String operationId,
-    required DateTime now,
-  }) async {}
-  @override
-  Future<void> restoreManagedFileHealthy({
-    required int fileId,
-    required int documentId,
-    required String operationId,
-    required DateTime now,
-  }) async {}
-  @override
-  Future<void> downgradeDocumentToClassified({
-    required int documentId,
-    required DateTime now,
-  }) async {}
-  @override
-  Future<List<ManagedFileRef>> loadAllManagedCopyFiles() async => const [];
-  @override
-  Future<void> markManagedFileCorrupted({
-    required int fileId,
-    required int documentId,
-    required String operationId,
-    required DateTime now,
-  }) async {}
-}
-
-class _FakeBackupService implements DatabaseBackupService {
-  final BackupResult result;
-  _FakeBackupService(this.result);
-  @override
-  Future<BackupResult> createBackup({
-    required String backupRoot,
-    required String operationId,
-    required DateTime timestamp,
-  }) async => result;
-}
-
-class _FakeFilesystem implements ManagedLibraryFilesystem {
-  @override
-  bool isExistingDirectory(String path) => true;
-  @override
-  bool isExistingFile(String path) => false;
-  @override
-  Future<FilesystemOperationResult> ensureDirectoryExists(String path) async =>
-      const FilesystemSuccess();
-  @override
-  Future<FilesystemOperationResult> copyFile(String src, String dst) async =>
-      const FilesystemSuccess();
-  @override
-  Future<FilesystemOperationResult> finalizeFile(
-    String tmp,
-    String fin,
-  ) async => const FilesystemSuccess();
-  @override
-  Future<int?> fileSize(String path) async => null;
-  @override
-  Future<List<String>?> findRecoveryArtifacts(String dir, String code) async =>
-      [];
-  @override
-  Future<List<String>?> findStartupRecoveryArtifacts(
-    String managedFilesDir,
-    List<String> documentCodes,
-  ) async => [];
-  @override
-  Future<List<String>?> findStartupBackupArtifacts(String backupRoot) async =>
-      [];
-  @override
-  Future<FilesystemOperationResult> deleteFile(String path) async =>
-      const FilesystemSuccess();
-
-  @override
-  Future<FilesystemOperationResult> deleteRecoveryArtifact(
-    String path,
-    String allowedRoot,
-  ) async => throw UnimplementedError();
-}
-
-class _FakeOpGen implements OperationIdGenerator {
-  @override
-  String generate(DateTime timestamp) => 'op-test';
-}
-
-class _FixedClock extends Clock {
-  @override
-  DateTime nowUtc() => DateTime.utc(2026, 6, 21);
-}
-
-/// [CreateManualBackup] subclass that overrides [call] to return a scripted result.
-/// The [sessionManager] passed to [super] is never consulted because [call] is
-/// overridden; a blank manager avoids spurious pending-timer failures in widget tests.
-class _FakeCreateManualBackup extends CreateManualBackup {
-  _FakeCreateManualBackup(this._result)
-    : super(
-        repository: _FakeRepo(),
-        backupService: _FakeBackupService(
-          const BackupSuccess(backupPath: r'C:\Backups\x.sqlite'),
-        ),
-        filesystem: _FakeFilesystem(),
-        operationIdGenerator: _FakeOpGen(),
-        clock: _FixedClock(),
-        sessionManager: SessionManager(),
-      );
+/// Fake that returns a scripted result without touching any real infrastructure.
+class _FakeCreateManualBackup implements CreateManualBackup {
+  _FakeCreateManualBackup(this._result);
 
   final ManualBackupResult _result;
 
@@ -212,38 +49,26 @@ class _FakeInitializeCopyRoots implements InitializeCopyRoots {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
-/// Pumps the SettingsPage with controllable backup root and backup use case.
+/// Registers per-test fakes and pumps the SettingsPage.
+///
+/// DI base setup (configureDependencies, useStubSessionManager, step-up grant)
+/// is done in [setUp] so it runs outside the testWidgets FakeAsync zone.
+/// Timers created there are real timers and do not trigger pending-timer errors.
 Future<void> _pumpSettings(
   WidgetTester tester, {
   required CopyRootsSetupReport report,
   required ManualBackupResult backupResult,
   Size size = const Size(1280, 800),
 }) async {
-  await getIt.reset();
-  getIt.registerSingleton<AppDatabase>(
-    AppDatabase.inMemory(),
-    dispose: (db) => db.close(),
-  );
-  configureDependencies();
-  // Settings page hides admin-only controls from operators. Swap in the
-  // FakeSessionManager so the admin session is visible without a pending timer.
-  useStubSessionManager();
-
-  // Override copy-roots initialization to use the scripted report.
   if (getIt.isRegistered<InitializeCopyRoots>()) {
     getIt.unregister<InitializeCopyRoots>();
   }
-  getIt.registerSingleton<InitializeCopyRoots>(
-    _FakeInitializeCopyRoots(report),
-  );
+  getIt.registerSingleton<InitializeCopyRoots>(_FakeInitializeCopyRoots(report));
 
-  // Override manual backup to return the scripted result.
   if (getIt.isRegistered<CreateManualBackup>()) {
     getIt.unregister<CreateManualBackup>();
   }
-  getIt.registerSingleton<CreateManualBackup>(
-    _FakeCreateManualBackup(backupResult),
-  );
+  getIt.registerSingleton<CreateManualBackup>(_FakeCreateManualBackup(backupResult));
 
   tester.view.devicePixelRatio = 1;
   tester.view.physicalSize = size;
@@ -276,9 +101,24 @@ final _anyBackupResult = const ManualBackupSuccess(
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 void main() {
-  tearDown(() async {
-    if (getIt.isRegistered<AppDatabase>()) await getIt.reset();
+  setUp(() async {
+    await getIt.reset();
+    getIt.registerSingleton<AppDatabase>(
+      AppDatabase.inMemory(),
+      dispose: (db) => db.close(),
+    );
+    configureDependencies();
+    // Settings page hides admin-only controls from operators. Swap in the
+    // FakeSessionManager so the admin session is visible without a pending timer.
+    useStubSessionManager();
+    // Pre-grant step-up so tests that tap admin-only buttons reach the
+    // confirmation dialog without interacting with the step-up dialog.
+    // Called in setUp (outside testWidgets FakeAsync) so the 5-min timer is
+    // a real timer and does not cause pending-fake-timer test failures.
+    getIt<StepUpManager>().grant();
   });
+
+  tearDown(() => getIt.reset());
 
   group('Manual backup panel visibility', () {
     testWidgets('backup button is visible when backup root is configured', (
@@ -559,18 +399,8 @@ void main() {
   });
 }
 
-class _CountingCreateManualBackup extends CreateManualBackup {
-  _CountingCreateManualBackup({required this.onCall})
-    : super(
-        repository: _FakeRepo(),
-        backupService: _FakeBackupService(
-          const BackupSuccess(backupPath: r'C:\x.sqlite'),
-        ),
-        filesystem: _FakeFilesystem(),
-        operationIdGenerator: _FakeOpGen(),
-        clock: _FixedClock(),
-        sessionManager: SessionManager(),
-      );
+class _CountingCreateManualBackup implements CreateManualBackup {
+  _CountingCreateManualBackup({required this.onCall});
 
   final ManualBackupResult Function() onCall;
 

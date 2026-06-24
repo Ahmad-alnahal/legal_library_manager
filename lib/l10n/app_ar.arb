@@ -440,5 +440,16 @@
   "auditEventTempPasswordIssued": "إصدار كلمة مرور مؤقتة",
   "auditEventAccountAutoSuspended": "تعليق تلقائي بسبب محاولات متكررة",
   "auditEventRecoveryKeyRedeemed": "استخدام مفتاح الاسترداد",
-  "auditEventUnknown": "حدث غير معروف"
+  "auditEventUnknown": "حدث غير معروف",
+  "auditEventStepUpGranted": "تحقق من هوية المدير",
+  "auditEventStepUpDenied": "محاولة تحقق فاشلة",
+
+  "stepUpDialogTitle": "التحقق من هوية المدير",
+  "stepUpDialogSubtitle": "أدخل كلمة مرور المدير للمتابعة.",
+  "stepUpPasswordLabel": "كلمة المرور",
+  "stepUpVerifyButton": "تحقق",
+  "stepUpCancelButton": "إلغاء",
+  "stepUpErrorWrongPassword": "كلمة المرور غير صحيحة. حاول مرة أخرى.",
+  "stepUpErrorUnexpected": "حدث خطأ غير متوقع. حاول مرة أخرى.",
+  "settingsSnackStepUpRequired": "يجب التحقق من هوية المدير أولاً قبل تنفيذ هذه العملية."
 }

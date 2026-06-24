@@ -4,6 +4,7 @@ import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../security/application/step_up_required_exception.dart';
 import '../../../security/application/unauthorized_exception.dart';
 import '../../domain/entities/reconcile_integrity_result.dart';
 
@@ -88,6 +89,14 @@ class CopyIntegrityBloc extends Bloc<CopyIntegrityEvent, CopyIntegrityState> {
         CopyIntegrityState(
           busy: false,
           messageKey: 'unauthorized',
+          sequence: state.sequence + 1,
+        ),
+      );
+    } on StepUpRequiredException {
+      emit(
+        CopyIntegrityState(
+          busy: false,
+          messageKey: 'stepUpRequired',
           sequence: state.sequence + 1,
         ),
       );

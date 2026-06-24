@@ -14,17 +14,17 @@ class DriftAccountRepository implements AccountRepository {
 
   @override
   Future<Account?> findByUsername(String username) async {
-    final row = await (_db.select(_db.accounts)
-          ..where((t) => t.username.equals(username)))
-        .getSingleOrNull();
+    final row = await (_db.select(
+      _db.accounts,
+    )..where((t) => t.username.equals(username))).getSingleOrNull();
     return row == null ? null : _toAccount(row);
   }
 
   @override
   Future<Account?> findById(String internalId) async {
-    final row = await (_db.select(_db.accounts)
-          ..where((t) => t.internalId.equals(internalId)))
-        .getSingleOrNull();
+    final row = await (_db.select(
+      _db.accounts,
+    )..where((t) => t.internalId.equals(internalId))).getSingleOrNull();
     return row == null ? null : _toAccount(row);
   }
 
@@ -42,35 +42,46 @@ class DriftAccountRepository implements AccountRepository {
 
   @override
   Future<FailedLoginState?> getSecurityState(String accountId) async {
-    final row = await (_db.select(_db.accountSecurityStates)
-          ..where((t) => t.accountId.equals(accountId)))
-        .getSingleOrNull();
+    final row = await (_db.select(
+      _db.accountSecurityStates,
+    )..where((t) => t.accountId.equals(accountId))).getSingleOrNull();
     return row == null ? null : _toState(row);
   }
 
   @override
   Future<void> upsertSecurityState(
-      String accountId, FailedLoginState state) async {
-    await _db.into(_db.accountSecurityStates).insertOnConflictUpdate(
+    String accountId,
+    FailedLoginState state,
+  ) async {
+    await _db
+        .into(_db.accountSecurityStates)
+        .insertOnConflictUpdate(
           AccountSecurityStatesCompanion(
             accountId: Value(accountId),
             consecutiveFailures: Value(state.consecutiveFailures),
-            unlockNotBefore:
-                Value(state.unlockNotBefore?.toUtc().toIso8601String()),
+            unlockNotBefore: Value(
+              state.unlockNotBefore?.toUtc().toIso8601String(),
+            ),
             lastFailedAt: Value(state.lastFailedAt?.toUtc().toIso8601String()),
-            lastSucceededAt:
-                Value(state.lastSucceededAt?.toUtc().toIso8601String()),
+            lastSucceededAt: Value(
+              state.lastSucceededAt?.toUtc().toIso8601String(),
+            ),
             recoveryAttemptCount: Value(state.recoveryAttemptCount),
-            recoveryWindowStart:
-                Value(state.recoveryWindowStart?.toUtc().toIso8601String()),
+            recoveryWindowStart: Value(
+              state.recoveryWindowStart?.toUtc().toIso8601String(),
+            ),
           ),
         );
   }
 
   @override
   Future<void> resetSecurityState(
-      String accountId, DateTime succeededAt) async {
-    await _db.into(_db.accountSecurityStates).insertOnConflictUpdate(
+    String accountId,
+    DateTime succeededAt,
+  ) async {
+    await _db
+        .into(_db.accountSecurityStates)
+        .insertOnConflictUpdate(
           AccountSecurityStatesCompanion(
             accountId: Value(accountId),
             consecutiveFailures: const Value(0),
@@ -84,31 +95,30 @@ class DriftAccountRepository implements AccountRepository {
   }
 
   Account _toAccount(AccountRow row) => Account(
-        internalId: row.internalId,
-        username: row.username,
-        displayName: row.displayName,
-        role: AccountRole.values.firstWhere((r) => r.name == row.roleKey),
-        status:
-            AccountStatus.values.firstWhere((s) => s.name == row.statusKey),
-        mustChangePassword: row.mustChangePassword,
-        passwordHash: row.passwordHash,
-        createdAt: DateTime.parse(row.createdAt).toUtc(),
-        updatedAt: DateTime.parse(row.updatedAt).toUtc(),
-        createdById: row.createdById,
-      );
+    internalId: row.internalId,
+    username: row.username,
+    displayName: row.displayName,
+    role: AccountRole.values.firstWhere((r) => r.name == row.roleKey),
+    status: AccountStatus.values.firstWhere((s) => s.name == row.statusKey),
+    mustChangePassword: row.mustChangePassword,
+    passwordHash: row.passwordHash,
+    createdAt: DateTime.parse(row.createdAt).toUtc(),
+    updatedAt: DateTime.parse(row.updatedAt).toUtc(),
+    createdById: row.createdById,
+  );
 
   AccountsCompanion _toCompanion(Account account) => AccountsCompanion(
-        internalId: Value(account.internalId),
-        username: Value(account.username),
-        displayName: Value(account.displayName),
-        roleKey: Value(account.role.name),
-        statusKey: Value(account.status.name),
-        mustChangePassword: Value(account.mustChangePassword),
-        passwordHash: Value(account.passwordHash),
-        createdAt: Value(account.createdAt.toUtc().toIso8601String()),
-        updatedAt: Value(account.updatedAt.toUtc().toIso8601String()),
-        createdById: Value(account.createdById),
-      );
+    internalId: Value(account.internalId),
+    username: Value(account.username),
+    displayName: Value(account.displayName),
+    roleKey: Value(account.role.name),
+    statusKey: Value(account.status.name),
+    mustChangePassword: Value(account.mustChangePassword),
+    passwordHash: Value(account.passwordHash),
+    createdAt: Value(account.createdAt.toUtc().toIso8601String()),
+    updatedAt: Value(account.updatedAt.toUtc().toIso8601String()),
+    createdById: Value(account.createdById),
+  );
 
   @override
   Future<void> upsertRecoveryCredentials(
@@ -116,7 +126,9 @@ class DriftAccountRepository implements AccountRepository {
     String keyHash,
     DateTime createdAt,
   ) async {
-    await _db.into(_db.recoveryCredentials).insertOnConflictUpdate(
+    await _db
+        .into(_db.recoveryCredentials)
+        .insertOnConflictUpdate(
           RecoveryCredentialsCompanion(
             accountId: Value(accountId),
             keyHash: Value(keyHash),
@@ -129,43 +141,44 @@ class DriftAccountRepository implements AccountRepository {
 
   @override
   Future<List<Account>> listOperators() async {
-    final rows = await (_db.select(_db.accounts)
-          ..where((t) => t.roleKey.equals(AccountRole.operator.name))
-          ..orderBy([(t) => OrderingTerm.asc(t.createdAt)]))
-        .get();
+    final rows =
+        await (_db.select(_db.accounts)
+              ..where((t) => t.roleKey.equals(AccountRole.operator.name))
+              ..orderBy([(t) => OrderingTerm.asc(t.createdAt)]))
+            .get();
     return rows.map(_toAccount).toList();
   }
 
   @override
   Future<bool> hasRecoveryCredentials(String accountId) async {
-    final row = await (_db.select(_db.recoveryCredentials)
-          ..where((t) => t.accountId.equals(accountId)))
-        .getSingleOrNull();
+    final row = await (_db.select(
+      _db.recoveryCredentials,
+    )..where((t) => t.accountId.equals(accountId))).getSingleOrNull();
     return row != null;
   }
 
   @override
   Future<String?> getRecoveryKeyHash(String accountId) async {
-    final row = await (_db.select(_db.recoveryCredentials)
-          ..where((t) => t.accountId.equals(accountId)))
-        .getSingleOrNull();
+    final row = await (_db.select(
+      _db.recoveryCredentials,
+    )..where((t) => t.accountId.equals(accountId))).getSingleOrNull();
     return row?.keyHash;
   }
 
   FailedLoginState _toState(AccountSecurityState row) => FailedLoginState(
-        consecutiveFailures: row.consecutiveFailures,
-        unlockNotBefore: row.unlockNotBefore == null
-            ? null
-            : DateTime.parse(row.unlockNotBefore!).toUtc(),
-        lastFailedAt: row.lastFailedAt == null
-            ? null
-            : DateTime.parse(row.lastFailedAt!).toUtc(),
-        lastSucceededAt: row.lastSucceededAt == null
-            ? null
-            : DateTime.parse(row.lastSucceededAt!).toUtc(),
-        recoveryAttemptCount: row.recoveryAttemptCount,
-        recoveryWindowStart: row.recoveryWindowStart == null
-            ? null
-            : DateTime.parse(row.recoveryWindowStart!).toUtc(),
-      );
+    consecutiveFailures: row.consecutiveFailures,
+    unlockNotBefore: row.unlockNotBefore == null
+        ? null
+        : DateTime.parse(row.unlockNotBefore!).toUtc(),
+    lastFailedAt: row.lastFailedAt == null
+        ? null
+        : DateTime.parse(row.lastFailedAt!).toUtc(),
+    lastSucceededAt: row.lastSucceededAt == null
+        ? null
+        : DateTime.parse(row.lastSucceededAt!).toUtc(),
+    recoveryAttemptCount: row.recoveryAttemptCount,
+    recoveryWindowStart: row.recoveryWindowStart == null
+        ? null
+        : DateTime.parse(row.recoveryWindowStart!).toUtc(),
+  );
 }

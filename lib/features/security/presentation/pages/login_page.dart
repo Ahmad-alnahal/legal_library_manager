@@ -50,11 +50,11 @@ class _LoginViewState extends State<_LoginView> {
 
   void _submit(BuildContext context) {
     context.read<LoginBloc>().add(
-          LoginSubmitted(
-            username: _usernameController.text,
-            password: _passwordController.text,
-          ),
-        );
+      LoginSubmitted(
+        username: _usernameController.text,
+        password: _passwordController.text,
+      ),
+    );
   }
 
   @override
@@ -230,9 +230,9 @@ class _ErrorBanner extends StatelessWidget {
       ),
       child: Text(
         message,
-        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: const Color(0xFF92400E),
-            ),
+        style: Theme.of(
+          context,
+        ).textTheme.bodyMedium?.copyWith(color: const Color(0xFF92400E)),
       ),
     );
   }

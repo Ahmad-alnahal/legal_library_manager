@@ -14,6 +14,8 @@ import 'package:legal_library_manager/features/managed_copy/domain/services/copy
 import 'package:legal_library_manager/features/settings/presentation/pages/settings_page.dart';
 import 'package:legal_library_manager/l10n/app_localizations.dart';
 
+import 'package:legal_library_manager/features/security/application/step_up_manager.dart';
+
 import '../../../support/security_test_doubles.dart';
 
 const String _automaticChip = 'مُهيأ تلقائيًا';
@@ -89,6 +91,9 @@ void main() {
     // Settings page hides admin-only controls from operators. Swap in the
     // FakeSessionManager so the admin session is visible without a pending timer.
     useStubSessionManager();
+    // Pre-grant step-up so widget tests that tap admin-only buttons reach the
+    // expected dialog/picker without being intercepted by the step-up dialog.
+    getIt<StepUpManager>().grant();
   });
 
   tearDown(() => getIt.reset());

@@ -2121,6 +2121,66 @@ abstract class AppLocalizations {
   /// In ar, this message translates to:
   /// **'حدث غير معروف'**
   String get auditEventUnknown;
+
+  /// No description provided for @auditEventStepUpGranted.
+  ///
+  /// In ar, this message translates to:
+  /// **'تحقق من هوية المدير'**
+  String get auditEventStepUpGranted;
+
+  /// No description provided for @auditEventStepUpDenied.
+  ///
+  /// In ar, this message translates to:
+  /// **'محاولة تحقق فاشلة'**
+  String get auditEventStepUpDenied;
+
+  /// No description provided for @stepUpDialogTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'التحقق من هوية المدير'**
+  String get stepUpDialogTitle;
+
+  /// No description provided for @stepUpDialogSubtitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'أدخل كلمة مرور المدير للمتابعة.'**
+  String get stepUpDialogSubtitle;
+
+  /// No description provided for @stepUpPasswordLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'كلمة المرور'**
+  String get stepUpPasswordLabel;
+
+  /// No description provided for @stepUpVerifyButton.
+  ///
+  /// In ar, this message translates to:
+  /// **'تحقق'**
+  String get stepUpVerifyButton;
+
+  /// No description provided for @stepUpCancelButton.
+  ///
+  /// In ar, this message translates to:
+  /// **'إلغاء'**
+  String get stepUpCancelButton;
+
+  /// No description provided for @stepUpErrorWrongPassword.
+  ///
+  /// In ar, this message translates to:
+  /// **'كلمة المرور غير صحيحة. حاول مرة أخرى.'**
+  String get stepUpErrorWrongPassword;
+
+  /// No description provided for @stepUpErrorUnexpected.
+  ///
+  /// In ar, this message translates to:
+  /// **'حدث خطأ غير متوقع. حاول مرة أخرى.'**
+  String get stepUpErrorUnexpected;
+
+  /// No description provided for @settingsSnackStepUpRequired.
+  ///
+  /// In ar, this message translates to:
+  /// **'يجب التحقق من هوية المدير أولاً قبل تنفيذ هذه العملية.'**
+  String get settingsSnackStepUpRequired;
 }
 
 class _AppLocalizationsDelegate

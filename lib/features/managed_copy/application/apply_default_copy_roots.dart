@@ -1,6 +1,7 @@
 // lib/features/managed_copy/application/apply_default_copy_roots.dart
 
 import '../../security/application/session_manager.dart';
+import '../../security/application/step_up_manager.dart';
 import '../../security/domain/entities/account_role.dart';
 import '../domain/services/documents_directory_resolver.dart';
 import '../domain/services/managed_library_filesystem.dart';
@@ -27,6 +28,9 @@ enum ApplyDefaultCopyRootsResult {
 
   /// Caller does not hold an active administrator session.
   unauthorized,
+
+  /// Caller is admin but has no active step-up authentication approval.
+  stepUpRequired,
 }
 
 /// Forces both configured roots to the canonical MARJIY default locations
@@ -48,12 +52,14 @@ class ApplyDefaultCopyRoots {
     required this._filesystem,
     required this._configureCopyRoots,
     required this._sessionManager,
+    required this._stepUpManager,
   });
 
   final DocumentsDirectoryResolver _documentsResolver;
   final ManagedLibraryFilesystem _filesystem;
   final ConfigureCopyRoots _configureCopyRoots;
   final SessionManager _sessionManager;
+  final StepUpManager _stepUpManager;
 
   static const String _marjiyFolder = 'MARJIY';
   static const String _managedLibraryFolder = 'ManagedLibrary';
@@ -63,6 +69,9 @@ class ApplyDefaultCopyRoots {
     final session = _sessionManager.currentSession;
     if (session == null || session.role != AccountRole.admin) {
       return ApplyDefaultCopyRootsResult.unauthorized;
+    }
+    if (!_stepUpManager.isApproved) {
+      return ApplyDefaultCopyRootsResult.stepUpRequired;
     }
 
     final String? documentsPath = await _documentsResolver
@@ -105,6 +114,8 @@ class ApplyDefaultCopyRoots {
         ApplyDefaultCopyRootsResult.unsafeOverlap,
       ConfigureCopyRootsResult.unauthorized =>
         ApplyDefaultCopyRootsResult.unauthorized,
+      ConfigureCopyRootsResult.stepUpRequired =>
+        ApplyDefaultCopyRootsResult.stepUpRequired,
       _ => ApplyDefaultCopyRootsResult.configurationFailed,
     };
   }

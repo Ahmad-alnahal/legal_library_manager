@@ -4,6 +4,7 @@ import 'package:legal_library_manager/features/managed_copy/domain/repositories/
 import 'package:legal_library_manager/features/managed_copy/domain/services/managed_library_filesystem.dart';
 import 'package:legal_library_manager/features/managed_copy/domain/services/path_canonicalizer.dart';
 import 'package:legal_library_manager/features/security/application/session_manager.dart';
+import 'package:legal_library_manager/features/security/application/step_up_manager.dart';
 import 'package:legal_library_manager/features/security/domain/entities/account_role.dart';
 import 'package:legal_library_manager/features/security/domain/entities/session.dart';
 
@@ -60,40 +61,51 @@ void main() {
   late _Repo repo;
   late _Filesystem filesystem;
   late SessionManager sessionManager;
+  late StepUpManager stepUpManager;
   late ConfigureCopyRoots configure;
 
   setUp(() {
     repo = _Repo();
     filesystem = _Filesystem();
-    sessionManager = SessionManager();
+    stepUpManager = StepUpManager();
+    sessionManager = SessionManager(stepUpManager: stepUpManager);
     sessionManager.login(_adminSession);
+    stepUpManager.grant();
     configure = ConfigureCopyRoots(
       repo,
       filesystem,
       _Canonicalizer(),
       sessionManager: sessionManager,
+      stepUpManager: stepUpManager,
     );
   });
 
-  tearDown(() => sessionManager.dispose());
+  tearDown(() {
+    stepUpManager.dispose();
+    sessionManager.dispose();
+  });
 
   test('returns unauthorized when no session is active', () async {
-    final noSessionManager = SessionManager();
+    final noStepUp = StepUpManager();
+    final noSessionManager = SessionManager(stepUpManager: noStepUp);
     final unauthConfigure = ConfigureCopyRoots(
       repo,
       filesystem,
       _Canonicalizer(),
       sessionManager: noSessionManager,
+      stepUpManager: noStepUp,
     );
     expect(
       await unauthConfigure(r'C:\Managed', r'D:\Backups'),
       ConfigureCopyRootsResult.unauthorized,
     );
+    noStepUp.dispose();
     noSessionManager.dispose();
   });
 
   test('returns unauthorized when an operator session is active', () async {
-    final operatorManager = SessionManager();
+    final opStepUp = StepUpManager();
+    final operatorManager = SessionManager(stepUpManager: opStepUp);
     operatorManager.login(Session(
       accountId: 'op1',
       username: 'op@operator',
@@ -105,12 +117,22 @@ void main() {
       filesystem,
       _Canonicalizer(),
       sessionManager: operatorManager,
+      stepUpManager: opStepUp,
     );
     expect(
       await unauthConfigure(r'C:\Managed', r'D:\Backups'),
       ConfigureCopyRootsResult.unauthorized,
     );
+    opStepUp.dispose();
     operatorManager.dispose();
+  });
+
+  test('returns stepUpRequired when admin has no step-up approval', () async {
+    stepUpManager.revoke();
+    expect(
+      await configure(r'C:\Managed', r'D:\Backups'),
+      ConfigureCopyRootsResult.stepUpRequired,
+    );
   });
 
   test('saves separate existing safe roots', () async {

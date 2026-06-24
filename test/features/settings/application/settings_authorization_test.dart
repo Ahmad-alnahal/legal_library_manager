@@ -26,6 +26,7 @@ import 'package:legal_library_manager/features/import/domain/entities/sha256_res
 import 'package:legal_library_manager/features/import/domain/services/file_hasher.dart';
 import 'package:legal_library_manager/core/time/clock.dart';
 import 'package:legal_library_manager/features/security/application/session_manager.dart';
+import 'package:legal_library_manager/features/security/application/step_up_manager.dart';
 import 'package:legal_library_manager/features/security/application/unauthorized_exception.dart';
 import 'package:legal_library_manager/features/security/domain/entities/account_role.dart';
 import 'package:legal_library_manager/features/security/domain/entities/session.dart';
@@ -195,20 +196,28 @@ class _NullHasher implements FileHasher {
       );
 }
 
-// ── Operator session fixture ───────────────────────────────────────────────────
+// ── Session fixtures ──────────────────────────────────────────────────────────
 
-SessionManager _operatorManager() {
-  final mgr = SessionManager();
+/// Returns a [SessionManager] with an operator session and a fresh [StepUpManager].
+/// No step-up is granted (operators cannot be granted step-up).
+({SessionManager manager, StepUpManager stepUp}) _operatorSession() {
+  final stepUp = StepUpManager();
+  final mgr = SessionManager(stepUpManager: stepUp);
   mgr.login(Session(
     accountId: 'op1',
     username: 'op@operator',
     role: AccountRole.operator,
     startedAt: DateTime.utc(2026, 6, 24, 9),
   ));
-  return mgr;
+  return (manager: mgr, stepUp: stepUp);
 }
 
-SessionManager _noSessionManager() => SessionManager();
+/// Returns a [SessionManager] with no active session and a fresh [StepUpManager].
+({SessionManager manager, StepUpManager stepUp}) _noSession() {
+  final stepUp = StepUpManager();
+  final mgr = SessionManager(stepUpManager: stepUp);
+  return (manager: mgr, stepUp: stepUp);
+}
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
@@ -217,96 +226,111 @@ void main() {
     // ── ConfigureCopyRoots ─────────────────────────────────────────────────
 
     group('ConfigureCopyRoots', () {
-      ConfigureCopyRoots make(SessionManager mgr) => ConfigureCopyRoots(
+      ConfigureCopyRoots make(SessionManager mgr, StepUpManager stepUp) =>
+          ConfigureCopyRoots(
             _NullRepo(),
             _NullFilesystem(),
             _NullCanonicalizer(),
             sessionManager: mgr,
+            stepUpManager: stepUp,
           );
 
       test('operator session → unauthorized', () async {
-        final mgr = _operatorManager();
+        final (:manager, :stepUp) = _operatorSession();
         expect(
-          await make(mgr)(r'C:\Managed', r'D:\Backups'),
+          await make(manager, stepUp)(r'C:\Managed', r'D:\Backups'),
           ConfigureCopyRootsResult.unauthorized,
         );
-        mgr.dispose();
+        stepUp.dispose();
+        manager.dispose();
       });
 
       test('no session → unauthorized', () async {
-        final mgr = _noSessionManager();
+        final (:manager, :stepUp) = _noSession();
         expect(
-          await make(mgr)(r'C:\Managed', r'D:\Backups'),
+          await make(manager, stepUp)(r'C:\Managed', r'D:\Backups'),
           ConfigureCopyRootsResult.unauthorized,
         );
-        mgr.dispose();
+        stepUp.dispose();
+        manager.dispose();
       });
     });
 
     // ── ApplyDefaultCopyRoots ──────────────────────────────────────────────
 
     group('ApplyDefaultCopyRoots', () {
-      ApplyDefaultCopyRoots make(SessionManager mgr) {
+      ApplyDefaultCopyRoots make(SessionManager mgr, StepUpManager stepUp) {
         final configureCopyRoots = ConfigureCopyRoots(
           _NullRepo(),
           _NullFilesystem(),
           _NullCanonicalizer(),
           sessionManager: mgr,
+          stepUpManager: stepUp,
         );
         return ApplyDefaultCopyRoots(
           documentsResolver: _NullDocumentsResolver(),
           filesystem: _NullFilesystem(),
           configureCopyRoots: configureCopyRoots,
           sessionManager: mgr,
+          stepUpManager: stepUp,
         );
       }
 
       test('operator session → unauthorized', () async {
-        final mgr = _operatorManager();
-        expect(await make(mgr)(), ApplyDefaultCopyRootsResult.unauthorized);
-        mgr.dispose();
+        final (:manager, :stepUp) = _operatorSession();
+        expect(await make(manager, stepUp)(), ApplyDefaultCopyRootsResult.unauthorized);
+        stepUp.dispose();
+        manager.dispose();
       });
 
       test('no session → unauthorized', () async {
-        final mgr = _noSessionManager();
-        expect(await make(mgr)(), ApplyDefaultCopyRootsResult.unauthorized);
-        mgr.dispose();
+        final (:manager, :stepUp) = _noSession();
+        expect(await make(manager, stepUp)(), ApplyDefaultCopyRootsResult.unauthorized);
+        stepUp.dispose();
+        manager.dispose();
       });
     });
 
     // ── CreateManualBackup ─────────────────────────────────────────────────
 
     group('CreateManualBackup', () {
-      CreateManualBackup make(SessionManager mgr) => CreateManualBackup(
+      CreateManualBackup make(SessionManager mgr, StepUpManager stepUp) =>
+          CreateManualBackup(
             repository: _NullRepo(),
             backupService: _NullBackupService(),
             filesystem: _NullFilesystem(),
             operationIdGenerator: _NullOpGen(),
             clock: _NullClock(),
             sessionManager: mgr,
+            stepUpManager: stepUp,
           );
 
       test('operator session → ManualBackupFailure(unauthorized)', () async {
-        final mgr = _operatorManager();
-        final result = await make(mgr)();
+        final (:manager, :stepUp) = _operatorSession();
+        final result = await make(manager, stepUp)();
         expect(result, isA<ManualBackupFailure>());
         expect((result as ManualBackupFailure).messageKey, 'unauthorized');
-        mgr.dispose();
+        stepUp.dispose();
+        manager.dispose();
       });
 
       test('no session → ManualBackupFailure(unauthorized)', () async {
-        final mgr = _noSessionManager();
-        final result = await make(mgr)();
+        final (:manager, :stepUp) = _noSession();
+        final result = await make(manager, stepUp)();
         expect(result, isA<ManualBackupFailure>());
         expect((result as ManualBackupFailure).messageKey, 'unauthorized');
-        mgr.dispose();
+        stepUp.dispose();
+        manager.dispose();
       });
     });
 
     // ── ReconcileManagedCopyIntegrity ──────────────────────────────────────
 
     group('ReconcileManagedCopyIntegrity', () {
-      ReconcileManagedCopyIntegrity make(SessionManager mgr) =>
+      ReconcileManagedCopyIntegrity make(
+        SessionManager mgr,
+        StepUpManager stepUp,
+      ) =>
           ReconcileManagedCopyIntegrity(
             repository: _NullRepo(),
             filesystem: _NullFilesystem(),
@@ -314,18 +338,27 @@ void main() {
             operationIdGenerator: _NullOpGen(),
             clock: _NullClock(),
             sessionManager: mgr,
+            stepUpManager: stepUp,
           );
 
       test('operator session → throws UnauthorizedException', () async {
-        final mgr = _operatorManager();
-        await expectLater(make(mgr).call(), throwsA(isA<UnauthorizedException>()));
-        mgr.dispose();
+        final (:manager, :stepUp) = _operatorSession();
+        await expectLater(
+          make(manager, stepUp).call(),
+          throwsA(isA<UnauthorizedException>()),
+        );
+        stepUp.dispose();
+        manager.dispose();
       });
 
       test('no session → throws UnauthorizedException', () async {
-        final mgr = _noSessionManager();
-        await expectLater(make(mgr).call(), throwsA(isA<UnauthorizedException>()));
-        mgr.dispose();
+        final (:manager, :stepUp) = _noSession();
+        await expectLater(
+          make(manager, stepUp).call(),
+          throwsA(isA<UnauthorizedException>()),
+        );
+        stepUp.dispose();
+        manager.dispose();
       });
     });
   });

@@ -6,6 +6,7 @@ import 'package:legal_library_manager/features/security/application/create_opera
 import 'package:legal_library_manager/features/security/application/issue_temporary_password.dart';
 import 'package:legal_library_manager/features/security/application/session_manager.dart';
 import 'package:legal_library_manager/features/security/application/set_initial_admin_password.dart';
+import 'package:legal_library_manager/features/security/application/step_up_manager.dart';
 import 'package:legal_library_manager/features/security/application/update_operator_account.dart';
 import 'package:legal_library_manager/features/security/data/repositories/drift_account_repository.dart';
 import 'package:legal_library_manager/features/security/data/repositories/drift_security_audit_repository.dart';
@@ -28,6 +29,7 @@ void main() {
   late DriftAccountRepository accountRepo;
   late DriftSecurityAuditRepository auditRepo;
   late SessionManager sessionManager;
+  late StepUpManager stepUpManager;
   late AccountManagementBloc bloc;
 
   const minimalHasher = Argon2idPasswordHasher(memoryKib: 256, iterations: 1);
@@ -37,7 +39,8 @@ void main() {
     db = AppDatabase.inMemory();
     accountRepo = DriftAccountRepository(db);
     auditRepo = DriftSecurityAuditRepository(db);
-    sessionManager = SessionManager();
+    stepUpManager = StepUpManager();
+    sessionManager = SessionManager(stepUpManager: stepUpManager);
 
     await BootstrapAdminAccount(
       accounts: accountRepo,
@@ -59,6 +62,8 @@ void main() {
       role: admin.role,
       startedAt: clock.nowUtc(),
     ));
+    // Grant step-up so that all use cases pass for this admin session.
+    stepUpManager.grant();
 
     final createOperator = CreateOperatorAccount(
       accounts: accountRepo,
@@ -66,12 +71,14 @@ void main() {
       auditLog: auditRepo,
       clock: clock,
       sessionManager: sessionManager,
+      stepUpManager: stepUpManager,
     );
     final updateOperator = UpdateOperatorAccount(
       accounts: accountRepo,
       auditLog: auditRepo,
       clock: clock,
       sessionManager: sessionManager,
+      stepUpManager: stepUpManager,
     );
     final issueTempPassword = IssueTemporaryPassword(
       accounts: accountRepo,
@@ -79,6 +86,7 @@ void main() {
       auditLog: auditRepo,
       clock: clock,
       sessionManager: sessionManager,
+      stepUpManager: stepUpManager,
     );
 
     bloc = AccountManagementBloc(
@@ -92,6 +100,7 @@ void main() {
 
   tearDown(() async {
     bloc.close();
+    stepUpManager.dispose();
     sessionManager.dispose();
     await db.close();
   });
@@ -249,6 +258,28 @@ void main() {
       bloc.add(const AccountManagementErrorDismissed());
       await _settle(bloc);
       expect(bloc.state, isA<AccountManagementLoaded>());
+    });
+
+    test('emits stepUpRequired error when step-up is revoked mid-session',
+        () async {
+      bloc.add(const AccountManagementLoadRequested());
+      await _settle(bloc);
+
+      // Revoke step-up so the next operation fails.
+      stepUpManager.revoke();
+
+      bloc.add(const AccountManagementCreateOperator(
+        username: 'op1',
+        displayName: 'مشغل',
+        temporaryPassword: 'TempPass1',
+      ));
+      await _settle(bloc);
+
+      expect(bloc.state, isA<AccountManagementError>());
+      expect(
+        (bloc.state as AccountManagementError).messageKey,
+        equals('stepUpRequired'),
+      );
     });
   });
 }

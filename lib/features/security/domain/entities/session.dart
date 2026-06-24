@@ -27,20 +27,20 @@ class Session extends Equatable {
   final bool isRestrictedToPasswordChange;
 
   Session copyWith({bool? isRestrictedToPasswordChange}) => Session(
-        accountId: accountId,
-        username: username,
-        role: role,
-        startedAt: startedAt,
-        isRestrictedToPasswordChange:
-            isRestrictedToPasswordChange ?? this.isRestrictedToPasswordChange,
-      );
+    accountId: accountId,
+    username: username,
+    role: role,
+    startedAt: startedAt,
+    isRestrictedToPasswordChange:
+        isRestrictedToPasswordChange ?? this.isRestrictedToPasswordChange,
+  );
 
   @override
   List<Object?> get props => [
-        accountId,
-        username,
-        role,
-        startedAt,
-        isRestrictedToPasswordChange,
-      ];
+    accountId,
+    username,
+    role,
+    startedAt,
+    isRestrictedToPasswordChange,
+  ];
 }

@@ -59,7 +59,8 @@ class _AuthGatePageState extends State<AuthGatePage> {
     setState(() {
       _sessionState = state;
       // When a new login occurs and admin no longer needs setup, clear the flag.
-      if (state is Authenticated && !state.session.isRestrictedToPasswordChange) {
+      if (state is Authenticated &&
+          !state.session.isRestrictedToPasswordChange) {
         _adminNeedsInitialSetup = false;
       }
     });

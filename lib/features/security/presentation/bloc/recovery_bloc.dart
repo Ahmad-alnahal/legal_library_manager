@@ -6,7 +6,7 @@ import 'recovery_state.dart';
 
 class RecoveryBloc extends Bloc<RecoveryEvent, RecoveryState> {
   RecoveryBloc({required this._redeemRecoveryKey})
-      : super(const RecoveryInitial()) {
+    : super(const RecoveryInitial()) {
     on<RecoverySubmitted>(_onSubmitted);
     on<RecoveryErrorDismissed>(_onErrorDismissed);
   }
@@ -33,6 +33,5 @@ class RecoveryBloc extends Bloc<RecoveryEvent, RecoveryState> {
   void _onErrorDismissed(
     RecoveryErrorDismissed event,
     Emitter<RecoveryState> emit,
-  ) =>
-      emit(const RecoveryInitial());
+  ) => emit(const RecoveryInitial());
 }

@@ -142,6 +142,7 @@ class CopySettingsBloc extends Bloc<CopySettingsEvent, CopySettingsState> {
       ConfigureCopyRootsResult.invalidFolder => 'invalid_folder',
       ConfigureCopyRootsResult.unsafeOverlap => 'unsafe_overlap',
       ConfigureCopyRootsResult.unauthorized => 'unauthorized',
+      ConfigureCopyRootsResult.stepUpRequired => 'stepUpRequired',
     };
     if (result == ConfigureCopyRootsResult.saved) {
       // Refresh per-root statuses (automatic vs custom) from the same
@@ -235,6 +236,7 @@ class CopySettingsBloc extends Bloc<CopySettingsEvent, CopySettingsState> {
         'defaults_creation_failed',
       ApplyDefaultCopyRootsResult.unsafeOverlap => 'unsafe_overlap',
       ApplyDefaultCopyRootsResult.unauthorized => 'unauthorized',
+      ApplyDefaultCopyRootsResult.stepUpRequired => 'stepUpRequired',
       _ => 'invalid_folder',
     };
     emit(

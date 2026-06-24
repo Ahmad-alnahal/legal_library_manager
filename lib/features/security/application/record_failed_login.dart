@@ -32,7 +32,8 @@ class RecordFailedLogin {
 
   Future<void> call(String accountId) async {
     final now = _clock.nowUtc();
-    final existing = await _accounts.getSecurityState(accountId) ??
+    final existing =
+        await _accounts.getSecurityState(accountId) ??
         const FailedLoginState(consecutiveFailures: 0);
     final newFailures = existing.consecutiveFailures + 1;
 

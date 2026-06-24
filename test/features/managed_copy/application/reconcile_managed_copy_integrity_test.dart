@@ -12,6 +12,8 @@ import 'package:legal_library_manager/features/managed_copy/domain/repositories/
 import 'package:legal_library_manager/features/managed_copy/domain/services/managed_library_filesystem.dart';
 import 'package:legal_library_manager/features/managed_copy/domain/services/operation_id_generator.dart';
 import 'package:legal_library_manager/features/security/application/session_manager.dart';
+import 'package:legal_library_manager/features/security/application/step_up_manager.dart';
+import 'package:legal_library_manager/features/security/application/step_up_required_exception.dart';
 import 'package:legal_library_manager/features/security/application/unauthorized_exception.dart';
 import 'package:legal_library_manager/features/security/domain/entities/account_role.dart';
 import 'package:legal_library_manager/features/security/domain/entities/session.dart';
@@ -167,8 +169,13 @@ ReconcileManagedCopyIntegrity _build({
   required _StubFs fs,
   Map<String, String?> hashes = const {kPath: kHash},
   SessionManager? sessionManager,
+  StepUpManager? stepUpManager,
+  bool grantStepUp = true,
 }) {
-  final mgr = sessionManager ?? (SessionManager()..login(_adminSession));
+  final effectiveStepUp = stepUpManager ?? StepUpManager();
+  if (grantStepUp) effectiveStepUp.grant();
+  final mgr = sessionManager ??
+      (SessionManager(stepUpManager: effectiveStepUp)..login(_adminSession));
   return ReconcileManagedCopyIntegrity(
     repository: repo,
     filesystem: fs,
@@ -176,6 +183,7 @@ ReconcileManagedCopyIntegrity _build({
     operationIdGenerator: _StubOpGen(),
     clock: _FakeClock(),
     sessionManager: mgr,
+    stepUpManager: effectiveStepUp,
   );
 }
 
@@ -186,19 +194,24 @@ void main() {
     // ── Authorization ──────────────────────────────────────────────────────
 
     test('throws UnauthorizedException when no session is active', () async {
-      final noSessionManager = SessionManager();
+      final noStepUp = StepUpManager();
+      final noSessionManager = SessionManager(stepUpManager: noStepUp);
       final uc = _build(
         repo: _StubRepo([]),
         fs: _StubFs({}),
         sessionManager: noSessionManager,
+        stepUpManager: noStepUp,
+        grantStepUp: false,
       );
       await expectLater(uc.call(), throwsA(isA<UnauthorizedException>()));
+      noStepUp.dispose();
       noSessionManager.dispose();
     });
 
     test('throws UnauthorizedException when an operator session is active',
         () async {
-      final operatorManager = SessionManager();
+      final opStepUp = StepUpManager();
+      final operatorManager = SessionManager(stepUpManager: opStepUp);
       operatorManager.login(Session(
         accountId: 'op1',
         username: 'op@operator',
@@ -209,9 +222,22 @@ void main() {
         repo: _StubRepo([]),
         fs: _StubFs({}),
         sessionManager: operatorManager,
+        stepUpManager: opStepUp,
+        grantStepUp: false,
       );
       await expectLater(uc.call(), throwsA(isA<UnauthorizedException>()));
+      opStepUp.dispose();
       operatorManager.dispose();
+    });
+
+    test('throws StepUpRequiredException when admin has no step-up approval',
+        () async {
+      final uc = _build(
+        repo: _StubRepo([]),
+        fs: _StubFs({}),
+        grantStepUp: false,
+      );
+      await expectLater(uc.call(), throwsA(isA<StepUpRequiredException>()));
     });
 
     // ── Empty / no-op ──────────────────────────────────────────────────────

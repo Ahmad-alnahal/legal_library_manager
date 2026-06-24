@@ -4,31 +4,34 @@ import '../domain/entities/account_status.dart';
 import '../domain/repositories/account_repository.dart';
 import '../domain/repositories/security_audit_repository.dart';
 import 'session_manager.dart';
+import 'step_up_manager.dart';
+import 'step_up_required_exception.dart';
 import 'unauthorized_exception.dart';
 
 /// Updates the mutable fields of an operator account.
 ///
 /// Throws [UnauthorizedException] if the current session is not admin.
+/// Throws [StepUpRequiredException] if no fresh step-up approval exists.
 class UpdateOperatorAccount {
   const UpdateOperatorAccount({
     required this._accounts,
     required this._auditLog,
     required this._clock,
     required this._sessionManager,
+    required this._stepUpManager,
   });
 
   final AccountRepository _accounts;
   final SecurityAuditRepository _auditLog;
   final Clock _clock;
   final SessionManager _sessionManager;
+  final StepUpManager _stepUpManager;
 
   /// Updates [displayName] and/or [status] for [operatorId].
   ///
   /// Throws [UnauthorizedException] if the current session is not admin.
+  /// Throws [StepUpRequiredException] if no fresh step-up approval exists.
   /// Throws [ArgumentError] if [operatorId] is not found.
-  ///
-  /// DEFERRED(step-up-auth): Step-up password re-verification before sensitive
-  /// admin operations is not yet implemented. See M14_report.md §"Known Gaps".
   Future<void> call({
     required String operatorId,
     String? displayName,
@@ -38,6 +41,9 @@ class UpdateOperatorAccount {
     final session = _sessionManager.currentSession;
     if (session == null || session.role != AccountRole.admin) {
       throw const UnauthorizedException('Admin role required.');
+    }
+    if (!_stepUpManager.isApproved) {
+      throw const StepUpRequiredException();
     }
 
     final account = await _accounts.findById(operatorId);

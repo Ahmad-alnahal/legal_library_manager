@@ -5,6 +5,8 @@ import '../domain/repositories/security_audit_repository.dart';
 import '../domain/services/password_hasher.dart';
 import 'session_manager.dart';
 import 'set_initial_admin_password.dart' show WeakPasswordException;
+import 'step_up_manager.dart';
+import 'step_up_required_exception.dart';
 import 'unauthorized_exception.dart';
 
 /// Issues a new temporary password for an existing operator account.
@@ -13,6 +15,7 @@ import 'unauthorized_exception.dart';
 /// password on their next login.
 ///
 /// Throws [UnauthorizedException] if the current session is not admin.
+/// Throws [StepUpRequiredException] if no fresh step-up approval exists.
 class IssueTemporaryPassword {
   const IssueTemporaryPassword({
     required this._accounts,
@@ -20,6 +23,7 @@ class IssueTemporaryPassword {
     required this._auditLog,
     required this._clock,
     required this._sessionManager,
+    required this._stepUpManager,
   });
 
   final AccountRepository _accounts;
@@ -27,15 +31,14 @@ class IssueTemporaryPassword {
   final SecurityAuditRepository _auditLog;
   final Clock _clock;
   final SessionManager _sessionManager;
+  final StepUpManager _stepUpManager;
 
   /// Issues a new [temporaryPassword] for [operatorId].
   ///
   /// Throws [UnauthorizedException] if the current session is not admin.
+  /// Throws [StepUpRequiredException] if no fresh step-up approval exists.
   /// Throws [ArgumentError] if the account is not found.
   /// Throws [WeakPasswordException] if [temporaryPassword] is shorter than 8 chars.
-  ///
-  /// DEFERRED(step-up-auth): Step-up password re-verification before sensitive
-  /// admin operations is not yet implemented. See M14_report.md §"Known Gaps".
   Future<void> call({
     required String operatorId,
     required String temporaryPassword,
@@ -45,9 +48,14 @@ class IssueTemporaryPassword {
     if (session == null || session.role != AccountRole.admin) {
       throw const UnauthorizedException('Admin role required.');
     }
+    if (!_stepUpManager.isApproved) {
+      throw const StepUpRequiredException();
+    }
 
     if (temporaryPassword.length < 8) {
-      throw const WeakPasswordException('Password must be at least 8 characters.');
+      throw const WeakPasswordException(
+        'Password must be at least 8 characters.',
+      );
     }
 
     final account = await _accounts.findById(operatorId);

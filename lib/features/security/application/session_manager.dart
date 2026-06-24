@@ -2,6 +2,7 @@ import 'dart:async';
 
 import '../domain/entities/account_role.dart';
 import '../domain/entities/session.dart';
+import 'step_up_manager.dart';
 
 /// The possible states of the session stream emitted by [SessionManager].
 sealed class SessionState {
@@ -33,10 +34,17 @@ final class AdminSessionExpired extends SessionState {
 ///
 /// For testability the admin inactivity timeout is injectable:
 /// pass a short [adminTimeout] in tests so they do not wait 30 minutes.
+///
+/// An optional [stepUpManager] is revoked whenever the session ends so step-up
+/// approval never outlives the admin session that granted it.
 class SessionManager {
-  SessionManager({this._adminTimeout = const Duration(minutes: 30)});
+  SessionManager({
+    this._adminTimeout = const Duration(minutes: 30),
+    this._stepUpManager,
+  });
 
   final Duration _adminTimeout;
+  final StepUpManager? _stepUpManager;
 
   Session? _currentSession;
   Timer? _inactivityTimer;
@@ -54,8 +62,9 @@ class SessionManager {
   Stream<SessionState> get sessionStream => _controller.stream;
 
   /// The current state as a one-shot value (does not replay on listen).
-  SessionState get currentState =>
-      _currentSession == null ? const Unauthenticated() : Authenticated(_currentSession!);
+  SessionState get currentState => _currentSession == null
+      ? const Unauthenticated()
+      : Authenticated(_currentSession!);
 
   /// Starts a new session.
   ///
@@ -73,6 +82,7 @@ class SessionManager {
   /// Ends the current session.
   void logout() {
     _cancelTimer();
+    _stepUpManager?.revoke();
     _currentSession = null;
     _controller.add(const Unauthenticated());
   }
@@ -81,6 +91,7 @@ class SessionManager {
   /// active session before the admin resets their password.
   void invalidateAll() {
     _cancelTimer();
+    _stepUpManager?.revoke();
     _currentSession = null;
     _controller.add(const Unauthenticated());
   }
@@ -105,6 +116,7 @@ class SessionManager {
   }
 
   void _onAdminInactivityExpired() {
+    _stepUpManager?.revoke();
     _currentSession = null;
     _controller.add(const AdminSessionExpired());
   }

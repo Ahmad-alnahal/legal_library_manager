@@ -68,18 +68,20 @@ class RedeemRecoveryKey {
   Future<String> call(String recoveryKey) async {
     final now = _clock.nowUtc();
 
-    final state = await _accounts.getSecurityState('admin') ??
+    final state =
+        await _accounts.getSecurityState('admin') ??
         const FailedLoginState(consecutiveFailures: 0);
 
     final windowStart = state.recoveryWindowStart;
     int attemptCount = state.recoveryAttemptCount;
 
-    if (windowStart != null &&
-        now.difference(windowStart) < _windowDuration) {
+    if (windowStart != null && now.difference(windowStart) < _windowDuration) {
       if (attemptCount >= _maxAttemptsPerWindow) {
-        final remaining = _windowDuration.inSeconds -
-            now.difference(windowStart).inSeconds;
-        throw RecoveryKeyThrottledException(remaining.clamp(1, _windowDuration.inSeconds));
+        final remaining =
+            _windowDuration.inSeconds - now.difference(windowStart).inSeconds;
+        throw RecoveryKeyThrottledException(
+          remaining.clamp(1, _windowDuration.inSeconds),
+        );
       }
     } else {
       attemptCount = 0;

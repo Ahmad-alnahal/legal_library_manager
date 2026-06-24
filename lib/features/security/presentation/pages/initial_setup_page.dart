@@ -100,15 +100,18 @@ class _InitialSetupViewState extends State<_InitialSetupView> {
                               passwordObscured: _passwordObscured,
                               confirmObscured: _confirmObscured,
                               onTogglePassword: () => setState(
-                                  () => _passwordObscured = !_passwordObscured),
+                                () => _passwordObscured = !_passwordObscured,
+                              ),
                               onToggleConfirm: () => setState(
-                                  () => _confirmObscured = !_confirmObscured),
-                              onSubmit: () => context
-                                  .read<InitialSetupBloc>()
-                                  .add(SetupPasswordSubmitted(
-                                    password: _passwordController.text,
-                                    confirmPassword: _confirmController.text,
-                                  )),
+                                () => _confirmObscured = !_confirmObscured,
+                              ),
+                              onSubmit: () =>
+                                  context.read<InitialSetupBloc>().add(
+                                    SetupPasswordSubmitted(
+                                      password: _passwordController.text,
+                                      confirmPassword: _confirmController.text,
+                                    ),
+                                  ),
                               state: state,
                               l10n: l10n,
                               text: text,
@@ -186,9 +189,11 @@ class _PasswordStep extends StatelessWidget {
             helperText: l10n.setupPasswordHint,
             border: const OutlineInputBorder(),
             suffixIcon: IconButton(
-              icon: Icon(passwordObscured
-                  ? Icons.visibility_outlined
-                  : Icons.visibility_off_outlined),
+              icon: Icon(
+                passwordObscured
+                    ? Icons.visibility_outlined
+                    : Icons.visibility_off_outlined,
+              ),
               tooltip: passwordObscured
                   ? l10n.loginShowPasswordTooltip
                   : l10n.loginHidePasswordTooltip,
@@ -207,9 +212,11 @@ class _PasswordStep extends StatelessWidget {
             labelText: l10n.setupConfirmPasswordLabel,
             border: const OutlineInputBorder(),
             suffixIcon: IconButton(
-              icon: Icon(confirmObscured
-                  ? Icons.visibility_outlined
-                  : Icons.visibility_off_outlined),
+              icon: Icon(
+                confirmObscured
+                    ? Icons.visibility_outlined
+                    : Icons.visibility_off_outlined,
+              ),
               tooltip: confirmObscured
                   ? l10n.loginShowPasswordTooltip
                   : l10n.loginHidePasswordTooltip,
@@ -346,9 +353,9 @@ class _ErrorBanner extends StatelessWidget {
       ),
       child: Text(
         message,
-        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-              color: const Color(0xFF92400E),
-            ),
+        style: Theme.of(
+          context,
+        ).textTheme.bodyMedium?.copyWith(color: const Color(0xFF92400E)),
       ),
     );
   }

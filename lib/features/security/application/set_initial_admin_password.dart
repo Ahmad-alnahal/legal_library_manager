@@ -54,7 +54,9 @@ class SetInitialAdminPassword {
 
     final admin = await _accounts.findById('admin');
     if (admin == null) {
-      throw StateError('Admin account not found — run BootstrapAdminAccount first.');
+      throw StateError(
+        'Admin account not found — run BootstrapAdminAccount first.',
+      );
     }
 
     final passwordHash = await _hasher.hash(newPassword);
@@ -91,9 +93,7 @@ class SetInitialAdminPassword {
 /// uppercase hex digits (4 bytes). Total length: 35 characters.
 String generateRecoveryKey() {
   final rng = Random.secure();
-  final bytes = Uint8List.fromList(
-    List.generate(16, (_) => rng.nextInt(256)),
-  );
+  final bytes = Uint8List.fromList(List.generate(16, (_) => rng.nextInt(256)));
   final hex = bytes
       .map((b) => b.toRadixString(16).padLeft(2, '0').toUpperCase())
       .join();

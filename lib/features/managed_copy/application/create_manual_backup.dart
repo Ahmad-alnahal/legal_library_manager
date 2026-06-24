@@ -2,6 +2,7 @@
 
 import '../../../core/time/clock.dart';
 import '../../security/application/session_manager.dart';
+import '../../security/application/step_up_manager.dart';
 import '../../security/domain/entities/account_role.dart';
 import '../domain/entities/manual_backup_result.dart';
 import '../domain/repositories/managed_copy_repository.dart';
@@ -16,8 +17,8 @@ import '../domain/services/operation_id_generator.dart';
 /// are never included or touched. No dart:io, Drift, FFI, or Windows APIs are
 /// imported here.
 ///
-/// Throws/returns [ManualBackupFailure] with `'unauthorized'` if the current
-/// session is not an active administrator session.
+/// Returns [ManualBackupFailure] with `'unauthorized'` if the current session
+/// is not admin, or `'stepUpRequired'` if no fresh step-up approval exists.
 class CreateManualBackup {
   const CreateManualBackup({
     required this._repository,
@@ -26,6 +27,7 @@ class CreateManualBackup {
     required this._operationIdGenerator,
     required this._clock,
     required this._sessionManager,
+    required this._stepUpManager,
   });
 
   final ManagedCopyRepository _repository;
@@ -34,12 +36,16 @@ class CreateManualBackup {
   final OperationIdGenerator _operationIdGenerator;
   final Clock _clock;
   final SessionManager _sessionManager;
+  final StepUpManager _stepUpManager;
 
   Future<ManualBackupResult> call() async {
     // ── 0. Authorization guard ────────────────────────────────────────────────
     final session = _sessionManager.currentSession;
     if (session == null || session.role != AccountRole.admin) {
       return const ManualBackupFailure(messageKey: 'unauthorized');
+    }
+    if (!_stepUpManager.isApproved) {
+      return const ManualBackupFailure(messageKey: 'stepUpRequired');
     }
 
     // ── 1. Validate backup root from settings ─────────────────────────────────

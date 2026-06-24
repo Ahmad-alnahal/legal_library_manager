@@ -16,6 +16,7 @@ import '../../../../core/widgets/page_header.dart';
 import '../../../../core/widgets/screen_container.dart';
 import '../../../../l10n/app_localizations.dart';
 import '../../../managed_copy/domain/entities/copy_roots_setup_report.dart';
+import '../../../security/presentation/widgets/step_up_dialog.dart';
 import '../../../managed_copy/domain/services/copy_root_picker.dart';
 import '../../../managed_copy/presentation/bloc/copy_integrity_bloc.dart';
 import '../../../managed_copy/presentation/bloc/copy_settings_bloc.dart';
@@ -123,6 +124,7 @@ class _SettingsBodyState extends State<_SettingsBody> {
               'defaults_creation_failed' =>
                 l10n.settingsSnackDefaultsCreationFailed,
               'unauthorized' => l10n.settingsSnackUnauthorized,
+              'stepUpRequired' => l10n.settingsSnackStepUpRequired,
               _ => l10n.settingsSnackFallback,
             };
             ScaffoldMessenger.of(context)
@@ -139,6 +141,7 @@ class _SettingsBodyState extends State<_SettingsBody> {
               'not_configured' => l10n.settingsSnackBackupNotConfigured,
               'root_missing' => l10n.settingsSnackBackupRootMissing,
               'unauthorized' => l10n.settingsSnackUnauthorized,
+              'stepUpRequired' => l10n.settingsSnackStepUpRequired,
               _ => l10n.settingsSnackBackupFailed,
             };
             ScaffoldMessenger.of(context)
@@ -154,6 +157,7 @@ class _SettingsBodyState extends State<_SettingsBody> {
               'clean' => l10n.settingsSnackIntegrityClean,
               'issues' => l10n.settingsSnackIntegrityIssues(state.issueCount),
               'unauthorized' => l10n.settingsSnackUnauthorized,
+              'stepUpRequired' => l10n.settingsSnackStepUpRequired,
               _ => l10n.settingsSnackIntegrityFailed,
             };
             ScaffoldMessenger.of(context)
@@ -323,7 +327,10 @@ class _CopyLocationsPanel extends StatelessWidget {
                     label: l10n.settingsResetToDefaults,
                     icon: Icons.restore_outlined,
                     onPressed: !state.busy
-                        ? () => _confirmResetToDefaults(context, bloc)
+                        ? () => requireStepUp(
+                            context,
+                            () => _confirmResetToDefaults(context, bloc),
+                          )
                         : null,
                   ),
                 ),
@@ -345,11 +352,14 @@ class _CopyLocationsPanel extends StatelessWidget {
                 icon: Icons.library_books_outlined,
                 enabled: !state.busy,
                 isAdmin: isAdmin,
-                onChoose: () => _confirmAndChange(
+                onChoose: () => requireStepUp(
                   context,
-                  bloc,
-                  CopyRootKind.managedLibrary,
-                  hasCurrent: state.managedRoot != null,
+                  () => _confirmAndChange(
+                    context,
+                    bloc,
+                    CopyRootKind.managedLibrary,
+                    hasCurrent: state.managedRoot != null,
+                  ),
                 ),
                 onRecreate: state.managedStatus == CopyRootStatus.missing
                     ? () => _confirmAndRecreate(
@@ -367,11 +377,14 @@ class _CopyLocationsPanel extends StatelessWidget {
                 icon: Icons.backup_outlined,
                 enabled: !state.busy,
                 isAdmin: isAdmin,
-                onChoose: () => _confirmAndChange(
+                onChoose: () => requireStepUp(
                   context,
-                  bloc,
-                  CopyRootKind.databaseBackup,
-                  hasCurrent: state.backupRoot != null,
+                  () => _confirmAndChange(
+                    context,
+                    bloc,
+                    CopyRootKind.databaseBackup,
+                    hasCurrent: state.backupRoot != null,
+                  ),
                 ),
                 onRecreate: state.backupStatus == CopyRootStatus.missing
                     ? () => _confirmAndRecreate(
@@ -429,7 +442,10 @@ class _ManualBackupPanel extends StatelessWidget {
                 label: l10n.settingsManualBackupButton,
                 icon: Icons.save_outlined,
                 onPressed: backupRootConfigured && !backupState.busy
-                    ? () => _confirmAndBackup(context)
+                    ? () => requireStepUp(
+                        context,
+                        () => _confirmAndBackup(context),
+                      )
                     : null,
               ),
               if (backupState.busy) ...[
@@ -607,8 +623,11 @@ class _CopyIntegrityPanel extends StatelessWidget {
   }
 
   VoidCallback _onCheckPressed(BuildContext context) =>
-      () => context.read<CopyIntegrityBloc>().add(
-        const CopyIntegrityCheckRequested(),
+      () => requireStepUp(
+        context,
+        () => context.read<CopyIntegrityBloc>().add(
+          const CopyIntegrityCheckRequested(),
+        ),
       );
 }
 
@@ -820,6 +839,7 @@ class _LocationRow extends StatelessWidget {
   final CopyRootStatus status;
   final IconData icon;
   final bool enabled;
+
   /// When false the Choose/Change path button is hidden; the re-create button
   /// remains available since operators are allowed to recreate missing folders.
   final bool isAdmin;

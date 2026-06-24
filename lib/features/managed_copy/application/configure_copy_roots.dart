@@ -1,4 +1,5 @@
 import '../../security/application/session_manager.dart';
+import '../../security/application/step_up_manager.dart';
 import '../../security/domain/entities/account_role.dart';
 import '../domain/repositories/managed_copy_repository.dart';
 import '../domain/services/managed_library_filesystem.dart';
@@ -9,8 +10,12 @@ enum ConfigureCopyRootsResult {
   chooseBoth,
   invalidFolder,
   unsafeOverlap,
+
   /// Caller does not hold an active administrator session.
   unauthorized,
+
+  /// Caller is admin but has no active step-up authentication approval.
+  stepUpRequired,
 }
 
 class ConfigureCopyRoots {
@@ -19,17 +24,22 @@ class ConfigureCopyRoots {
     this._filesystem,
     this._canonicalizer, {
     required this._sessionManager,
+    required this._stepUpManager,
   });
 
   final ManagedCopyRepository _repository;
   final ManagedLibraryFilesystem _filesystem;
   final PathCanonicalizer _canonicalizer;
   final SessionManager _sessionManager;
+  final StepUpManager _stepUpManager;
 
   Future<ConfigureCopyRootsResult> call(String? managed, String? backup) async {
     final session = _sessionManager.currentSession;
     if (session == null || session.role != AccountRole.admin) {
       return ConfigureCopyRootsResult.unauthorized;
+    }
+    if (!_stepUpManager.isApproved) {
+      return ConfigureCopyRootsResult.stepUpRequired;
     }
 
     if (managed == null || backup == null) {

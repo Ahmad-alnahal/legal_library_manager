@@ -80,8 +80,9 @@ class AuthenticateUser {
     if (securityState?.unlockNotBefore != null) {
       final now = _clock.nowUtc();
       if (now.isBefore(securityState!.unlockNotBefore!)) {
-        final remaining =
-            securityState.unlockNotBefore!.difference(now).inSeconds;
+        final remaining = securityState.unlockNotBefore!
+            .difference(now)
+            .inSeconds;
         return AuthLoginDelayed(remainingSeconds: remaining);
       }
     }

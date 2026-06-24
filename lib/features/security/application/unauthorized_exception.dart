@@ -3,6 +3,7 @@ class UnauthorizedException implements Exception {
   const UnauthorizedException([this.reason = '']);
   final String reason;
   @override
-  String toString() =>
-      reason.isEmpty ? 'UnauthorizedException' : 'UnauthorizedException: $reason';
+  String toString() => reason.isEmpty
+      ? 'UnauthorizedException'
+      : 'UnauthorizedException: $reason';
 }

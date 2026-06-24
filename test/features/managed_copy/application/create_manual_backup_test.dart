@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:legal_library_manager/core/time/clock.dart';
 import 'package:legal_library_manager/features/managed_copy/application/create_manual_backup.dart';
 import 'package:legal_library_manager/features/security/application/session_manager.dart';
+import 'package:legal_library_manager/features/security/application/step_up_manager.dart';
 import 'package:legal_library_manager/features/security/domain/entities/account_role.dart';
 import 'package:legal_library_manager/features/security/domain/entities/session.dart';
 import 'package:legal_library_manager/features/managed_copy/domain/entities/copy_roots.dart';
@@ -213,19 +214,30 @@ final _adminSession = Session(
   startedAt: DateTime.utc(2026, 6, 24, 9),
 );
 
+/// Creates a [CreateManualBackup] instance.
+///
+/// [grantStepUp] controls whether step-up is pre-approved (default: true so
+/// that non-authorization tests can reach the business logic they exercise).
 CreateManualBackup _makeUseCase({
   required _FakeRepository repository,
   required _FakeBackupService backupService,
   bool directoryExists = true,
   SessionManager? sessionManager,
+  StepUpManager? stepUpManager,
+  bool grantStepUp = true,
 }) {
+  final effectiveStepUp = stepUpManager ?? StepUpManager();
+  if (grantStepUp) effectiveStepUp.grant();
+  final effectiveSession = sessionManager ??
+      (SessionManager(stepUpManager: effectiveStepUp)..login(_adminSession));
   return CreateManualBackup(
     repository: repository,
     backupService: backupService,
     filesystem: _FakeFilesystem(directoryExists: directoryExists),
     operationIdGenerator: _FakeOperationIdGenerator(),
     clock: _FixedClock(),
-    sessionManager: sessionManager ?? (SessionManager()..login(_adminSession)),
+    sessionManager: effectiveSession,
+    stepUpManager: effectiveStepUp,
   );
 }
 
@@ -241,15 +253,19 @@ void main() {
       final svc = _FakeBackupService(
         const BackupSuccess(backupPath: r'C:\Backups\x.sqlite'),
       );
-      final manager = SessionManager();
+      final stepUp = StepUpManager();
+      final manager = SessionManager(stepUpManager: stepUp);
       final result = await _makeUseCase(
         repository: repo,
         backupService: svc,
         sessionManager: manager,
+        stepUpManager: stepUp,
+        grantStepUp: false,
       )();
       expect(result, isA<ManualBackupFailure>());
       expect((result as ManualBackupFailure).messageKey, 'unauthorized');
       expect(svc.callCount, 0);
+      stepUp.dispose();
       manager.dispose();
     });
 
@@ -261,7 +277,8 @@ void main() {
       final svc = _FakeBackupService(
         const BackupSuccess(backupPath: r'C:\Backups\x.sqlite'),
       );
-      final manager = SessionManager();
+      final stepUp = StepUpManager();
+      final manager = SessionManager(stepUpManager: stepUp);
       manager.login(Session(
         accountId: 'op1',
         username: 'op@operator',
@@ -272,10 +289,38 @@ void main() {
         repository: repo,
         backupService: svc,
         sessionManager: manager,
+        stepUpManager: stepUp,
+        grantStepUp: false,
       )();
       expect(result, isA<ManualBackupFailure>());
       expect((result as ManualBackupFailure).messageKey, 'unauthorized');
       expect(svc.callCount, 0);
+      stepUp.dispose();
+      manager.dispose();
+    });
+
+    test('returns stepUpRequired when admin has no step-up approval', () async {
+      final repo = _FakeRepository(
+        managedRoot: r'C:\lib',
+        backupRoot: r'C:\Backups',
+      );
+      final svc = _FakeBackupService(
+        const BackupSuccess(backupPath: r'C:\Backups\x.sqlite'),
+      );
+      final stepUp = StepUpManager();
+      final manager = SessionManager(stepUpManager: stepUp)
+        ..login(_adminSession);
+      final result = await _makeUseCase(
+        repository: repo,
+        backupService: svc,
+        sessionManager: manager,
+        stepUpManager: stepUp,
+        grantStepUp: false,
+      )();
+      expect(result, isA<ManualBackupFailure>());
+      expect((result as ManualBackupFailure).messageKey, 'stepUpRequired');
+      expect(svc.callCount, 0);
+      stepUp.dispose();
       manager.dispose();
     });
   });
@@ -470,7 +515,9 @@ void main() {
         onCall: (root, _, _) => capturedRoot = root,
         result: const BackupSuccess(backupPath: r'C:\Backups\x.sqlite'),
       );
-      final captureManager = SessionManager()..login(_adminSession);
+      final stepUp = StepUpManager()..grant();
+      final captureManager = SessionManager(stepUpManager: stepUp)
+        ..login(_adminSession);
       await CreateManualBackup(
         repository: repo,
         backupService: svc,
@@ -478,7 +525,9 @@ void main() {
         operationIdGenerator: _FakeOperationIdGenerator(),
         clock: _FixedClock(),
         sessionManager: captureManager,
+        stepUpManager: stepUp,
       )();
+      stepUp.dispose();
       captureManager.dispose();
 
       expect(capturedRoot, r'C:\Backups');

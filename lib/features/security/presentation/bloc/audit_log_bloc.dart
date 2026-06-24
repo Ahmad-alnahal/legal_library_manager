@@ -20,12 +20,8 @@ class AuditLogBloc extends Bloc<AuditLogEvent, AuditLogState> {
   ) async {
     emit(const AuditLogLoading());
     try {
-      final events =
-          await _loadAuditLog(limit: _pageSize, offset: 0);
-      emit(AuditLogLoaded(
-        events: events,
-        hasMore: events.length == _pageSize,
-      ));
+      final events = await _loadAuditLog(limit: _pageSize, offset: 0);
+      emit(AuditLogLoaded(events: events, hasMore: events.length == _pageSize));
     } on UnauthorizedException {
       emit(const AuditLogError('unauthorized'));
     } catch (_) {
@@ -45,17 +41,16 @@ class AuditLogBloc extends Bloc<AuditLogEvent, AuditLogState> {
         limit: _pageSize,
         offset: current.events.length,
       );
-      emit(AuditLogLoaded(
-        events: [...current.events, ...more],
-        hasMore: more.length == _pageSize,
-      ));
+      emit(
+        AuditLogLoaded(
+          events: [...current.events, ...more],
+          hasMore: more.length == _pageSize,
+        ),
+      );
     } on UnauthorizedException {
       emit(const AuditLogError('unauthorized'));
     } catch (_) {
-      emit(AuditLogLoaded(
-        events: current.events,
-        hasMore: current.hasMore,
-      ));
+      emit(AuditLogLoaded(events: current.events, hasMore: current.hasMore));
     }
   }
 }

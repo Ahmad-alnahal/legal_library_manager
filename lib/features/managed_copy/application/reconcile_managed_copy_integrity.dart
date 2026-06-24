@@ -4,6 +4,8 @@
 import '../../../core/time/clock.dart';
 import '../../import/domain/services/file_hasher.dart';
 import '../../security/application/session_manager.dart';
+import '../../security/application/step_up_manager.dart';
+import '../../security/application/step_up_required_exception.dart';
 import '../../security/application/unauthorized_exception.dart';
 import '../../security/domain/entities/account_role.dart';
 import '../domain/entities/managed_file_ref.dart';
@@ -36,12 +38,14 @@ class ReconcileManagedCopyIntegrity {
     required OperationIdGenerator operationIdGenerator,
     required Clock clock,
     required SessionManager sessionManager,
+    required StepUpManager stepUpManager,
   }) : _repository = repository,
        _filesystem = filesystem,
        _hasher = hasher,
        _operationIdGenerator = operationIdGenerator,
        _clock = clock,
-       _sessionManager = sessionManager;
+       _sessionManager = sessionManager,
+       _stepUpManager = stepUpManager;
 
   final ManagedCopyRepository _repository;
   final ManagedLibraryFilesystem _filesystem;
@@ -49,12 +53,17 @@ class ReconcileManagedCopyIntegrity {
   final OperationIdGenerator _operationIdGenerator;
   final Clock _clock;
   final SessionManager _sessionManager;
+  final StepUpManager _stepUpManager;
 
   Future<ReconcileIntegrityResult> call() async {
     final session = _sessionManager.currentSession;
     if (session == null || session.role != AccountRole.admin) {
       throw const UnauthorizedException(
-          'Admin role required to run the managed-copy integrity scan.');
+        'Admin role required to run the managed-copy integrity scan.',
+      );
+    }
+    if (!_stepUpManager.isApproved) {
+      throw const StepUpRequiredException();
     }
 
     final allFiles = await _repository.loadAllManagedCopyFiles();
