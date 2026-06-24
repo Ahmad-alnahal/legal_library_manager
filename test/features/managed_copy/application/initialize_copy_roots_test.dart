@@ -1,14 +1,12 @@
 // test/features/managed_copy/application/initialize_copy_roots_test.dart
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:legal_library_manager/features/managed_copy/application/configure_copy_roots.dart';
 import 'package:legal_library_manager/features/managed_copy/application/initialize_copy_roots.dart';
 import 'package:legal_library_manager/features/managed_copy/domain/entities/copy_roots.dart';
 import 'package:legal_library_manager/features/managed_copy/domain/entities/copy_roots_setup_report.dart';
 import 'package:legal_library_manager/features/managed_copy/domain/repositories/managed_copy_repository.dart';
 import 'package:legal_library_manager/features/managed_copy/domain/services/documents_directory_resolver.dart';
 import 'package:legal_library_manager/features/managed_copy/domain/services/managed_library_filesystem.dart';
-import 'package:legal_library_manager/features/managed_copy/domain/services/path_canonicalizer.dart';
 
 // Stable default paths derived from the fake Documents directory, computed the
 // same way InitializeCopyRoots does (`<Documents>\MARJIY\<root>`).
@@ -172,11 +170,6 @@ class _FakeFilesystem implements ManagedLibraryFilesystem {
   }
 }
 
-class _IdentityCanonicalizer implements PathCanonicalizer {
-  @override
-  String? canonicalize(String path) => path;
-}
-
 class _FakeResolver implements DocumentsDirectoryResolver {
   _FakeResolver({this.path = _docs, this.throwError = false});
   final String? path;
@@ -194,12 +187,10 @@ InitializeCopyRoots _build(
   _FakeFilesystem fs,
   _FakeResolver resolver,
 ) {
-  final configure = ConfigureCopyRoots(repo, fs, _IdentityCanonicalizer());
   return InitializeCopyRoots(
     repository: repo,
     filesystem: fs,
     documentsResolver: resolver,
-    configureCopyRoots: configure,
   );
 }
 

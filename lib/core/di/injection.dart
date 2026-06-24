@@ -84,6 +84,30 @@ import '../../features/file_open/domain/services/os_file_opener.dart';
 import '../../features/file_open/presentation/bloc/file_open_bloc.dart';
 import '../../features/reference/data/repositories/drift_reference_repository.dart';
 import '../../features/reference/domain/repositories/reference_repository.dart';
+import '../../features/security/application/authenticate_user.dart';
+import '../../features/security/application/bootstrap_admin_account.dart';
+import '../../features/security/application/change_own_password.dart';
+import '../../features/security/application/record_failed_login.dart';
+import '../../features/security/application/redeem_recovery_key.dart';
+import '../../features/security/application/create_operator_account.dart';
+import '../../features/security/application/first_login_password_change.dart';
+import '../../features/security/application/issue_temporary_password.dart';
+import '../../features/security/application/session_manager.dart';
+import '../../features/security/application/set_initial_admin_password.dart';
+import '../../features/security/application/update_operator_account.dart';
+import '../../features/security/data/repositories/drift_account_repository.dart';
+import '../../features/security/data/repositories/drift_security_audit_repository.dart';
+import '../../features/security/data/services/argon2id_password_hasher.dart';
+import '../../features/security/domain/repositories/account_repository.dart';
+import '../../features/security/domain/repositories/security_audit_repository.dart';
+import '../../features/security/domain/services/password_hasher.dart';
+import '../../features/security/application/load_audit_log.dart';
+import '../../features/security/presentation/bloc/account_management_bloc.dart';
+import '../../features/security/presentation/bloc/audit_log_bloc.dart';
+import '../../features/security/presentation/bloc/initial_setup_bloc.dart';
+import '../../features/security/presentation/bloc/login_bloc.dart';
+import '../../features/security/presentation/bloc/password_change_bloc.dart';
+import '../../features/security/presentation/bloc/recovery_bloc.dart';
 import '../../features/shell/presentation/bloc/navigation_bloc.dart';
 import '../database/app_database.dart';
 import '../time/clock.dart';
@@ -274,6 +298,7 @@ void configureDependencies() {
         getIt<ManagedCopyRepository>(),
         getIt<ManagedLibraryFilesystem>(),
         getIt<PathCanonicalizer>(),
+        sessionManager: getIt<SessionManager>(),
       ),
     )
     // M8.4 automatic safe copy-root setup: resolves the Documents folder in
@@ -286,7 +311,6 @@ void configureDependencies() {
         repository: getIt<ManagedCopyRepository>(),
         filesystem: getIt<ManagedLibraryFilesystem>(),
         documentsResolver: getIt<DocumentsDirectoryResolver>(),
-        configureCopyRoots: getIt<ConfigureCopyRoots>(),
       ),
     )
     ..registerLazySingleton<InspectStartupRecovery>(
@@ -311,6 +335,7 @@ void configureDependencies() {
         documentsResolver: getIt<DocumentsDirectoryResolver>(),
         filesystem: getIt<ManagedLibraryFilesystem>(),
         configureCopyRoots: getIt<ConfigureCopyRoots>(),
+        sessionManager: getIt<SessionManager>(),
       ),
     )
     // M8.6 Part B: detects a physically missing managed-copy file and
@@ -335,6 +360,7 @@ void configureDependencies() {
         filesystem: getIt<ManagedLibraryFilesystem>(),
         operationIdGenerator: getIt<OperationIdGenerator>(),
         clock: getIt<Clock>(),
+        sessionManager: getIt<SessionManager>(),
       ),
     )
     ..registerFactory<ManualBackupBloc>(
@@ -388,6 +414,7 @@ void configureDependencies() {
         hasher: getIt<FileHasher>(),
         operationIdGenerator: getIt<OperationIdGenerator>(),
         clock: getIt<Clock>(),
+        sessionManager: getIt<SessionManager>(),
       ),
     )
     ..registerFactory<CopyIntegrityBloc>(
@@ -406,5 +433,138 @@ void configureDependencies() {
     )
     ..registerFactory<DashboardBloc>(
       () => DashboardBloc(repository: getIt<DashboardRepository>()),
+    )
+    // M14.2 security: password hasher, account + audit repositories, bootstrap.
+    ..registerLazySingleton<PasswordHasher>(Argon2idPasswordHasher.new)
+    ..registerLazySingleton<AccountRepository>(
+      () => DriftAccountRepository(getIt<AppDatabase>()),
+    )
+    ..registerLazySingleton<SecurityAuditRepository>(
+      () => DriftSecurityAuditRepository(getIt<AppDatabase>()),
+    )
+    ..registerLazySingleton<BootstrapAdminAccount>(
+      () => BootstrapAdminAccount(
+        accounts: getIt<AccountRepository>(),
+        auditLog: getIt<SecurityAuditRepository>(),
+        clock: getIt<Clock>(),
+      ),
+    )
+    // M14.3 security: session lifecycle, login, first-run admin setup.
+    ..registerLazySingleton<SessionManager>(
+      SessionManager.new,
+      dispose: (m) => m.dispose(),
+    )
+    ..registerLazySingleton<RecordFailedLogin>(
+      () => RecordFailedLogin(
+        accounts: getIt<AccountRepository>(),
+        auditLog: getIt<SecurityAuditRepository>(),
+        clock: getIt<Clock>(),
+      ),
+    )
+    ..registerLazySingleton<AuthenticateUser>(
+      () => AuthenticateUser(
+        accounts: getIt<AccountRepository>(),
+        hasher: getIt<PasswordHasher>(),
+        sessionManager: getIt<SessionManager>(),
+        auditLog: getIt<SecurityAuditRepository>(),
+        clock: getIt<Clock>(),
+        recordFailedLogin: getIt<RecordFailedLogin>(),
+      ),
+    )
+    ..registerLazySingleton<RedeemRecoveryKey>(
+      () => RedeemRecoveryKey(
+        accounts: getIt<AccountRepository>(),
+        hasher: getIt<PasswordHasher>(),
+        auditLog: getIt<SecurityAuditRepository>(),
+        clock: getIt<Clock>(),
+        sessionManager: getIt<SessionManager>(),
+      ),
+    )
+    ..registerLazySingleton<SetInitialAdminPassword>(
+      () => SetInitialAdminPassword(
+        accounts: getIt<AccountRepository>(),
+        hasher: getIt<PasswordHasher>(),
+        auditLog: getIt<SecurityAuditRepository>(),
+        clock: getIt<Clock>(),
+      ),
+    )
+    ..registerFactory<LoginBloc>(
+      () => LoginBloc(authenticateUser: getIt<AuthenticateUser>()),
+    )
+    ..registerFactory<InitialSetupBloc>(
+      () => InitialSetupBloc(
+        setInitialAdminPassword: getIt<SetInitialAdminPassword>(),
+      ),
+    )
+    // M14.4: operator account management and password change enforcement.
+    ..registerLazySingleton<CreateOperatorAccount>(
+      () => CreateOperatorAccount(
+        accounts: getIt<AccountRepository>(),
+        hasher: getIt<PasswordHasher>(),
+        auditLog: getIt<SecurityAuditRepository>(),
+        clock: getIt<Clock>(),
+        sessionManager: getIt<SessionManager>(),
+      ),
+    )
+    ..registerLazySingleton<UpdateOperatorAccount>(
+      () => UpdateOperatorAccount(
+        accounts: getIt<AccountRepository>(),
+        auditLog: getIt<SecurityAuditRepository>(),
+        clock: getIt<Clock>(),
+        sessionManager: getIt<SessionManager>(),
+      ),
+    )
+    ..registerLazySingleton<IssueTemporaryPassword>(
+      () => IssueTemporaryPassword(
+        accounts: getIt<AccountRepository>(),
+        hasher: getIt<PasswordHasher>(),
+        auditLog: getIt<SecurityAuditRepository>(),
+        clock: getIt<Clock>(),
+        sessionManager: getIt<SessionManager>(),
+      ),
+    )
+    ..registerLazySingleton<ChangeOwnPassword>(
+      () => ChangeOwnPassword(
+        accounts: getIt<AccountRepository>(),
+        hasher: getIt<PasswordHasher>(),
+        auditLog: getIt<SecurityAuditRepository>(),
+        clock: getIt<Clock>(),
+        sessionManager: getIt<SessionManager>(),
+      ),
+    )
+    ..registerLazySingleton<FirstLoginPasswordChange>(
+      () => FirstLoginPasswordChange(
+        changeOwnPassword: getIt<ChangeOwnPassword>(),
+        sessionManager: getIt<SessionManager>(),
+      ),
+    )
+    ..registerFactory<AccountManagementBloc>(
+      () => AccountManagementBloc(
+        accounts: getIt<AccountRepository>(),
+        createOperator: getIt<CreateOperatorAccount>(),
+        updateOperator: getIt<UpdateOperatorAccount>(),
+        issueTempPassword: getIt<IssueTemporaryPassword>(),
+        sessionManager: getIt<SessionManager>(),
+      ),
+    )
+    ..registerFactory<PasswordChangeBloc>(
+      () => PasswordChangeBloc(
+        firstLoginPasswordChange: getIt<FirstLoginPasswordChange>(),
+      ),
+    )
+    ..registerFactory<RecoveryBloc>(
+      () => RecoveryBloc(
+        redeemRecoveryKey: getIt<RedeemRecoveryKey>(),
+      ),
+    )
+    // M14.7 audit log viewer: admin-guarded use case + factory BLoC.
+    ..registerLazySingleton<LoadAuditLog>(
+      () => LoadAuditLog(
+        auditLog: getIt<SecurityAuditRepository>(),
+        sessionManager: getIt<SessionManager>(),
+      ),
+    )
+    ..registerFactory<AuditLogBloc>(
+      () => AuditLogBloc(loadAuditLog: getIt<LoadAuditLog>()),
     );
 }

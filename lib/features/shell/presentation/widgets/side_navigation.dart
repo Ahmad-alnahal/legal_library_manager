@@ -31,6 +31,7 @@ class SideNavigation extends StatelessWidget {
     required this.selected,
     required this.onSelected,
     this.extended = true,
+    this.showAdministration = false,
   });
 
   static const double extendedWidth = 248;
@@ -39,6 +40,10 @@ class SideNavigation extends StatelessWidget {
   final AppSection selected;
   final ValueChanged<AppSection> onSelected;
   final bool extended;
+
+  /// Whether the Administration section is visible. Pass [true] only when the
+  /// current session belongs to an administrator.
+  final bool showAdministration;
 
   @override
   Widget build(BuildContext context) {
@@ -88,6 +93,13 @@ class SideNavigation extends StatelessWidget {
         label: l10n.navSettings,
         tooltip: l10n.navTooltipSettings,
       ),
+      if (showAdministration)
+        _Destination(
+          section: AppSection.administration,
+          icon: Icons.manage_accounts_outlined,
+          label: l10n.navAdministration,
+          tooltip: l10n.navTooltipAdministration,
+        ),
     ];
 
     return Container(

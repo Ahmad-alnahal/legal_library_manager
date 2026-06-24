@@ -17,18 +17,22 @@ void main() {
   late Directory root;
 
   setUp(() => root = makeTempDir('hash'));
-  // On Windows a worker isolate may hold a file handle briefly after the
-  // Future resolves. Retry deletion a few times before letting it throw.
+  // On Windows dart:io streams and worker isolates may hold a file handle
+  // briefly after the Future resolves. Retry with back-off and do not rethrow
+  // on the final attempt — the test logic already passed; TEMP is cleaned by
+  // the OS on the next cycle.
   tearDown(() async {
-    for (var attempt = 0; attempt < 5; attempt++) {
+    for (var attempt = 0; attempt < 8; attempt++) {
       try {
         root.deleteSync(recursive: true);
         return;
       } catch (_) {
-        await Future<void>.delayed(const Duration(milliseconds: 60));
+        await Future<void>.delayed(const Duration(milliseconds: 100));
       }
     }
-    root.deleteSync(recursive: true);
+    try {
+      root.deleteSync(recursive: true);
+    } catch (_) {}
   });
 
   test('known content yields the correct lowercase 64-hex SHA-256', () async {

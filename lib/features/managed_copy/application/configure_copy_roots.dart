@@ -1,3 +1,5 @@
+import '../../security/application/session_manager.dart';
+import '../../security/domain/entities/account_role.dart';
 import '../domain/repositories/managed_copy_repository.dart';
 import '../domain/services/managed_library_filesystem.dart';
 import '../domain/services/path_canonicalizer.dart';
@@ -7,20 +9,29 @@ enum ConfigureCopyRootsResult {
   chooseBoth,
   invalidFolder,
   unsafeOverlap,
+  /// Caller does not hold an active administrator session.
+  unauthorized,
 }
 
 class ConfigureCopyRoots {
   const ConfigureCopyRoots(
     this._repository,
     this._filesystem,
-    this._canonicalizer,
-  );
+    this._canonicalizer, {
+    required this._sessionManager,
+  });
 
   final ManagedCopyRepository _repository;
   final ManagedLibraryFilesystem _filesystem;
   final PathCanonicalizer _canonicalizer;
+  final SessionManager _sessionManager;
 
   Future<ConfigureCopyRootsResult> call(String? managed, String? backup) async {
+    final session = _sessionManager.currentSession;
+    if (session == null || session.role != AccountRole.admin) {
+      return ConfigureCopyRootsResult.unauthorized;
+    }
+
     if (managed == null || backup == null) {
       return ConfigureCopyRootsResult.chooseBoth;
     }

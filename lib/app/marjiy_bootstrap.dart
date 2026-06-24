@@ -10,6 +10,7 @@ import '../core/theme/app_spacing.dart';
 import '../core/widgets/app_panel.dart';
 import '../features/managed_copy/application/initialize_copy_roots.dart';
 import '../features/managed_copy/application/inspect_startup_recovery.dart';
+import '../features/security/application/bootstrap_admin_account.dart';
 import '../features/shell/presentation/pages/app_shell_page.dart';
 import '../l10n/app_localizations.dart';
 import 'app.dart';
@@ -30,6 +31,8 @@ Future<void> initializeApplication() async {
   // M11.2: record a safe status for interrupted app-owned managed-copy
   // artifacts. This never repairs or deletes files.
   await getIt<InspectStartupRecovery>()();
+  // M14.2: ensure the system administrator account exists (idempotent).
+  await getIt<BootstrapAdminAccount>()();
 }
 
 void _reportStartupError(Object error, StackTrace stack) {

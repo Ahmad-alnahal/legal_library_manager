@@ -1,6 +1,8 @@
 // lib/features/managed_copy/application/create_manual_backup.dart
 
 import '../../../core/time/clock.dart';
+import '../../security/application/session_manager.dart';
+import '../../security/domain/entities/account_role.dart';
 import '../domain/entities/manual_backup_result.dart';
 import '../domain/repositories/managed_copy_repository.dart';
 import '../domain/services/database_backup_service.dart';
@@ -13,6 +15,9 @@ import '../domain/services/operation_id_generator.dart';
 /// only. Original source files, managed PDFs, exports, logs, and temp files
 /// are never included or touched. No dart:io, Drift, FFI, or Windows APIs are
 /// imported here.
+///
+/// Throws/returns [ManualBackupFailure] with `'unauthorized'` if the current
+/// session is not an active administrator session.
 class CreateManualBackup {
   const CreateManualBackup({
     required this._repository,
@@ -20,6 +25,7 @@ class CreateManualBackup {
     required this._filesystem,
     required this._operationIdGenerator,
     required this._clock,
+    required this._sessionManager,
   });
 
   final ManagedCopyRepository _repository;
@@ -27,8 +33,15 @@ class CreateManualBackup {
   final ManagedLibraryFilesystem _filesystem;
   final OperationIdGenerator _operationIdGenerator;
   final Clock _clock;
+  final SessionManager _sessionManager;
 
   Future<ManualBackupResult> call() async {
+    // ── 0. Authorization guard ────────────────────────────────────────────────
+    final session = _sessionManager.currentSession;
+    if (session == null || session.role != AccountRole.admin) {
+      return const ManualBackupFailure(messageKey: 'unauthorized');
+    }
+
     // ── 1. Validate backup root from settings ─────────────────────────────────
 
     final roots = await _repository.loadCopyRoots();

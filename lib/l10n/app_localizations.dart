@@ -1528,6 +1528,12 @@ abstract class AppLocalizations {
   /// **'تعذّر فحص النسخ المدارة. حاول مرة أخرى.'**
   String get settingsSnackIntegrityFailed;
 
+  /// No description provided for @settingsSnackUnauthorized.
+  ///
+  /// In ar, this message translates to:
+  /// **'هذه العملية تتطلب صلاحيات المشرف.'**
+  String get settingsSnackUnauthorized;
+
   /// No description provided for @duplicatesReviewStatusReviewed.
   ///
   /// In ar, this message translates to:
@@ -1569,6 +1575,552 @@ abstract class AppLocalizations {
   /// In ar, this message translates to:
   /// **'الآن'**
   String get dashboardRelativeNow;
+
+  /// No description provided for @loginTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'تسجيل الدخول'**
+  String get loginTitle;
+
+  /// No description provided for @loginUsernameLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'اسم المستخدم'**
+  String get loginUsernameLabel;
+
+  /// No description provided for @loginPasswordLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'كلمة المرور'**
+  String get loginPasswordLabel;
+
+  /// No description provided for @loginSubmitButton.
+  ///
+  /// In ar, this message translates to:
+  /// **'دخول'**
+  String get loginSubmitButton;
+
+  /// No description provided for @loginShowPasswordTooltip.
+  ///
+  /// In ar, this message translates to:
+  /// **'إظهار كلمة المرور'**
+  String get loginShowPasswordTooltip;
+
+  /// No description provided for @loginHidePasswordTooltip.
+  ///
+  /// In ar, this message translates to:
+  /// **'إخفاء كلمة المرور'**
+  String get loginHidePasswordTooltip;
+
+  /// No description provided for @loginErrorInvalidCredentials.
+  ///
+  /// In ar, this message translates to:
+  /// **'اسم المستخدم أو كلمة المرور غير صحيحة.'**
+  String get loginErrorInvalidCredentials;
+
+  /// No description provided for @loginErrorAccountSuspended.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم تعليق الحساب. تواصل مع المدير.'**
+  String get loginErrorAccountSuspended;
+
+  /// No description provided for @loginErrorDelay.
+  ///
+  /// In ar, this message translates to:
+  /// **'يرجى الانتظار {seconds} ثانية قبل المحاولة مرة أخرى.'**
+  String loginErrorDelay(int seconds);
+
+  /// No description provided for @setupTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'إعداد حساب المدير'**
+  String get setupTitle;
+
+  /// No description provided for @setupSubtitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'قم بإنشاء كلمة مرور آمنة لحساب مدير النظام.'**
+  String get setupSubtitle;
+
+  /// No description provided for @setupPasswordLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'كلمة المرور الجديدة'**
+  String get setupPasswordLabel;
+
+  /// No description provided for @setupConfirmPasswordLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'تأكيد كلمة المرور'**
+  String get setupConfirmPasswordLabel;
+
+  /// No description provided for @setupPasswordHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'8 أحرف على الأقل'**
+  String get setupPasswordHint;
+
+  /// No description provided for @setupSubmitButton.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعيين كلمة المرور'**
+  String get setupSubmitButton;
+
+  /// No description provided for @setupErrorPasswordMismatch.
+  ///
+  /// In ar, this message translates to:
+  /// **'كلمتا المرور غير متطابقتين.'**
+  String get setupErrorPasswordMismatch;
+
+  /// No description provided for @setupErrorPasswordTooShort.
+  ///
+  /// In ar, this message translates to:
+  /// **'كلمة المرور قصيرة جدًا. الحد الأدنى 8 أحرف.'**
+  String get setupErrorPasswordTooShort;
+
+  /// No description provided for @setupErrorUnexpected.
+  ///
+  /// In ar, this message translates to:
+  /// **'حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.'**
+  String get setupErrorUnexpected;
+
+  /// No description provided for @setupRecoveryKeyTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'مفتاح الاسترداد'**
+  String get setupRecoveryKeyTitle;
+
+  /// No description provided for @setupRecoveryKeyBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'احتفظ بمفتاح الاسترداد هذا في مكان آمن بعيد عن الجهاز. هذه هي المرة الوحيدة التي يُعرض فيها. ستحتاجه لاستعادة حساب المدير إذا نسيت كلمة المرور.'**
+  String get setupRecoveryKeyBody;
+
+  /// No description provided for @setupRecoveryKeyCopyButton.
+  ///
+  /// In ar, this message translates to:
+  /// **'نسخ المفتاح'**
+  String get setupRecoveryKeyCopyButton;
+
+  /// No description provided for @setupRecoveryKeyCopied.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم نسخ مفتاح الاسترداد.'**
+  String get setupRecoveryKeyCopied;
+
+  /// No description provided for @setupRecoveryKeyConfirmLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'لقد حفظت مفتاح الاسترداد في مكان آمن'**
+  String get setupRecoveryKeyConfirmLabel;
+
+  /// No description provided for @setupContinueButton.
+  ///
+  /// In ar, this message translates to:
+  /// **'الدخول إلى التطبيق'**
+  String get setupContinueButton;
+
+  /// No description provided for @setupInProgress.
+  ///
+  /// In ar, this message translates to:
+  /// **'جارٍ إعداد الحساب...'**
+  String get setupInProgress;
+
+  /// No description provided for @loginRecoveryLinkButton.
+  ///
+  /// In ar, this message translates to:
+  /// **'نسيت كلمة مرور المدير؟'**
+  String get loginRecoveryLinkButton;
+
+  /// No description provided for @recoveryTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'استعادة حساب المدير'**
+  String get recoveryTitle;
+
+  /// No description provided for @recoverySubtitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'أدخل مفتاح الاسترداد لإعادة تعيين كلمة المرور.'**
+  String get recoverySubtitle;
+
+  /// No description provided for @recoveryKeyLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'مفتاح الاسترداد'**
+  String get recoveryKeyLabel;
+
+  /// No description provided for @recoveryKeyHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'XXXXXXXX-XXXXXXXX-XXXXXXXX-XXXXXXXX'**
+  String get recoveryKeyHint;
+
+  /// No description provided for @recoverySubmitButton.
+  ///
+  /// In ar, this message translates to:
+  /// **'تأكيد'**
+  String get recoverySubmitButton;
+
+  /// No description provided for @recoveryErrorInvalidKey.
+  ///
+  /// In ar, this message translates to:
+  /// **'مفتاح الاسترداد غير صحيح.'**
+  String get recoveryErrorInvalidKey;
+
+  /// No description provided for @recoveryErrorThrottled.
+  ///
+  /// In ar, this message translates to:
+  /// **'يرجى الانتظار {seconds} ثانية قبل المحاولة مرة أخرى.'**
+  String recoveryErrorThrottled(int seconds);
+
+  /// No description provided for @recoveryErrorUnexpected.
+  ///
+  /// In ar, this message translates to:
+  /// **'حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.'**
+  String get recoveryErrorUnexpected;
+
+  /// No description provided for @recoverySuccessTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'تمت الاستعادة بنجاح'**
+  String get recoverySuccessTitle;
+
+  /// No description provided for @recoverySuccessBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم إعادة تعيين حساب المدير. احتفظ بمفتاح الاسترداد الجديد في مكان آمن — هذه هي المرة الوحيدة التي يُعرض فيها.'**
+  String get recoverySuccessBody;
+
+  /// No description provided for @recoverySuccessCopyButton.
+  ///
+  /// In ar, this message translates to:
+  /// **'نسخ المفتاح'**
+  String get recoverySuccessCopyButton;
+
+  /// No description provided for @recoverySuccessCopied.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم نسخ مفتاح الاسترداد.'**
+  String get recoverySuccessCopied;
+
+  /// No description provided for @recoverySuccessConfirmLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'لقد حفظت مفتاح الاسترداد الجديد في مكان آمن'**
+  String get recoverySuccessConfirmLabel;
+
+  /// No description provided for @recoveryContinueButton.
+  ///
+  /// In ar, this message translates to:
+  /// **'العودة لتسجيل الدخول'**
+  String get recoveryContinueButton;
+
+  /// No description provided for @navAdministration.
+  ///
+  /// In ar, this message translates to:
+  /// **'إدارة الحسابات'**
+  String get navAdministration;
+
+  /// No description provided for @navTooltipAdministration.
+  ///
+  /// In ar, this message translates to:
+  /// **'إدارة حسابات المشغلين'**
+  String get navTooltipAdministration;
+
+  /// No description provided for @passwordChangeTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'تغيير كلمة المرور'**
+  String get passwordChangeTitle;
+
+  /// No description provided for @passwordChangeSubtitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'يجب تغيير كلمة المرور المؤقتة قبل المتابعة.'**
+  String get passwordChangeSubtitle;
+
+  /// No description provided for @passwordChangeCurrentLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'كلمة المرور الحالية'**
+  String get passwordChangeCurrentLabel;
+
+  /// No description provided for @passwordChangeNewLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'كلمة المرور الجديدة'**
+  String get passwordChangeNewLabel;
+
+  /// No description provided for @passwordChangeConfirmLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'تأكيد كلمة المرور الجديدة'**
+  String get passwordChangeConfirmLabel;
+
+  /// No description provided for @passwordChangeSubmitButton.
+  ///
+  /// In ar, this message translates to:
+  /// **'تغيير كلمة المرور'**
+  String get passwordChangeSubmitButton;
+
+  /// No description provided for @passwordChangeErrorIncorrectCurrent.
+  ///
+  /// In ar, this message translates to:
+  /// **'كلمة المرور الحالية غير صحيحة.'**
+  String get passwordChangeErrorIncorrectCurrent;
+
+  /// No description provided for @accountManagementTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'إدارة الحسابات'**
+  String get accountManagementTitle;
+
+  /// No description provided for @accountManagementCreateButton.
+  ///
+  /// In ar, this message translates to:
+  /// **'حساب جديد'**
+  String get accountManagementCreateButton;
+
+  /// No description provided for @accountManagementAdminSection.
+  ///
+  /// In ar, this message translates to:
+  /// **'حساب المدير'**
+  String get accountManagementAdminSection;
+
+  /// No description provided for @accountManagementOperatorsSection.
+  ///
+  /// In ar, this message translates to:
+  /// **'حسابات المشغلين'**
+  String get accountManagementOperatorsSection;
+
+  /// No description provided for @accountManagementNoOperators.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا توجد حسابات مشغلين بعد.'**
+  String get accountManagementNoOperators;
+
+  /// No description provided for @accountManagementDisplayNameLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'الاسم المعروض'**
+  String get accountManagementDisplayNameLabel;
+
+  /// No description provided for @accountManagementTempPasswordLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'كلمة المرور المؤقتة'**
+  String get accountManagementTempPasswordLabel;
+
+  /// No description provided for @accountManagementCreateDialogTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'إنشاء حساب مشغل'**
+  String get accountManagementCreateDialogTitle;
+
+  /// No description provided for @accountManagementIssueTempPasswordTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'إصدار كلمة مرور مؤقتة'**
+  String get accountManagementIssueTempPasswordTitle;
+
+  /// No description provided for @accountManagementIssueTempPasswordBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'إصدار كلمة مرور مؤقتة للمشغل: {operatorName}'**
+  String accountManagementIssueTempPasswordBody(String operatorName);
+
+  /// No description provided for @accountManagementCancelButton.
+  ///
+  /// In ar, this message translates to:
+  /// **'إلغاء'**
+  String get accountManagementCancelButton;
+
+  /// No description provided for @accountManagementCreateConfirmButton.
+  ///
+  /// In ar, this message translates to:
+  /// **'إنشاء'**
+  String get accountManagementCreateConfirmButton;
+
+  /// No description provided for @accountManagementConfirmButton.
+  ///
+  /// In ar, this message translates to:
+  /// **'تأكيد'**
+  String get accountManagementConfirmButton;
+
+  /// No description provided for @accountManagementErrorDuplicateUsername.
+  ///
+  /// In ar, this message translates to:
+  /// **'اسم المستخدم هذا مستخدم بالفعل.'**
+  String get accountManagementErrorDuplicateUsername;
+
+  /// No description provided for @accountManagementErrorUnauthorized.
+  ///
+  /// In ar, this message translates to:
+  /// **'غير مصرح بهذه العملية. يُرجى إعادة تسجيل الدخول.'**
+  String get accountManagementErrorUnauthorized;
+
+  /// No description provided for @accountStatusActive.
+  ///
+  /// In ar, this message translates to:
+  /// **'نشط'**
+  String get accountStatusActive;
+
+  /// No description provided for @accountStatusSuspended.
+  ///
+  /// In ar, this message translates to:
+  /// **'موقوف'**
+  String get accountStatusSuspended;
+
+  /// No description provided for @accountStatusDisabled.
+  ///
+  /// In ar, this message translates to:
+  /// **'معطّل'**
+  String get accountStatusDisabled;
+
+  /// No description provided for @accountActionSuspend.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعليق الحساب'**
+  String get accountActionSuspend;
+
+  /// No description provided for @accountActionReactivate.
+  ///
+  /// In ar, this message translates to:
+  /// **'إعادة تفعيل'**
+  String get accountActionReactivate;
+
+  /// No description provided for @accountActionIssueTempPassword.
+  ///
+  /// In ar, this message translates to:
+  /// **'إصدار كلمة مرور مؤقتة'**
+  String get accountActionIssueTempPassword;
+
+  /// No description provided for @adminTabAccounts.
+  ///
+  /// In ar, this message translates to:
+  /// **'الحسابات'**
+  String get adminTabAccounts;
+
+  /// No description provided for @adminTabAuditLog.
+  ///
+  /// In ar, this message translates to:
+  /// **'سجل الأمان'**
+  String get adminTabAuditLog;
+
+  /// No description provided for @auditLogTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'سجل الأمان'**
+  String get auditLogTitle;
+
+  /// No description provided for @auditLogSubtitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'سجل دائم لجميع أحداث الأمان، مرتبة من الأحدث إلى الأقدم.'**
+  String get auditLogSubtitle;
+
+  /// No description provided for @auditLogEmpty.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا توجد أحداث مسجلة بعد.'**
+  String get auditLogEmpty;
+
+  /// No description provided for @auditLogLoadMore.
+  ///
+  /// In ar, this message translates to:
+  /// **'تحميل المزيد'**
+  String get auditLogLoadMore;
+
+  /// No description provided for @auditLogErrorBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر تحميل سجل الأمان.'**
+  String get auditLogErrorBody;
+
+  /// No description provided for @auditLogRetry.
+  ///
+  /// In ar, this message translates to:
+  /// **'إعادة المحاولة'**
+  String get auditLogRetry;
+
+  /// No description provided for @auditActorSystem.
+  ///
+  /// In ar, this message translates to:
+  /// **'النظام'**
+  String get auditActorSystem;
+
+  /// No description provided for @auditActorAdmin.
+  ///
+  /// In ar, this message translates to:
+  /// **'المدير'**
+  String get auditActorAdmin;
+
+  /// No description provided for @auditEventAdminBootstrapped.
+  ///
+  /// In ar, this message translates to:
+  /// **'تهيئة حساب المدير'**
+  String get auditEventAdminBootstrapped;
+
+  /// No description provided for @auditEventPasswordChanged.
+  ///
+  /// In ar, this message translates to:
+  /// **'تغيير كلمة المرور'**
+  String get auditEventPasswordChanged;
+
+  /// No description provided for @auditEventLoginSuccess.
+  ///
+  /// In ar, this message translates to:
+  /// **'تسجيل دخول ناجح'**
+  String get auditEventLoginSuccess;
+
+  /// No description provided for @auditEventLoginFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'محاولة دخول فاشلة'**
+  String get auditEventLoginFailed;
+
+  /// No description provided for @auditEventAccountCreated.
+  ///
+  /// In ar, this message translates to:
+  /// **'إنشاء حساب مشغل'**
+  String get auditEventAccountCreated;
+
+  /// No description provided for @auditEventAccountSuspended.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعليق حساب'**
+  String get auditEventAccountSuspended;
+
+  /// No description provided for @auditEventAccountReactivated.
+  ///
+  /// In ar, this message translates to:
+  /// **'إعادة تفعيل حساب'**
+  String get auditEventAccountReactivated;
+
+  /// No description provided for @auditEventTempPasswordIssued.
+  ///
+  /// In ar, this message translates to:
+  /// **'إصدار كلمة مرور مؤقتة'**
+  String get auditEventTempPasswordIssued;
+
+  /// No description provided for @auditEventAccountAutoSuspended.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعليق تلقائي بسبب محاولات متكررة'**
+  String get auditEventAccountAutoSuspended;
+
+  /// No description provided for @auditEventRecoveryKeyRedeemed.
+  ///
+  /// In ar, this message translates to:
+  /// **'استخدام مفتاح الاسترداد'**
+  String get auditEventRecoveryKeyRedeemed;
+
+  /// No description provided for @auditEventUnknown.
+  ///
+  /// In ar, this message translates to:
+  /// **'حدث غير معروف'**
+  String get auditEventUnknown;
 }
 
 class _AppLocalizationsDelegate

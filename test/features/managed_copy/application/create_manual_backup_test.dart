@@ -3,6 +3,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:legal_library_manager/core/time/clock.dart';
 import 'package:legal_library_manager/features/managed_copy/application/create_manual_backup.dart';
+import 'package:legal_library_manager/features/security/application/session_manager.dart';
+import 'package:legal_library_manager/features/security/domain/entities/account_role.dart';
+import 'package:legal_library_manager/features/security/domain/entities/session.dart';
 import 'package:legal_library_manager/features/managed_copy/domain/entities/copy_roots.dart';
 import 'package:legal_library_manager/features/managed_copy/domain/entities/document_copy_state.dart';
 import 'package:legal_library_manager/features/managed_copy/domain/entities/managed_copy_persistence_data.dart';
@@ -203,10 +206,18 @@ class _FixedClock extends Clock {
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
+final _adminSession = Session(
+  accountId: 'admin',
+  username: 'marjiy@admin',
+  role: AccountRole.admin,
+  startedAt: DateTime.utc(2026, 6, 24, 9),
+);
+
 CreateManualBackup _makeUseCase({
   required _FakeRepository repository,
   required _FakeBackupService backupService,
   bool directoryExists = true,
+  SessionManager? sessionManager,
 }) {
   return CreateManualBackup(
     repository: repository,
@@ -214,12 +225,61 @@ CreateManualBackup _makeUseCase({
     filesystem: _FakeFilesystem(directoryExists: directoryExists),
     operationIdGenerator: _FakeOperationIdGenerator(),
     clock: _FixedClock(),
+    sessionManager: sessionManager ?? (SessionManager()..login(_adminSession)),
   );
 }
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 void main() {
+  group('CreateManualBackup — authorization guards', () {
+    test('returns unauthorized when no session is active', () async {
+      final repo = _FakeRepository(
+        managedRoot: r'C:\lib',
+        backupRoot: r'C:\Backups',
+      );
+      final svc = _FakeBackupService(
+        const BackupSuccess(backupPath: r'C:\Backups\x.sqlite'),
+      );
+      final manager = SessionManager();
+      final result = await _makeUseCase(
+        repository: repo,
+        backupService: svc,
+        sessionManager: manager,
+      )();
+      expect(result, isA<ManualBackupFailure>());
+      expect((result as ManualBackupFailure).messageKey, 'unauthorized');
+      expect(svc.callCount, 0);
+      manager.dispose();
+    });
+
+    test('returns unauthorized when an operator session is active', () async {
+      final repo = _FakeRepository(
+        managedRoot: r'C:\lib',
+        backupRoot: r'C:\Backups',
+      );
+      final svc = _FakeBackupService(
+        const BackupSuccess(backupPath: r'C:\Backups\x.sqlite'),
+      );
+      final manager = SessionManager();
+      manager.login(Session(
+        accountId: 'op1',
+        username: 'op@operator',
+        role: AccountRole.operator,
+        startedAt: DateTime.utc(2026, 6, 24, 9),
+      ));
+      final result = await _makeUseCase(
+        repository: repo,
+        backupService: svc,
+        sessionManager: manager,
+      )();
+      expect(result, isA<ManualBackupFailure>());
+      expect((result as ManualBackupFailure).messageKey, 'unauthorized');
+      expect(svc.callCount, 0);
+      manager.dispose();
+    });
+  });
+
   group('CreateManualBackup — precondition guards', () {
     test('returns not_configured when backup root is null', () async {
       final repo = _FakeRepository(managedRoot: r'C:\lib', backupRoot: null);
@@ -410,13 +470,16 @@ void main() {
         onCall: (root, _, _) => capturedRoot = root,
         result: const BackupSuccess(backupPath: r'C:\Backups\x.sqlite'),
       );
+      final captureManager = SessionManager()..login(_adminSession);
       await CreateManualBackup(
         repository: repo,
         backupService: svc,
         filesystem: _FakeFilesystem(directoryExists: true),
         operationIdGenerator: _FakeOperationIdGenerator(),
         clock: _FixedClock(),
+        sessionManager: captureManager,
       )();
+      captureManager.dispose();
 
       expect(capturedRoot, r'C:\Backups');
       expect(

@@ -10,4 +10,5 @@ enum AppSection {
   categories,
   duplicates,
   settings,
+  administration,
 }

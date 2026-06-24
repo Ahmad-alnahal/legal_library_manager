@@ -11,6 +11,10 @@ import 'package:legal_library_manager/features/managed_copy/domain/entities/reco
 import 'package:legal_library_manager/features/managed_copy/domain/repositories/managed_copy_repository.dart';
 import 'package:legal_library_manager/features/managed_copy/domain/services/managed_library_filesystem.dart';
 import 'package:legal_library_manager/features/managed_copy/domain/services/operation_id_generator.dart';
+import 'package:legal_library_manager/features/security/application/session_manager.dart';
+import 'package:legal_library_manager/features/security/application/unauthorized_exception.dart';
+import 'package:legal_library_manager/features/security/domain/entities/account_role.dart';
+import 'package:legal_library_manager/features/security/domain/entities/session.dart';
 
 // ── Test doubles ──────────────────────────────────────────────────────────────
 
@@ -151,22 +155,65 @@ ManagedFileRef _ref({
   sha256Hash: hash,
 );
 
+final _adminSession = Session(
+  accountId: 'admin',
+  username: 'marjiy@admin',
+  role: AccountRole.admin,
+  startedAt: DateTime.utc(2026, 6, 24, 9),
+);
+
 ReconcileManagedCopyIntegrity _build({
   required _StubRepo repo,
   required _StubFs fs,
   Map<String, String?> hashes = const {kPath: kHash},
-}) => ReconcileManagedCopyIntegrity(
-  repository: repo,
-  filesystem: fs,
-  hasher: _StubHasher(hashes),
-  operationIdGenerator: _StubOpGen(),
-  clock: _FakeClock(),
-);
+  SessionManager? sessionManager,
+}) {
+  final mgr = sessionManager ?? (SessionManager()..login(_adminSession));
+  return ReconcileManagedCopyIntegrity(
+    repository: repo,
+    filesystem: fs,
+    hasher: _StubHasher(hashes),
+    operationIdGenerator: _StubOpGen(),
+    clock: _FakeClock(),
+    sessionManager: mgr,
+  );
+}
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 void main() {
   group('ReconcileManagedCopyIntegrity', () {
+    // ── Authorization ──────────────────────────────────────────────────────
+
+    test('throws UnauthorizedException when no session is active', () async {
+      final noSessionManager = SessionManager();
+      final uc = _build(
+        repo: _StubRepo([]),
+        fs: _StubFs({}),
+        sessionManager: noSessionManager,
+      );
+      await expectLater(uc.call(), throwsA(isA<UnauthorizedException>()));
+      noSessionManager.dispose();
+    });
+
+    test('throws UnauthorizedException when an operator session is active',
+        () async {
+      final operatorManager = SessionManager();
+      operatorManager.login(Session(
+        accountId: 'op1',
+        username: 'op@operator',
+        role: AccountRole.operator,
+        startedAt: DateTime.utc(2026, 6, 24, 9),
+      ));
+      final uc = _build(
+        repo: _StubRepo([]),
+        fs: _StubFs({}),
+        sessionManager: operatorManager,
+      );
+      await expectLater(uc.call(), throwsA(isA<UnauthorizedException>()));
+      operatorManager.dispose();
+    });
+
     // ── Empty / no-op ──────────────────────────────────────────────────────
 
     test('returns empty result when no managed-copy files exist', () async {

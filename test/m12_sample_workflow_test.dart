@@ -32,6 +32,9 @@ import 'package:legal_library_manager/features/import/domain/services/file_hashe
 import 'package:legal_library_manager/features/managed_copy/application/managed_copy_use_case.dart';
 import 'package:legal_library_manager/features/managed_copy/application/reconcile_managed_copy_integrity.dart';
 import 'package:legal_library_manager/features/managed_copy/data/repositories/drift_managed_copy_repository.dart';
+import 'package:legal_library_manager/features/security/application/session_manager.dart';
+import 'package:legal_library_manager/features/security/domain/entities/account_role.dart';
+import 'package:legal_library_manager/features/security/domain/entities/session.dart';
 import 'package:legal_library_manager/features/managed_copy/data/services/default_operation_id_generator.dart';
 import 'package:legal_library_manager/features/managed_copy/data/services/sqlite_database_backup_service.dart';
 import 'package:legal_library_manager/features/managed_copy/data/services/windows_managed_library_filesystem.dart';
@@ -330,12 +333,20 @@ void main() {
 
         // ── Phase 7: Integrity reconciliation — all healthy ──────────────────────
 
+        final workflowSessionManager = SessionManager();
+        workflowSessionManager.login(Session(
+          accountId: 'admin',
+          username: 'marjiy@admin',
+          role: AccountRole.admin,
+          startedAt: DateTime.utc(2026, 6, 24, 9),
+        ));
         final reconcile = ReconcileManagedCopyIntegrity(
           repository: repo,
           filesystem: const WindowsManagedLibraryFilesystem(),
           hasher: const StreamingFileHasher(),
           operationIdGenerator: const DefaultOperationIdGenerator(),
           clock: const SystemClock(),
+          sessionManager: workflowSessionManager,
         );
 
         final result1 = await reconcile();

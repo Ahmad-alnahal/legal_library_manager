@@ -9,6 +9,7 @@ import 'package:legal_library_manager/features/managed_copy/application/initiali
 import 'package:legal_library_manager/features/managed_copy/application/inspect_startup_recovery.dart';
 import 'package:legal_library_manager/features/managed_copy/domain/entities/copy_roots_setup_report.dart';
 import 'package:legal_library_manager/features/managed_copy/domain/entities/startup_recovery_report.dart';
+import 'package:legal_library_manager/features/security/application/bootstrap_admin_account.dart';
 
 void main() {
   const readyKey = Key('ready_home');
@@ -104,17 +105,25 @@ void main() {
     configureDependencies();
     await getIt.unregister<InitializeCopyRoots>();
     await getIt.unregister<InspectStartupRecovery>();
+    await getIt.unregister<BootstrapAdminAccount>();
     getIt.registerSingleton<InitializeCopyRoots>(
       _FakeInitializeCopyRoots(calls),
     );
     getIt.registerSingleton<InspectStartupRecovery>(
       _FakeInspectStartupRecovery(calls),
     );
+    getIt.registerSingleton<BootstrapAdminAccount>(
+      _FakeBootstrapAdminAccount(calls),
+    );
     addTearDown(getIt.reset);
 
     await initializeApplication();
 
-    expect(calls, ['initialize_roots', 'inspect_startup_recovery']);
+    expect(calls, [
+      'initialize_roots',
+      'inspect_startup_recovery',
+      'bootstrap_admin',
+    ]);
   });
 }
 
@@ -145,6 +154,18 @@ class _FakeInspectStartupRecovery implements InspectStartupRecovery {
     calls.add('inspect_startup_recovery');
     return StartupRecoveryReport.healthy;
   }
+
+  @override
+  dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);
+}
+
+class _FakeBootstrapAdminAccount implements BootstrapAdminAccount {
+  _FakeBootstrapAdminAccount(this.calls);
+
+  final List<String> calls;
+
+  @override
+  Future<void> call() async => calls.add('bootstrap_admin');
 
   @override
   dynamic noSuchMethod(Invocation invocation) => super.noSuchMethod(invocation);

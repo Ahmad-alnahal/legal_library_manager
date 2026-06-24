@@ -8,6 +8,9 @@ import '../../../documents/presentation/pages/document_review_page.dart';
 import '../../../documents/presentation/pages/documents_page.dart';
 import '../../../duplicates/presentation/pages/duplicate_review_page.dart';
 import '../../../import/presentation/pages/import_page.dart';
+import '../../../security/application/session_manager.dart';
+import '../../../security/domain/entities/account_role.dart';
+import '../../../security/presentation/pages/administration_page.dart';
 import '../../../settings/presentation/pages/settings_page.dart';
 import '../../domain/entities/app_section.dart';
 import '../bloc/navigation_bloc.dart';
@@ -22,31 +25,45 @@ class AppShellPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final sessionManager = getIt<SessionManager>();
     return BlocProvider<NavigationBloc>(
       create: (_) => getIt<NavigationBloc>(),
-      child: Scaffold(
-        body: SafeArea(
-          child: LayoutBuilder(
-            builder: (context, constraints) {
-              final bool extended = constraints.maxWidth >= _compactBreakpoint;
-              return BlocBuilder<NavigationBloc, NavigationState>(
-                builder: (context, state) {
-                  return Row(
-                    children: [
-                      // First child renders on the right under RTL.
-                      SideNavigation(
-                        selected: state.section,
-                        extended: extended,
-                        onSelected: (section) => context
-                            .read<NavigationBloc>()
-                            .add(NavigationSectionSelected(section)),
-                      ),
-                      Expanded(child: _SectionView(section: state.section)),
-                    ],
-                  );
-                },
-              );
-            },
+      child: Listener(
+        // Resets the admin 30-minute inactivity timer on every pointer-down
+        // and scroll event so the session expires after 30 minutes of genuine
+        // inactivity, not 30 minutes after login.
+        behavior: HitTestBehavior.translucent,
+        onPointerDown: (_) => sessionManager.resetAdminInactivityTimer(),
+        onPointerSignal: (_) => sessionManager.resetAdminInactivityTimer(),
+        child: Scaffold(
+          body: SafeArea(
+            child: LayoutBuilder(
+              builder: (context, constraints) {
+                final bool extended =
+                    constraints.maxWidth >= _compactBreakpoint;
+                return BlocBuilder<NavigationBloc, NavigationState>(
+                  builder: (context, state) {
+                    final bool isAdmin =
+                        sessionManager.currentSession?.role ==
+                            AccountRole.admin;
+                    return Row(
+                      children: [
+                        // First child renders on the right under RTL.
+                        SideNavigation(
+                          selected: state.section,
+                          extended: extended,
+                          showAdministration: isAdmin,
+                          onSelected: (section) => context
+                              .read<NavigationBloc>()
+                              .add(NavigationSectionSelected(section)),
+                        ),
+                        Expanded(child: _SectionView(section: state.section)),
+                      ],
+                    );
+                  },
+                );
+              },
+            ),
           ),
         ),
       ),
@@ -69,6 +86,7 @@ class _SectionView extends StatelessWidget {
       AppSection.categories => const CategoryManagementPage(),
       AppSection.duplicates => const DuplicateReviewPage(),
       AppSection.settings => const SettingsPage(),
+      AppSection.administration => const AdministrationPage(),
     };
   }
 }

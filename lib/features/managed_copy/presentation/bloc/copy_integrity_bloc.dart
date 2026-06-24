@@ -4,6 +4,7 @@ import 'package:bloc_concurrency/bloc_concurrency.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../security/application/unauthorized_exception.dart';
 import '../../domain/entities/reconcile_integrity_result.dart';
 
 // ── Events ────────────────────────────────────────────────────────────────────
@@ -79,6 +80,14 @@ class CopyIntegrityBloc extends Bloc<CopyIntegrityEvent, CopyIntegrityState> {
           busy: false,
           messageKey: result.isClean ? 'clean' : 'issues',
           issueCount: issueCount,
+          sequence: state.sequence + 1,
+        ),
+      );
+    } on UnauthorizedException {
+      emit(
+        CopyIntegrityState(
+          busy: false,
+          messageKey: 'unauthorized',
           sequence: state.sequence + 1,
         ),
       );

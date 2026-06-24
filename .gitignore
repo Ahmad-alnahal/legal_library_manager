@@ -64,6 +64,9 @@ app.*.map.json
 /samples/
 /test_data/private/
 
+# Local agent planning notes; keep implementation plans out of commits.
+/docs/superpowers/plans/
+
 # Never track legal/source document files in the application repository
 *.pdf
 *.doc

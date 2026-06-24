@@ -60,6 +60,7 @@ dependencies:
   win32: ^5.15.0
   # Arena allocator and toNativeUtf16 used alongside win32 in the OS boundary.
   ffi: ^2.2.0
+  argon2: ^1.0.1
 
 dev_dependencies:
   flutter_test:

@@ -9,6 +9,9 @@ import 'package:legal_library_manager/features/managed_copy/application/configur
 import 'package:legal_library_manager/features/managed_copy/domain/repositories/managed_copy_repository.dart';
 import 'package:legal_library_manager/features/managed_copy/domain/services/managed_library_filesystem.dart';
 import 'package:legal_library_manager/features/managed_copy/domain/services/path_canonicalizer.dart';
+import 'package:legal_library_manager/features/security/application/session_manager.dart';
+import 'package:legal_library_manager/features/security/domain/entities/account_role.dart';
+import 'package:legal_library_manager/features/security/domain/entities/session.dart';
 
 // ── Test doubles ──────────────────────────────────────────────────────────────
 
@@ -56,16 +59,33 @@ class _Canonicalizer implements PathCanonicalizer {
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
+final _adminSession = Session(
+  accountId: 'admin',
+  username: 'marjiy@admin',
+  role: AccountRole.admin,
+  startedAt: DateTime.utc(2026, 6, 24, 9),
+);
+
 void main() {
   late _Repo repo;
   late _Filesystem filesystem;
+  late SessionManager sessionManager;
   late ConfigureCopyRoots configure;
 
   setUp(() {
     repo = _Repo();
     filesystem = _Filesystem();
-    configure = ConfigureCopyRoots(repo, filesystem, _Canonicalizer());
+    sessionManager = SessionManager();
+    sessionManager.login(_adminSession);
+    configure = ConfigureCopyRoots(
+      repo,
+      filesystem,
+      _Canonicalizer(),
+      sessionManager: sessionManager,
+    );
   });
+
+  tearDown(() => sessionManager.dispose());
 
   group('settings path validation', () {
     // ── Identical roots ──────────────────────────────────────────────────────

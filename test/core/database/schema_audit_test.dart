@@ -67,6 +67,11 @@ void main() {
       // Export (§10)
       'export_batches',
       'export_batch_documents',
+      // Security (M14)
+      'accounts',
+      'account_security_state',
+      'recovery_credentials',
+      'security_audit_log',
     ];
 
     // Every required named index (§12) plus the custom partial indexes.
@@ -107,6 +112,13 @@ void main() {
       'ux_main_categories_normalized_name_en',
       'ux_sub_categories_main_normalized_name_ar',
       'ux_sub_categories_main_normalized_name_en',
+      // M14 security indexes (schema v3).
+      'ux_accounts_username',
+      'ix_accounts_role_key',
+      'ix_accounts_status_key',
+      'ix_security_audit_log_created_at',
+      'ix_security_audit_log_event_type',
+      'ix_security_audit_log_actor',
     ];
 
     test('all expected tables exist and bootstrap_info does not', () async {
@@ -115,7 +127,7 @@ void main() {
         expect(tables, contains(t), reason: 'missing table $t');
       }
       expect(tables, isNot(contains('bootstrap_info')));
-      expect(expectedTables.length, 32);
+      expect(expectedTables.length, 36);
     });
 
     test('all required named indexes exist', () async {
@@ -125,12 +137,12 @@ void main() {
       }
     });
 
-    test('schema is created at version 2', () async {
-      expect(db.schemaVersion, 2);
+    test('schema is created at version 3', () async {
+      expect(db.schemaVersion, 3);
       final QueryRow row = await db
           .customSelect('PRAGMA user_version;')
           .getSingle();
-      expect(row.read<int>('user_version'), 2);
+      expect(row.read<int>('user_version'), 3);
     });
 
     test('category tables carry the normalized-name columns', () async {

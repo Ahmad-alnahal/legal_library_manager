@@ -1,5 +1,7 @@
 // lib/features/managed_copy/application/apply_default_copy_roots.dart
 
+import '../../security/application/session_manager.dart';
+import '../../security/domain/entities/account_role.dart';
 import '../domain/services/documents_directory_resolver.dart';
 import '../domain/services/managed_library_filesystem.dart';
 import 'configure_copy_roots.dart';
@@ -22,6 +24,9 @@ enum ApplyDefaultCopyRootsResult {
 
   /// [ConfigureCopyRoots] returned an unexpected error (invalid folder, etc.).
   configurationFailed,
+
+  /// Caller does not hold an active administrator session.
+  unauthorized,
 }
 
 /// Forces both configured roots to the canonical MARJIY default locations
@@ -42,17 +47,24 @@ class ApplyDefaultCopyRoots {
     required this._documentsResolver,
     required this._filesystem,
     required this._configureCopyRoots,
+    required this._sessionManager,
   });
 
   final DocumentsDirectoryResolver _documentsResolver;
   final ManagedLibraryFilesystem _filesystem;
   final ConfigureCopyRoots _configureCopyRoots;
+  final SessionManager _sessionManager;
 
   static const String _marjiyFolder = 'MARJIY';
   static const String _managedLibraryFolder = 'ManagedLibrary';
   static const String _databaseBackupsFolder = 'DatabaseBackups';
 
   Future<ApplyDefaultCopyRootsResult> call() async {
+    final session = _sessionManager.currentSession;
+    if (session == null || session.role != AccountRole.admin) {
+      return ApplyDefaultCopyRootsResult.unauthorized;
+    }
+
     final String? documentsPath = await _documentsResolver
         .resolveDocumentsPath();
     if (documentsPath == null) {
@@ -91,6 +103,8 @@ class ApplyDefaultCopyRoots {
       ConfigureCopyRootsResult.saved => ApplyDefaultCopyRootsResult.applied,
       ConfigureCopyRootsResult.unsafeOverlap =>
         ApplyDefaultCopyRootsResult.unsafeOverlap,
+      ConfigureCopyRootsResult.unauthorized =>
+        ApplyDefaultCopyRootsResult.unauthorized,
       _ => ApplyDefaultCopyRootsResult.configurationFailed,
     };
   }

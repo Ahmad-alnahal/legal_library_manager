@@ -15469,6 +15469,1988 @@ class ExportBatchDocumentsCompanion
   }
 }
 
+class $AccountsTable extends Accounts
+    with TableInfo<$AccountsTable, AccountRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AccountsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _internalIdMeta = const VerificationMeta(
+    'internalId',
+  );
+  @override
+  late final GeneratedColumn<String> internalId = GeneratedColumn<String>(
+    'internal_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _usernameMeta = const VerificationMeta(
+    'username',
+  );
+  @override
+  late final GeneratedColumn<String> username = GeneratedColumn<String>(
+    'username',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _displayNameMeta = const VerificationMeta(
+    'displayName',
+  );
+  @override
+  late final GeneratedColumn<String> displayName = GeneratedColumn<String>(
+    'display_name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _roleKeyMeta = const VerificationMeta(
+    'roleKey',
+  );
+  @override
+  late final GeneratedColumn<String> roleKey = GeneratedColumn<String>(
+    'role_key',
+    aliasedName,
+    false,
+    check: () => roleKey.isIn(const ['admin', 'operator']),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _statusKeyMeta = const VerificationMeta(
+    'statusKey',
+  );
+  @override
+  late final GeneratedColumn<String> statusKey = GeneratedColumn<String>(
+    'status_key',
+    aliasedName,
+    false,
+    check: () => statusKey.isIn(const ['active', 'suspended', 'disabled']),
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('active'),
+  );
+  static const VerificationMeta _mustChangePasswordMeta =
+      const VerificationMeta('mustChangePassword');
+  @override
+  late final GeneratedColumn<bool> mustChangePassword = GeneratedColumn<bool>(
+    'must_change_password',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("must_change_password" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  static const VerificationMeta _passwordHashMeta = const VerificationMeta(
+    'passwordHash',
+  );
+  @override
+  late final GeneratedColumn<String> passwordHash = GeneratedColumn<String>(
+    'password_hash',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<String> createdAt = GeneratedColumn<String>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<String> updatedAt = GeneratedColumn<String>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _createdByIdMeta = const VerificationMeta(
+    'createdById',
+  );
+  @override
+  late final GeneratedColumn<String> createdById = GeneratedColumn<String>(
+    'created_by_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES accounts (internal_id) ON DELETE SET NULL',
+    ),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    internalId,
+    username,
+    displayName,
+    roleKey,
+    statusKey,
+    mustChangePassword,
+    passwordHash,
+    createdAt,
+    updatedAt,
+    createdById,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'accounts';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<AccountRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('internal_id')) {
+      context.handle(
+        _internalIdMeta,
+        internalId.isAcceptableOrUnknown(data['internal_id']!, _internalIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_internalIdMeta);
+    }
+    if (data.containsKey('username')) {
+      context.handle(
+        _usernameMeta,
+        username.isAcceptableOrUnknown(data['username']!, _usernameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_usernameMeta);
+    }
+    if (data.containsKey('display_name')) {
+      context.handle(
+        _displayNameMeta,
+        displayName.isAcceptableOrUnknown(
+          data['display_name']!,
+          _displayNameMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_displayNameMeta);
+    }
+    if (data.containsKey('role_key')) {
+      context.handle(
+        _roleKeyMeta,
+        roleKey.isAcceptableOrUnknown(data['role_key']!, _roleKeyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_roleKeyMeta);
+    }
+    if (data.containsKey('status_key')) {
+      context.handle(
+        _statusKeyMeta,
+        statusKey.isAcceptableOrUnknown(data['status_key']!, _statusKeyMeta),
+      );
+    }
+    if (data.containsKey('must_change_password')) {
+      context.handle(
+        _mustChangePasswordMeta,
+        mustChangePassword.isAcceptableOrUnknown(
+          data['must_change_password']!,
+          _mustChangePasswordMeta,
+        ),
+      );
+    }
+    if (data.containsKey('password_hash')) {
+      context.handle(
+        _passwordHashMeta,
+        passwordHash.isAcceptableOrUnknown(
+          data['password_hash']!,
+          _passwordHashMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_passwordHashMeta);
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    if (data.containsKey('created_by_id')) {
+      context.handle(
+        _createdByIdMeta,
+        createdById.isAcceptableOrUnknown(
+          data['created_by_id']!,
+          _createdByIdMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {internalId};
+  @override
+  AccountRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AccountRow(
+      internalId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}internal_id'],
+      )!,
+      username: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}username'],
+      )!,
+      displayName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}display_name'],
+      )!,
+      roleKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}role_key'],
+      )!,
+      statusKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status_key'],
+      )!,
+      mustChangePassword: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}must_change_password'],
+      )!,
+      passwordHash: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}password_hash'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}updated_at'],
+      )!,
+      createdById: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}created_by_id'],
+      ),
+    );
+  }
+
+  @override
+  $AccountsTable createAlias(String alias) {
+    return $AccountsTable(attachedDatabase, alias);
+  }
+}
+
+class AccountRow extends DataClass implements Insertable<AccountRow> {
+  final String internalId;
+  final String username;
+  final String displayName;
+  final String roleKey;
+  final String statusKey;
+  final bool mustChangePassword;
+  final String passwordHash;
+  final String createdAt;
+  final String updatedAt;
+  final String? createdById;
+  const AccountRow({
+    required this.internalId,
+    required this.username,
+    required this.displayName,
+    required this.roleKey,
+    required this.statusKey,
+    required this.mustChangePassword,
+    required this.passwordHash,
+    required this.createdAt,
+    required this.updatedAt,
+    this.createdById,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['internal_id'] = Variable<String>(internalId);
+    map['username'] = Variable<String>(username);
+    map['display_name'] = Variable<String>(displayName);
+    map['role_key'] = Variable<String>(roleKey);
+    map['status_key'] = Variable<String>(statusKey);
+    map['must_change_password'] = Variable<bool>(mustChangePassword);
+    map['password_hash'] = Variable<String>(passwordHash);
+    map['created_at'] = Variable<String>(createdAt);
+    map['updated_at'] = Variable<String>(updatedAt);
+    if (!nullToAbsent || createdById != null) {
+      map['created_by_id'] = Variable<String>(createdById);
+    }
+    return map;
+  }
+
+  AccountsCompanion toCompanion(bool nullToAbsent) {
+    return AccountsCompanion(
+      internalId: Value(internalId),
+      username: Value(username),
+      displayName: Value(displayName),
+      roleKey: Value(roleKey),
+      statusKey: Value(statusKey),
+      mustChangePassword: Value(mustChangePassword),
+      passwordHash: Value(passwordHash),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+      createdById: createdById == null && nullToAbsent
+          ? const Value.absent()
+          : Value(createdById),
+    );
+  }
+
+  factory AccountRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AccountRow(
+      internalId: serializer.fromJson<String>(json['internalId']),
+      username: serializer.fromJson<String>(json['username']),
+      displayName: serializer.fromJson<String>(json['displayName']),
+      roleKey: serializer.fromJson<String>(json['roleKey']),
+      statusKey: serializer.fromJson<String>(json['statusKey']),
+      mustChangePassword: serializer.fromJson<bool>(json['mustChangePassword']),
+      passwordHash: serializer.fromJson<String>(json['passwordHash']),
+      createdAt: serializer.fromJson<String>(json['createdAt']),
+      updatedAt: serializer.fromJson<String>(json['updatedAt']),
+      createdById: serializer.fromJson<String?>(json['createdById']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'internalId': serializer.toJson<String>(internalId),
+      'username': serializer.toJson<String>(username),
+      'displayName': serializer.toJson<String>(displayName),
+      'roleKey': serializer.toJson<String>(roleKey),
+      'statusKey': serializer.toJson<String>(statusKey),
+      'mustChangePassword': serializer.toJson<bool>(mustChangePassword),
+      'passwordHash': serializer.toJson<String>(passwordHash),
+      'createdAt': serializer.toJson<String>(createdAt),
+      'updatedAt': serializer.toJson<String>(updatedAt),
+      'createdById': serializer.toJson<String?>(createdById),
+    };
+  }
+
+  AccountRow copyWith({
+    String? internalId,
+    String? username,
+    String? displayName,
+    String? roleKey,
+    String? statusKey,
+    bool? mustChangePassword,
+    String? passwordHash,
+    String? createdAt,
+    String? updatedAt,
+    Value<String?> createdById = const Value.absent(),
+  }) => AccountRow(
+    internalId: internalId ?? this.internalId,
+    username: username ?? this.username,
+    displayName: displayName ?? this.displayName,
+    roleKey: roleKey ?? this.roleKey,
+    statusKey: statusKey ?? this.statusKey,
+    mustChangePassword: mustChangePassword ?? this.mustChangePassword,
+    passwordHash: passwordHash ?? this.passwordHash,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+    createdById: createdById.present ? createdById.value : this.createdById,
+  );
+  AccountRow copyWithCompanion(AccountsCompanion data) {
+    return AccountRow(
+      internalId: data.internalId.present
+          ? data.internalId.value
+          : this.internalId,
+      username: data.username.present ? data.username.value : this.username,
+      displayName: data.displayName.present
+          ? data.displayName.value
+          : this.displayName,
+      roleKey: data.roleKey.present ? data.roleKey.value : this.roleKey,
+      statusKey: data.statusKey.present ? data.statusKey.value : this.statusKey,
+      mustChangePassword: data.mustChangePassword.present
+          ? data.mustChangePassword.value
+          : this.mustChangePassword,
+      passwordHash: data.passwordHash.present
+          ? data.passwordHash.value
+          : this.passwordHash,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+      createdById: data.createdById.present
+          ? data.createdById.value
+          : this.createdById,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AccountRow(')
+          ..write('internalId: $internalId, ')
+          ..write('username: $username, ')
+          ..write('displayName: $displayName, ')
+          ..write('roleKey: $roleKey, ')
+          ..write('statusKey: $statusKey, ')
+          ..write('mustChangePassword: $mustChangePassword, ')
+          ..write('passwordHash: $passwordHash, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('createdById: $createdById')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    internalId,
+    username,
+    displayName,
+    roleKey,
+    statusKey,
+    mustChangePassword,
+    passwordHash,
+    createdAt,
+    updatedAt,
+    createdById,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AccountRow &&
+          other.internalId == this.internalId &&
+          other.username == this.username &&
+          other.displayName == this.displayName &&
+          other.roleKey == this.roleKey &&
+          other.statusKey == this.statusKey &&
+          other.mustChangePassword == this.mustChangePassword &&
+          other.passwordHash == this.passwordHash &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt &&
+          other.createdById == this.createdById);
+}
+
+class AccountsCompanion extends UpdateCompanion<AccountRow> {
+  final Value<String> internalId;
+  final Value<String> username;
+  final Value<String> displayName;
+  final Value<String> roleKey;
+  final Value<String> statusKey;
+  final Value<bool> mustChangePassword;
+  final Value<String> passwordHash;
+  final Value<String> createdAt;
+  final Value<String> updatedAt;
+  final Value<String?> createdById;
+  final Value<int> rowid;
+  const AccountsCompanion({
+    this.internalId = const Value.absent(),
+    this.username = const Value.absent(),
+    this.displayName = const Value.absent(),
+    this.roleKey = const Value.absent(),
+    this.statusKey = const Value.absent(),
+    this.mustChangePassword = const Value.absent(),
+    this.passwordHash = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+    this.createdById = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  AccountsCompanion.insert({
+    required String internalId,
+    required String username,
+    required String displayName,
+    required String roleKey,
+    this.statusKey = const Value.absent(),
+    this.mustChangePassword = const Value.absent(),
+    required String passwordHash,
+    required String createdAt,
+    required String updatedAt,
+    this.createdById = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : internalId = Value(internalId),
+       username = Value(username),
+       displayName = Value(displayName),
+       roleKey = Value(roleKey),
+       passwordHash = Value(passwordHash),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<AccountRow> custom({
+    Expression<String>? internalId,
+    Expression<String>? username,
+    Expression<String>? displayName,
+    Expression<String>? roleKey,
+    Expression<String>? statusKey,
+    Expression<bool>? mustChangePassword,
+    Expression<String>? passwordHash,
+    Expression<String>? createdAt,
+    Expression<String>? updatedAt,
+    Expression<String>? createdById,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (internalId != null) 'internal_id': internalId,
+      if (username != null) 'username': username,
+      if (displayName != null) 'display_name': displayName,
+      if (roleKey != null) 'role_key': roleKey,
+      if (statusKey != null) 'status_key': statusKey,
+      if (mustChangePassword != null)
+        'must_change_password': mustChangePassword,
+      if (passwordHash != null) 'password_hash': passwordHash,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+      if (createdById != null) 'created_by_id': createdById,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  AccountsCompanion copyWith({
+    Value<String>? internalId,
+    Value<String>? username,
+    Value<String>? displayName,
+    Value<String>? roleKey,
+    Value<String>? statusKey,
+    Value<bool>? mustChangePassword,
+    Value<String>? passwordHash,
+    Value<String>? createdAt,
+    Value<String>? updatedAt,
+    Value<String?>? createdById,
+    Value<int>? rowid,
+  }) {
+    return AccountsCompanion(
+      internalId: internalId ?? this.internalId,
+      username: username ?? this.username,
+      displayName: displayName ?? this.displayName,
+      roleKey: roleKey ?? this.roleKey,
+      statusKey: statusKey ?? this.statusKey,
+      mustChangePassword: mustChangePassword ?? this.mustChangePassword,
+      passwordHash: passwordHash ?? this.passwordHash,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+      createdById: createdById ?? this.createdById,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (internalId.present) {
+      map['internal_id'] = Variable<String>(internalId.value);
+    }
+    if (username.present) {
+      map['username'] = Variable<String>(username.value);
+    }
+    if (displayName.present) {
+      map['display_name'] = Variable<String>(displayName.value);
+    }
+    if (roleKey.present) {
+      map['role_key'] = Variable<String>(roleKey.value);
+    }
+    if (statusKey.present) {
+      map['status_key'] = Variable<String>(statusKey.value);
+    }
+    if (mustChangePassword.present) {
+      map['must_change_password'] = Variable<bool>(mustChangePassword.value);
+    }
+    if (passwordHash.present) {
+      map['password_hash'] = Variable<String>(passwordHash.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<String>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<String>(updatedAt.value);
+    }
+    if (createdById.present) {
+      map['created_by_id'] = Variable<String>(createdById.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AccountsCompanion(')
+          ..write('internalId: $internalId, ')
+          ..write('username: $username, ')
+          ..write('displayName: $displayName, ')
+          ..write('roleKey: $roleKey, ')
+          ..write('statusKey: $statusKey, ')
+          ..write('mustChangePassword: $mustChangePassword, ')
+          ..write('passwordHash: $passwordHash, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt, ')
+          ..write('createdById: $createdById, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $AccountSecurityStatesTable extends AccountSecurityStates
+    with TableInfo<$AccountSecurityStatesTable, AccountSecurityState> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $AccountSecurityStatesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _accountIdMeta = const VerificationMeta(
+    'accountId',
+  );
+  @override
+  late final GeneratedColumn<String> accountId = GeneratedColumn<String>(
+    'account_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES accounts (internal_id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _consecutiveFailuresMeta =
+      const VerificationMeta('consecutiveFailures');
+  @override
+  late final GeneratedColumn<int> consecutiveFailures = GeneratedColumn<int>(
+    'consecutive_failures',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _unlockNotBeforeMeta = const VerificationMeta(
+    'unlockNotBefore',
+  );
+  @override
+  late final GeneratedColumn<String> unlockNotBefore = GeneratedColumn<String>(
+    'unlock_not_before',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _lastFailedAtMeta = const VerificationMeta(
+    'lastFailedAt',
+  );
+  @override
+  late final GeneratedColumn<String> lastFailedAt = GeneratedColumn<String>(
+    'last_failed_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _lastSucceededAtMeta = const VerificationMeta(
+    'lastSucceededAt',
+  );
+  @override
+  late final GeneratedColumn<String> lastSucceededAt = GeneratedColumn<String>(
+    'last_succeeded_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _recoveryAttemptCountMeta =
+      const VerificationMeta('recoveryAttemptCount');
+  @override
+  late final GeneratedColumn<int> recoveryAttemptCount = GeneratedColumn<int>(
+    'recovery_attempt_count',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
+  static const VerificationMeta _recoveryWindowStartMeta =
+      const VerificationMeta('recoveryWindowStart');
+  @override
+  late final GeneratedColumn<String> recoveryWindowStart =
+      GeneratedColumn<String>(
+        'recovery_window_start',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  @override
+  List<GeneratedColumn> get $columns => [
+    accountId,
+    consecutiveFailures,
+    unlockNotBefore,
+    lastFailedAt,
+    lastSucceededAt,
+    recoveryAttemptCount,
+    recoveryWindowStart,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'account_security_state';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<AccountSecurityState> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('account_id')) {
+      context.handle(
+        _accountIdMeta,
+        accountId.isAcceptableOrUnknown(data['account_id']!, _accountIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_accountIdMeta);
+    }
+    if (data.containsKey('consecutive_failures')) {
+      context.handle(
+        _consecutiveFailuresMeta,
+        consecutiveFailures.isAcceptableOrUnknown(
+          data['consecutive_failures']!,
+          _consecutiveFailuresMeta,
+        ),
+      );
+    }
+    if (data.containsKey('unlock_not_before')) {
+      context.handle(
+        _unlockNotBeforeMeta,
+        unlockNotBefore.isAcceptableOrUnknown(
+          data['unlock_not_before']!,
+          _unlockNotBeforeMeta,
+        ),
+      );
+    }
+    if (data.containsKey('last_failed_at')) {
+      context.handle(
+        _lastFailedAtMeta,
+        lastFailedAt.isAcceptableOrUnknown(
+          data['last_failed_at']!,
+          _lastFailedAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('last_succeeded_at')) {
+      context.handle(
+        _lastSucceededAtMeta,
+        lastSucceededAt.isAcceptableOrUnknown(
+          data['last_succeeded_at']!,
+          _lastSucceededAtMeta,
+        ),
+      );
+    }
+    if (data.containsKey('recovery_attempt_count')) {
+      context.handle(
+        _recoveryAttemptCountMeta,
+        recoveryAttemptCount.isAcceptableOrUnknown(
+          data['recovery_attempt_count']!,
+          _recoveryAttemptCountMeta,
+        ),
+      );
+    }
+    if (data.containsKey('recovery_window_start')) {
+      context.handle(
+        _recoveryWindowStartMeta,
+        recoveryWindowStart.isAcceptableOrUnknown(
+          data['recovery_window_start']!,
+          _recoveryWindowStartMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {accountId};
+  @override
+  AccountSecurityState map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return AccountSecurityState(
+      accountId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}account_id'],
+      )!,
+      consecutiveFailures: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}consecutive_failures'],
+      )!,
+      unlockNotBefore: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}unlock_not_before'],
+      ),
+      lastFailedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}last_failed_at'],
+      ),
+      lastSucceededAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}last_succeeded_at'],
+      ),
+      recoveryAttemptCount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}recovery_attempt_count'],
+      )!,
+      recoveryWindowStart: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}recovery_window_start'],
+      ),
+    );
+  }
+
+  @override
+  $AccountSecurityStatesTable createAlias(String alias) {
+    return $AccountSecurityStatesTable(attachedDatabase, alias);
+  }
+}
+
+class AccountSecurityState extends DataClass
+    implements Insertable<AccountSecurityState> {
+  final String accountId;
+  final int consecutiveFailures;
+  final String? unlockNotBefore;
+  final String? lastFailedAt;
+  final String? lastSucceededAt;
+  final int recoveryAttemptCount;
+  final String? recoveryWindowStart;
+  const AccountSecurityState({
+    required this.accountId,
+    required this.consecutiveFailures,
+    this.unlockNotBefore,
+    this.lastFailedAt,
+    this.lastSucceededAt,
+    required this.recoveryAttemptCount,
+    this.recoveryWindowStart,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['account_id'] = Variable<String>(accountId);
+    map['consecutive_failures'] = Variable<int>(consecutiveFailures);
+    if (!nullToAbsent || unlockNotBefore != null) {
+      map['unlock_not_before'] = Variable<String>(unlockNotBefore);
+    }
+    if (!nullToAbsent || lastFailedAt != null) {
+      map['last_failed_at'] = Variable<String>(lastFailedAt);
+    }
+    if (!nullToAbsent || lastSucceededAt != null) {
+      map['last_succeeded_at'] = Variable<String>(lastSucceededAt);
+    }
+    map['recovery_attempt_count'] = Variable<int>(recoveryAttemptCount);
+    if (!nullToAbsent || recoveryWindowStart != null) {
+      map['recovery_window_start'] = Variable<String>(recoveryWindowStart);
+    }
+    return map;
+  }
+
+  AccountSecurityStatesCompanion toCompanion(bool nullToAbsent) {
+    return AccountSecurityStatesCompanion(
+      accountId: Value(accountId),
+      consecutiveFailures: Value(consecutiveFailures),
+      unlockNotBefore: unlockNotBefore == null && nullToAbsent
+          ? const Value.absent()
+          : Value(unlockNotBefore),
+      lastFailedAt: lastFailedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastFailedAt),
+      lastSucceededAt: lastSucceededAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastSucceededAt),
+      recoveryAttemptCount: Value(recoveryAttemptCount),
+      recoveryWindowStart: recoveryWindowStart == null && nullToAbsent
+          ? const Value.absent()
+          : Value(recoveryWindowStart),
+    );
+  }
+
+  factory AccountSecurityState.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return AccountSecurityState(
+      accountId: serializer.fromJson<String>(json['accountId']),
+      consecutiveFailures: serializer.fromJson<int>(
+        json['consecutiveFailures'],
+      ),
+      unlockNotBefore: serializer.fromJson<String?>(json['unlockNotBefore']),
+      lastFailedAt: serializer.fromJson<String?>(json['lastFailedAt']),
+      lastSucceededAt: serializer.fromJson<String?>(json['lastSucceededAt']),
+      recoveryAttemptCount: serializer.fromJson<int>(
+        json['recoveryAttemptCount'],
+      ),
+      recoveryWindowStart: serializer.fromJson<String?>(
+        json['recoveryWindowStart'],
+      ),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'accountId': serializer.toJson<String>(accountId),
+      'consecutiveFailures': serializer.toJson<int>(consecutiveFailures),
+      'unlockNotBefore': serializer.toJson<String?>(unlockNotBefore),
+      'lastFailedAt': serializer.toJson<String?>(lastFailedAt),
+      'lastSucceededAt': serializer.toJson<String?>(lastSucceededAt),
+      'recoveryAttemptCount': serializer.toJson<int>(recoveryAttemptCount),
+      'recoveryWindowStart': serializer.toJson<String?>(recoveryWindowStart),
+    };
+  }
+
+  AccountSecurityState copyWith({
+    String? accountId,
+    int? consecutiveFailures,
+    Value<String?> unlockNotBefore = const Value.absent(),
+    Value<String?> lastFailedAt = const Value.absent(),
+    Value<String?> lastSucceededAt = const Value.absent(),
+    int? recoveryAttemptCount,
+    Value<String?> recoveryWindowStart = const Value.absent(),
+  }) => AccountSecurityState(
+    accountId: accountId ?? this.accountId,
+    consecutiveFailures: consecutiveFailures ?? this.consecutiveFailures,
+    unlockNotBefore: unlockNotBefore.present
+        ? unlockNotBefore.value
+        : this.unlockNotBefore,
+    lastFailedAt: lastFailedAt.present ? lastFailedAt.value : this.lastFailedAt,
+    lastSucceededAt: lastSucceededAt.present
+        ? lastSucceededAt.value
+        : this.lastSucceededAt,
+    recoveryAttemptCount: recoveryAttemptCount ?? this.recoveryAttemptCount,
+    recoveryWindowStart: recoveryWindowStart.present
+        ? recoveryWindowStart.value
+        : this.recoveryWindowStart,
+  );
+  AccountSecurityState copyWithCompanion(AccountSecurityStatesCompanion data) {
+    return AccountSecurityState(
+      accountId: data.accountId.present ? data.accountId.value : this.accountId,
+      consecutiveFailures: data.consecutiveFailures.present
+          ? data.consecutiveFailures.value
+          : this.consecutiveFailures,
+      unlockNotBefore: data.unlockNotBefore.present
+          ? data.unlockNotBefore.value
+          : this.unlockNotBefore,
+      lastFailedAt: data.lastFailedAt.present
+          ? data.lastFailedAt.value
+          : this.lastFailedAt,
+      lastSucceededAt: data.lastSucceededAt.present
+          ? data.lastSucceededAt.value
+          : this.lastSucceededAt,
+      recoveryAttemptCount: data.recoveryAttemptCount.present
+          ? data.recoveryAttemptCount.value
+          : this.recoveryAttemptCount,
+      recoveryWindowStart: data.recoveryWindowStart.present
+          ? data.recoveryWindowStart.value
+          : this.recoveryWindowStart,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AccountSecurityState(')
+          ..write('accountId: $accountId, ')
+          ..write('consecutiveFailures: $consecutiveFailures, ')
+          ..write('unlockNotBefore: $unlockNotBefore, ')
+          ..write('lastFailedAt: $lastFailedAt, ')
+          ..write('lastSucceededAt: $lastSucceededAt, ')
+          ..write('recoveryAttemptCount: $recoveryAttemptCount, ')
+          ..write('recoveryWindowStart: $recoveryWindowStart')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    accountId,
+    consecutiveFailures,
+    unlockNotBefore,
+    lastFailedAt,
+    lastSucceededAt,
+    recoveryAttemptCount,
+    recoveryWindowStart,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is AccountSecurityState &&
+          other.accountId == this.accountId &&
+          other.consecutiveFailures == this.consecutiveFailures &&
+          other.unlockNotBefore == this.unlockNotBefore &&
+          other.lastFailedAt == this.lastFailedAt &&
+          other.lastSucceededAt == this.lastSucceededAt &&
+          other.recoveryAttemptCount == this.recoveryAttemptCount &&
+          other.recoveryWindowStart == this.recoveryWindowStart);
+}
+
+class AccountSecurityStatesCompanion
+    extends UpdateCompanion<AccountSecurityState> {
+  final Value<String> accountId;
+  final Value<int> consecutiveFailures;
+  final Value<String?> unlockNotBefore;
+  final Value<String?> lastFailedAt;
+  final Value<String?> lastSucceededAt;
+  final Value<int> recoveryAttemptCount;
+  final Value<String?> recoveryWindowStart;
+  final Value<int> rowid;
+  const AccountSecurityStatesCompanion({
+    this.accountId = const Value.absent(),
+    this.consecutiveFailures = const Value.absent(),
+    this.unlockNotBefore = const Value.absent(),
+    this.lastFailedAt = const Value.absent(),
+    this.lastSucceededAt = const Value.absent(),
+    this.recoveryAttemptCount = const Value.absent(),
+    this.recoveryWindowStart = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  AccountSecurityStatesCompanion.insert({
+    required String accountId,
+    this.consecutiveFailures = const Value.absent(),
+    this.unlockNotBefore = const Value.absent(),
+    this.lastFailedAt = const Value.absent(),
+    this.lastSucceededAt = const Value.absent(),
+    this.recoveryAttemptCount = const Value.absent(),
+    this.recoveryWindowStart = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : accountId = Value(accountId);
+  static Insertable<AccountSecurityState> custom({
+    Expression<String>? accountId,
+    Expression<int>? consecutiveFailures,
+    Expression<String>? unlockNotBefore,
+    Expression<String>? lastFailedAt,
+    Expression<String>? lastSucceededAt,
+    Expression<int>? recoveryAttemptCount,
+    Expression<String>? recoveryWindowStart,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (accountId != null) 'account_id': accountId,
+      if (consecutiveFailures != null)
+        'consecutive_failures': consecutiveFailures,
+      if (unlockNotBefore != null) 'unlock_not_before': unlockNotBefore,
+      if (lastFailedAt != null) 'last_failed_at': lastFailedAt,
+      if (lastSucceededAt != null) 'last_succeeded_at': lastSucceededAt,
+      if (recoveryAttemptCount != null)
+        'recovery_attempt_count': recoveryAttemptCount,
+      if (recoveryWindowStart != null)
+        'recovery_window_start': recoveryWindowStart,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  AccountSecurityStatesCompanion copyWith({
+    Value<String>? accountId,
+    Value<int>? consecutiveFailures,
+    Value<String?>? unlockNotBefore,
+    Value<String?>? lastFailedAt,
+    Value<String?>? lastSucceededAt,
+    Value<int>? recoveryAttemptCount,
+    Value<String?>? recoveryWindowStart,
+    Value<int>? rowid,
+  }) {
+    return AccountSecurityStatesCompanion(
+      accountId: accountId ?? this.accountId,
+      consecutiveFailures: consecutiveFailures ?? this.consecutiveFailures,
+      unlockNotBefore: unlockNotBefore ?? this.unlockNotBefore,
+      lastFailedAt: lastFailedAt ?? this.lastFailedAt,
+      lastSucceededAt: lastSucceededAt ?? this.lastSucceededAt,
+      recoveryAttemptCount: recoveryAttemptCount ?? this.recoveryAttemptCount,
+      recoveryWindowStart: recoveryWindowStart ?? this.recoveryWindowStart,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (accountId.present) {
+      map['account_id'] = Variable<String>(accountId.value);
+    }
+    if (consecutiveFailures.present) {
+      map['consecutive_failures'] = Variable<int>(consecutiveFailures.value);
+    }
+    if (unlockNotBefore.present) {
+      map['unlock_not_before'] = Variable<String>(unlockNotBefore.value);
+    }
+    if (lastFailedAt.present) {
+      map['last_failed_at'] = Variable<String>(lastFailedAt.value);
+    }
+    if (lastSucceededAt.present) {
+      map['last_succeeded_at'] = Variable<String>(lastSucceededAt.value);
+    }
+    if (recoveryAttemptCount.present) {
+      map['recovery_attempt_count'] = Variable<int>(recoveryAttemptCount.value);
+    }
+    if (recoveryWindowStart.present) {
+      map['recovery_window_start'] = Variable<String>(
+        recoveryWindowStart.value,
+      );
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('AccountSecurityStatesCompanion(')
+          ..write('accountId: $accountId, ')
+          ..write('consecutiveFailures: $consecutiveFailures, ')
+          ..write('unlockNotBefore: $unlockNotBefore, ')
+          ..write('lastFailedAt: $lastFailedAt, ')
+          ..write('lastSucceededAt: $lastSucceededAt, ')
+          ..write('recoveryAttemptCount: $recoveryAttemptCount, ')
+          ..write('recoveryWindowStart: $recoveryWindowStart, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $RecoveryCredentialsTable extends RecoveryCredentials
+    with TableInfo<$RecoveryCredentialsTable, RecoveryCredential> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $RecoveryCredentialsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _accountIdMeta = const VerificationMeta(
+    'accountId',
+  );
+  @override
+  late final GeneratedColumn<String> accountId = GeneratedColumn<String>(
+    'account_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES accounts (internal_id) ON DELETE CASCADE',
+    ),
+  );
+  static const VerificationMeta _keyHashMeta = const VerificationMeta(
+    'keyHash',
+  );
+  @override
+  late final GeneratedColumn<String> keyHash = GeneratedColumn<String>(
+    'key_hash',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _algorithmKeyMeta = const VerificationMeta(
+    'algorithmKey',
+  );
+  @override
+  late final GeneratedColumn<String> algorithmKey = GeneratedColumn<String>(
+    'algorithm_key',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('argon2id'),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<String> createdAt = GeneratedColumn<String>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _lastUsedAtMeta = const VerificationMeta(
+    'lastUsedAt',
+  );
+  @override
+  late final GeneratedColumn<String> lastUsedAt = GeneratedColumn<String>(
+    'last_used_at',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    accountId,
+    keyHash,
+    algorithmKey,
+    createdAt,
+    lastUsedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'recovery_credentials';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<RecoveryCredential> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('account_id')) {
+      context.handle(
+        _accountIdMeta,
+        accountId.isAcceptableOrUnknown(data['account_id']!, _accountIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_accountIdMeta);
+    }
+    if (data.containsKey('key_hash')) {
+      context.handle(
+        _keyHashMeta,
+        keyHash.isAcceptableOrUnknown(data['key_hash']!, _keyHashMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_keyHashMeta);
+    }
+    if (data.containsKey('algorithm_key')) {
+      context.handle(
+        _algorithmKeyMeta,
+        algorithmKey.isAcceptableOrUnknown(
+          data['algorithm_key']!,
+          _algorithmKeyMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('last_used_at')) {
+      context.handle(
+        _lastUsedAtMeta,
+        lastUsedAt.isAcceptableOrUnknown(
+          data['last_used_at']!,
+          _lastUsedAtMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {accountId};
+  @override
+  RecoveryCredential map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return RecoveryCredential(
+      accountId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}account_id'],
+      )!,
+      keyHash: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}key_hash'],
+      )!,
+      algorithmKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}algorithm_key'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}created_at'],
+      )!,
+      lastUsedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}last_used_at'],
+      ),
+    );
+  }
+
+  @override
+  $RecoveryCredentialsTable createAlias(String alias) {
+    return $RecoveryCredentialsTable(attachedDatabase, alias);
+  }
+}
+
+class RecoveryCredential extends DataClass
+    implements Insertable<RecoveryCredential> {
+  final String accountId;
+  final String keyHash;
+  final String algorithmKey;
+  final String createdAt;
+  final String? lastUsedAt;
+  const RecoveryCredential({
+    required this.accountId,
+    required this.keyHash,
+    required this.algorithmKey,
+    required this.createdAt,
+    this.lastUsedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['account_id'] = Variable<String>(accountId);
+    map['key_hash'] = Variable<String>(keyHash);
+    map['algorithm_key'] = Variable<String>(algorithmKey);
+    map['created_at'] = Variable<String>(createdAt);
+    if (!nullToAbsent || lastUsedAt != null) {
+      map['last_used_at'] = Variable<String>(lastUsedAt);
+    }
+    return map;
+  }
+
+  RecoveryCredentialsCompanion toCompanion(bool nullToAbsent) {
+    return RecoveryCredentialsCompanion(
+      accountId: Value(accountId),
+      keyHash: Value(keyHash),
+      algorithmKey: Value(algorithmKey),
+      createdAt: Value(createdAt),
+      lastUsedAt: lastUsedAt == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastUsedAt),
+    );
+  }
+
+  factory RecoveryCredential.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return RecoveryCredential(
+      accountId: serializer.fromJson<String>(json['accountId']),
+      keyHash: serializer.fromJson<String>(json['keyHash']),
+      algorithmKey: serializer.fromJson<String>(json['algorithmKey']),
+      createdAt: serializer.fromJson<String>(json['createdAt']),
+      lastUsedAt: serializer.fromJson<String?>(json['lastUsedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'accountId': serializer.toJson<String>(accountId),
+      'keyHash': serializer.toJson<String>(keyHash),
+      'algorithmKey': serializer.toJson<String>(algorithmKey),
+      'createdAt': serializer.toJson<String>(createdAt),
+      'lastUsedAt': serializer.toJson<String?>(lastUsedAt),
+    };
+  }
+
+  RecoveryCredential copyWith({
+    String? accountId,
+    String? keyHash,
+    String? algorithmKey,
+    String? createdAt,
+    Value<String?> lastUsedAt = const Value.absent(),
+  }) => RecoveryCredential(
+    accountId: accountId ?? this.accountId,
+    keyHash: keyHash ?? this.keyHash,
+    algorithmKey: algorithmKey ?? this.algorithmKey,
+    createdAt: createdAt ?? this.createdAt,
+    lastUsedAt: lastUsedAt.present ? lastUsedAt.value : this.lastUsedAt,
+  );
+  RecoveryCredential copyWithCompanion(RecoveryCredentialsCompanion data) {
+    return RecoveryCredential(
+      accountId: data.accountId.present ? data.accountId.value : this.accountId,
+      keyHash: data.keyHash.present ? data.keyHash.value : this.keyHash,
+      algorithmKey: data.algorithmKey.present
+          ? data.algorithmKey.value
+          : this.algorithmKey,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      lastUsedAt: data.lastUsedAt.present
+          ? data.lastUsedAt.value
+          : this.lastUsedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RecoveryCredential(')
+          ..write('accountId: $accountId, ')
+          ..write('keyHash: $keyHash, ')
+          ..write('algorithmKey: $algorithmKey, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('lastUsedAt: $lastUsedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(accountId, keyHash, algorithmKey, createdAt, lastUsedAt);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is RecoveryCredential &&
+          other.accountId == this.accountId &&
+          other.keyHash == this.keyHash &&
+          other.algorithmKey == this.algorithmKey &&
+          other.createdAt == this.createdAt &&
+          other.lastUsedAt == this.lastUsedAt);
+}
+
+class RecoveryCredentialsCompanion extends UpdateCompanion<RecoveryCredential> {
+  final Value<String> accountId;
+  final Value<String> keyHash;
+  final Value<String> algorithmKey;
+  final Value<String> createdAt;
+  final Value<String?> lastUsedAt;
+  final Value<int> rowid;
+  const RecoveryCredentialsCompanion({
+    this.accountId = const Value.absent(),
+    this.keyHash = const Value.absent(),
+    this.algorithmKey = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.lastUsedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  RecoveryCredentialsCompanion.insert({
+    required String accountId,
+    required String keyHash,
+    this.algorithmKey = const Value.absent(),
+    required String createdAt,
+    this.lastUsedAt = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : accountId = Value(accountId),
+       keyHash = Value(keyHash),
+       createdAt = Value(createdAt);
+  static Insertable<RecoveryCredential> custom({
+    Expression<String>? accountId,
+    Expression<String>? keyHash,
+    Expression<String>? algorithmKey,
+    Expression<String>? createdAt,
+    Expression<String>? lastUsedAt,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (accountId != null) 'account_id': accountId,
+      if (keyHash != null) 'key_hash': keyHash,
+      if (algorithmKey != null) 'algorithm_key': algorithmKey,
+      if (createdAt != null) 'created_at': createdAt,
+      if (lastUsedAt != null) 'last_used_at': lastUsedAt,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  RecoveryCredentialsCompanion copyWith({
+    Value<String>? accountId,
+    Value<String>? keyHash,
+    Value<String>? algorithmKey,
+    Value<String>? createdAt,
+    Value<String?>? lastUsedAt,
+    Value<int>? rowid,
+  }) {
+    return RecoveryCredentialsCompanion(
+      accountId: accountId ?? this.accountId,
+      keyHash: keyHash ?? this.keyHash,
+      algorithmKey: algorithmKey ?? this.algorithmKey,
+      createdAt: createdAt ?? this.createdAt,
+      lastUsedAt: lastUsedAt ?? this.lastUsedAt,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (accountId.present) {
+      map['account_id'] = Variable<String>(accountId.value);
+    }
+    if (keyHash.present) {
+      map['key_hash'] = Variable<String>(keyHash.value);
+    }
+    if (algorithmKey.present) {
+      map['algorithm_key'] = Variable<String>(algorithmKey.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<String>(createdAt.value);
+    }
+    if (lastUsedAt.present) {
+      map['last_used_at'] = Variable<String>(lastUsedAt.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RecoveryCredentialsCompanion(')
+          ..write('accountId: $accountId, ')
+          ..write('keyHash: $keyHash, ')
+          ..write('algorithmKey: $algorithmKey, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('lastUsedAt: $lastUsedAt, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $SecurityAuditLogTable extends SecurityAuditLog
+    with TableInfo<$SecurityAuditLogTable, SecurityAuditLogRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $SecurityAuditLogTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _eventTypeKeyMeta = const VerificationMeta(
+    'eventTypeKey',
+  );
+  @override
+  late final GeneratedColumn<String> eventTypeKey = GeneratedColumn<String>(
+    'event_type_key',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _actorAccountIdMeta = const VerificationMeta(
+    'actorAccountId',
+  );
+  @override
+  late final GeneratedColumn<String> actorAccountId = GeneratedColumn<String>(
+    'actor_account_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES accounts (internal_id) ON DELETE SET NULL',
+    ),
+  );
+  static const VerificationMeta _targetAccountIdMeta = const VerificationMeta(
+    'targetAccountId',
+  );
+  @override
+  late final GeneratedColumn<String> targetAccountId = GeneratedColumn<String>(
+    'target_account_id',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES accounts (internal_id) ON DELETE SET NULL',
+    ),
+  );
+  static const VerificationMeta _eventDataSafeMeta = const VerificationMeta(
+    'eventDataSafe',
+  );
+  @override
+  late final GeneratedColumn<String> eventDataSafe = GeneratedColumn<String>(
+    'event_data_safe',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<String> createdAt = GeneratedColumn<String>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    eventTypeKey,
+    actorAccountId,
+    targetAccountId,
+    eventDataSafe,
+    createdAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'security_audit_log';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<SecurityAuditLogRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('event_type_key')) {
+      context.handle(
+        _eventTypeKeyMeta,
+        eventTypeKey.isAcceptableOrUnknown(
+          data['event_type_key']!,
+          _eventTypeKeyMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_eventTypeKeyMeta);
+    }
+    if (data.containsKey('actor_account_id')) {
+      context.handle(
+        _actorAccountIdMeta,
+        actorAccountId.isAcceptableOrUnknown(
+          data['actor_account_id']!,
+          _actorAccountIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('target_account_id')) {
+      context.handle(
+        _targetAccountIdMeta,
+        targetAccountId.isAcceptableOrUnknown(
+          data['target_account_id']!,
+          _targetAccountIdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('event_data_safe')) {
+      context.handle(
+        _eventDataSafeMeta,
+        eventDataSafe.isAcceptableOrUnknown(
+          data['event_data_safe']!,
+          _eventDataSafeMeta,
+        ),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  SecurityAuditLogRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SecurityAuditLogRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      eventTypeKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}event_type_key'],
+      )!,
+      actorAccountId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}actor_account_id'],
+      ),
+      targetAccountId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}target_account_id'],
+      ),
+      eventDataSafe: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}event_data_safe'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}created_at'],
+      )!,
+    );
+  }
+
+  @override
+  $SecurityAuditLogTable createAlias(String alias) {
+    return $SecurityAuditLogTable(attachedDatabase, alias);
+  }
+}
+
+class SecurityAuditLogRow extends DataClass
+    implements Insertable<SecurityAuditLogRow> {
+  final int id;
+  final String eventTypeKey;
+  final String? actorAccountId;
+  final String? targetAccountId;
+  final String? eventDataSafe;
+  final String createdAt;
+  const SecurityAuditLogRow({
+    required this.id,
+    required this.eventTypeKey,
+    this.actorAccountId,
+    this.targetAccountId,
+    this.eventDataSafe,
+    required this.createdAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['event_type_key'] = Variable<String>(eventTypeKey);
+    if (!nullToAbsent || actorAccountId != null) {
+      map['actor_account_id'] = Variable<String>(actorAccountId);
+    }
+    if (!nullToAbsent || targetAccountId != null) {
+      map['target_account_id'] = Variable<String>(targetAccountId);
+    }
+    if (!nullToAbsent || eventDataSafe != null) {
+      map['event_data_safe'] = Variable<String>(eventDataSafe);
+    }
+    map['created_at'] = Variable<String>(createdAt);
+    return map;
+  }
+
+  SecurityAuditLogCompanion toCompanion(bool nullToAbsent) {
+    return SecurityAuditLogCompanion(
+      id: Value(id),
+      eventTypeKey: Value(eventTypeKey),
+      actorAccountId: actorAccountId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(actorAccountId),
+      targetAccountId: targetAccountId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(targetAccountId),
+      eventDataSafe: eventDataSafe == null && nullToAbsent
+          ? const Value.absent()
+          : Value(eventDataSafe),
+      createdAt: Value(createdAt),
+    );
+  }
+
+  factory SecurityAuditLogRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SecurityAuditLogRow(
+      id: serializer.fromJson<int>(json['id']),
+      eventTypeKey: serializer.fromJson<String>(json['eventTypeKey']),
+      actorAccountId: serializer.fromJson<String?>(json['actorAccountId']),
+      targetAccountId: serializer.fromJson<String?>(json['targetAccountId']),
+      eventDataSafe: serializer.fromJson<String?>(json['eventDataSafe']),
+      createdAt: serializer.fromJson<String>(json['createdAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'eventTypeKey': serializer.toJson<String>(eventTypeKey),
+      'actorAccountId': serializer.toJson<String?>(actorAccountId),
+      'targetAccountId': serializer.toJson<String?>(targetAccountId),
+      'eventDataSafe': serializer.toJson<String?>(eventDataSafe),
+      'createdAt': serializer.toJson<String>(createdAt),
+    };
+  }
+
+  SecurityAuditLogRow copyWith({
+    int? id,
+    String? eventTypeKey,
+    Value<String?> actorAccountId = const Value.absent(),
+    Value<String?> targetAccountId = const Value.absent(),
+    Value<String?> eventDataSafe = const Value.absent(),
+    String? createdAt,
+  }) => SecurityAuditLogRow(
+    id: id ?? this.id,
+    eventTypeKey: eventTypeKey ?? this.eventTypeKey,
+    actorAccountId: actorAccountId.present
+        ? actorAccountId.value
+        : this.actorAccountId,
+    targetAccountId: targetAccountId.present
+        ? targetAccountId.value
+        : this.targetAccountId,
+    eventDataSafe: eventDataSafe.present
+        ? eventDataSafe.value
+        : this.eventDataSafe,
+    createdAt: createdAt ?? this.createdAt,
+  );
+  SecurityAuditLogRow copyWithCompanion(SecurityAuditLogCompanion data) {
+    return SecurityAuditLogRow(
+      id: data.id.present ? data.id.value : this.id,
+      eventTypeKey: data.eventTypeKey.present
+          ? data.eventTypeKey.value
+          : this.eventTypeKey,
+      actorAccountId: data.actorAccountId.present
+          ? data.actorAccountId.value
+          : this.actorAccountId,
+      targetAccountId: data.targetAccountId.present
+          ? data.targetAccountId.value
+          : this.targetAccountId,
+      eventDataSafe: data.eventDataSafe.present
+          ? data.eventDataSafe.value
+          : this.eventDataSafe,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SecurityAuditLogRow(')
+          ..write('id: $id, ')
+          ..write('eventTypeKey: $eventTypeKey, ')
+          ..write('actorAccountId: $actorAccountId, ')
+          ..write('targetAccountId: $targetAccountId, ')
+          ..write('eventDataSafe: $eventDataSafe, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    eventTypeKey,
+    actorAccountId,
+    targetAccountId,
+    eventDataSafe,
+    createdAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SecurityAuditLogRow &&
+          other.id == this.id &&
+          other.eventTypeKey == this.eventTypeKey &&
+          other.actorAccountId == this.actorAccountId &&
+          other.targetAccountId == this.targetAccountId &&
+          other.eventDataSafe == this.eventDataSafe &&
+          other.createdAt == this.createdAt);
+}
+
+class SecurityAuditLogCompanion extends UpdateCompanion<SecurityAuditLogRow> {
+  final Value<int> id;
+  final Value<String> eventTypeKey;
+  final Value<String?> actorAccountId;
+  final Value<String?> targetAccountId;
+  final Value<String?> eventDataSafe;
+  final Value<String> createdAt;
+  const SecurityAuditLogCompanion({
+    this.id = const Value.absent(),
+    this.eventTypeKey = const Value.absent(),
+    this.actorAccountId = const Value.absent(),
+    this.targetAccountId = const Value.absent(),
+    this.eventDataSafe = const Value.absent(),
+    this.createdAt = const Value.absent(),
+  });
+  SecurityAuditLogCompanion.insert({
+    this.id = const Value.absent(),
+    required String eventTypeKey,
+    this.actorAccountId = const Value.absent(),
+    this.targetAccountId = const Value.absent(),
+    this.eventDataSafe = const Value.absent(),
+    required String createdAt,
+  }) : eventTypeKey = Value(eventTypeKey),
+       createdAt = Value(createdAt);
+  static Insertable<SecurityAuditLogRow> custom({
+    Expression<int>? id,
+    Expression<String>? eventTypeKey,
+    Expression<String>? actorAccountId,
+    Expression<String>? targetAccountId,
+    Expression<String>? eventDataSafe,
+    Expression<String>? createdAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (eventTypeKey != null) 'event_type_key': eventTypeKey,
+      if (actorAccountId != null) 'actor_account_id': actorAccountId,
+      if (targetAccountId != null) 'target_account_id': targetAccountId,
+      if (eventDataSafe != null) 'event_data_safe': eventDataSafe,
+      if (createdAt != null) 'created_at': createdAt,
+    });
+  }
+
+  SecurityAuditLogCompanion copyWith({
+    Value<int>? id,
+    Value<String>? eventTypeKey,
+    Value<String?>? actorAccountId,
+    Value<String?>? targetAccountId,
+    Value<String?>? eventDataSafe,
+    Value<String>? createdAt,
+  }) {
+    return SecurityAuditLogCompanion(
+      id: id ?? this.id,
+      eventTypeKey: eventTypeKey ?? this.eventTypeKey,
+      actorAccountId: actorAccountId ?? this.actorAccountId,
+      targetAccountId: targetAccountId ?? this.targetAccountId,
+      eventDataSafe: eventDataSafe ?? this.eventDataSafe,
+      createdAt: createdAt ?? this.createdAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (eventTypeKey.present) {
+      map['event_type_key'] = Variable<String>(eventTypeKey.value);
+    }
+    if (actorAccountId.present) {
+      map['actor_account_id'] = Variable<String>(actorAccountId.value);
+    }
+    if (targetAccountId.present) {
+      map['target_account_id'] = Variable<String>(targetAccountId.value);
+    }
+    if (eventDataSafe.present) {
+      map['event_data_safe'] = Variable<String>(eventDataSafe.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<String>(createdAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SecurityAuditLogCompanion(')
+          ..write('id: $id, ')
+          ..write('eventTypeKey: $eventTypeKey, ')
+          ..write('actorAccountId: $actorAccountId, ')
+          ..write('targetAccountId: $targetAccountId, ')
+          ..write('eventDataSafe: $eventDataSafe, ')
+          ..write('createdAt: $createdAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$AppDatabase extends GeneratedDatabase {
   _$AppDatabase(QueryExecutor e) : super(e);
   $AppDatabaseManager get managers => $AppDatabaseManager(this);
@@ -15524,6 +17506,14 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $ExportBatchesTable exportBatches = $ExportBatchesTable(this);
   late final $ExportBatchDocumentsTable exportBatchDocuments =
       $ExportBatchDocumentsTable(this);
+  late final $AccountsTable accounts = $AccountsTable(this);
+  late final $AccountSecurityStatesTable accountSecurityStates =
+      $AccountSecurityStatesTable(this);
+  late final $RecoveryCredentialsTable recoveryCredentials =
+      $RecoveryCredentialsTable(this);
+  late final $SecurityAuditLogTable securityAuditLog = $SecurityAuditLogTable(
+    this,
+  );
   late final Index uxDocumentsDocumentCode = Index(
     'ux_documents_document_code',
     'CREATE UNIQUE INDEX ux_documents_document_code ON documents (document_code)',
@@ -15636,6 +17626,30 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     'ix_export_batches_created_at',
     'CREATE INDEX ix_export_batches_created_at ON export_batches (created_at)',
   );
+  late final Index uxAccountsUsername = Index(
+    'ux_accounts_username',
+    'CREATE UNIQUE INDEX ux_accounts_username ON accounts (username)',
+  );
+  late final Index ixAccountsRoleKey = Index(
+    'ix_accounts_role_key',
+    'CREATE INDEX ix_accounts_role_key ON accounts (role_key)',
+  );
+  late final Index ixAccountsStatusKey = Index(
+    'ix_accounts_status_key',
+    'CREATE INDEX ix_accounts_status_key ON accounts (status_key)',
+  );
+  late final Index ixSecurityAuditLogCreatedAt = Index(
+    'ix_security_audit_log_created_at',
+    'CREATE INDEX ix_security_audit_log_created_at ON security_audit_log (created_at)',
+  );
+  late final Index ixSecurityAuditLogEventType = Index(
+    'ix_security_audit_log_event_type',
+    'CREATE INDEX ix_security_audit_log_event_type ON security_audit_log (event_type_key)',
+  );
+  late final Index ixSecurityAuditLogActor = Index(
+    'ix_security_audit_log_actor',
+    'CREATE INDEX ix_security_audit_log_actor ON security_audit_log (actor_account_id)',
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
@@ -15673,6 +17687,10 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     settings,
     exportBatches,
     exportBatchDocuments,
+    accounts,
+    accountSecurityStates,
+    recoveryCredentials,
+    securityAuditLog,
     uxDocumentsDocumentCode,
     ixDocumentsWorkflowStatusKey,
     ixDocumentsDocumentTypeId,
@@ -15701,6 +17719,12 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     ixFileOpenEventsFileCreated,
     ixImportBatchesStartedAt,
     ixExportBatchesCreatedAt,
+    uxAccountsUsername,
+    ixAccountsRoleKey,
+    ixAccountsStatusKey,
+    ixSecurityAuditLogCreatedAt,
+    ixSecurityAuditLogEventType,
+    ixSecurityAuditLogActor,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -15782,6 +17806,41 @@ abstract class _$AppDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('export_batch_documents', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'accounts',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('accounts', kind: UpdateKind.update)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'accounts',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('account_security_state', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'accounts',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('recovery_credentials', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'accounts',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('security_audit_log', kind: UpdateKind.update)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'accounts',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('security_audit_log', kind: UpdateKind.update)],
     ),
   ]);
 }
@@ -31804,6 +33863,1840 @@ typedef $$ExportBatchDocumentsTableProcessedTableManager =
         bool managedFileId,
       })
     >;
+typedef $$AccountsTableCreateCompanionBuilder =
+    AccountsCompanion Function({
+      required String internalId,
+      required String username,
+      required String displayName,
+      required String roleKey,
+      Value<String> statusKey,
+      Value<bool> mustChangePassword,
+      required String passwordHash,
+      required String createdAt,
+      required String updatedAt,
+      Value<String?> createdById,
+      Value<int> rowid,
+    });
+typedef $$AccountsTableUpdateCompanionBuilder =
+    AccountsCompanion Function({
+      Value<String> internalId,
+      Value<String> username,
+      Value<String> displayName,
+      Value<String> roleKey,
+      Value<String> statusKey,
+      Value<bool> mustChangePassword,
+      Value<String> passwordHash,
+      Value<String> createdAt,
+      Value<String> updatedAt,
+      Value<String?> createdById,
+      Value<int> rowid,
+    });
+
+final class $$AccountsTableReferences
+    extends BaseReferences<_$AppDatabase, $AccountsTable, AccountRow> {
+  $$AccountsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $AccountsTable _createdByIdTable(_$AppDatabase db) =>
+      db.accounts.createAlias(
+        $_aliasNameGenerator(db.accounts.createdById, db.accounts.internalId),
+      );
+
+  $$AccountsTableProcessedTableManager? get createdById {
+    final $_column = $_itemColumn<String>('created_by_id');
+    if ($_column == null) return null;
+    final manager = $$AccountsTableTableManager(
+      $_db,
+      $_db.accounts,
+    ).filter((f) => f.internalId.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_createdByIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static MultiTypedResultKey<
+    $AccountSecurityStatesTable,
+    List<AccountSecurityState>
+  >
+  _accountSecurityStatesRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.accountSecurityStates,
+        aliasName: $_aliasNameGenerator(
+          db.accounts.internalId,
+          db.accountSecurityStates.accountId,
+        ),
+      );
+
+  $$AccountSecurityStatesTableProcessedTableManager
+  get accountSecurityStatesRefs {
+    final manager =
+        $$AccountSecurityStatesTableTableManager(
+          $_db,
+          $_db.accountSecurityStates,
+        ).filter(
+          (f) => f.accountId.internalId.sqlEquals(
+            $_itemColumn<String>('internal_id')!,
+          ),
+        );
+
+    final cache = $_typedResult.readTableOrNull(
+      _accountSecurityStatesRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<
+    $RecoveryCredentialsTable,
+    List<RecoveryCredential>
+  >
+  _recoveryCredentialsRefsTable(_$AppDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.recoveryCredentials,
+        aliasName: $_aliasNameGenerator(
+          db.accounts.internalId,
+          db.recoveryCredentials.accountId,
+        ),
+      );
+
+  $$RecoveryCredentialsTableProcessedTableManager get recoveryCredentialsRefs {
+    final manager =
+        $$RecoveryCredentialsTableTableManager(
+          $_db,
+          $_db.recoveryCredentials,
+        ).filter(
+          (f) => f.accountId.internalId.sqlEquals(
+            $_itemColumn<String>('internal_id')!,
+          ),
+        );
+
+    final cache = $_typedResult.readTableOrNull(
+      _recoveryCredentialsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$AccountsTableFilterComposer
+    extends Composer<_$AppDatabase, $AccountsTable> {
+  $$AccountsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get internalId => $composableBuilder(
+    column: $table.internalId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get username => $composableBuilder(
+    column: $table.username,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get displayName => $composableBuilder(
+    column: $table.displayName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get roleKey => $composableBuilder(
+    column: $table.roleKey,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get statusKey => $composableBuilder(
+    column: $table.statusKey,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get mustChangePassword => $composableBuilder(
+    column: $table.mustChangePassword,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get passwordHash => $composableBuilder(
+    column: $table.passwordHash,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$AccountsTableFilterComposer get createdById {
+    final $$AccountsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.createdById,
+      referencedTable: $db.accounts,
+      getReferencedColumn: (t) => t.internalId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AccountsTableFilterComposer(
+            $db: $db,
+            $table: $db.accounts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<bool> accountSecurityStatesRefs(
+    Expression<bool> Function($$AccountSecurityStatesTableFilterComposer f) f,
+  ) {
+    final $$AccountSecurityStatesTableFilterComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.internalId,
+          referencedTable: $db.accountSecurityStates,
+          getReferencedColumn: (t) => t.accountId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$AccountSecurityStatesTableFilterComposer(
+                $db: $db,
+                $table: $db.accountSecurityStates,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
+  Expression<bool> recoveryCredentialsRefs(
+    Expression<bool> Function($$RecoveryCredentialsTableFilterComposer f) f,
+  ) {
+    final $$RecoveryCredentialsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.internalId,
+      referencedTable: $db.recoveryCredentials,
+      getReferencedColumn: (t) => t.accountId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$RecoveryCredentialsTableFilterComposer(
+            $db: $db,
+            $table: $db.recoveryCredentials,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$AccountsTableOrderingComposer
+    extends Composer<_$AppDatabase, $AccountsTable> {
+  $$AccountsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get internalId => $composableBuilder(
+    column: $table.internalId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get username => $composableBuilder(
+    column: $table.username,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get displayName => $composableBuilder(
+    column: $table.displayName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get roleKey => $composableBuilder(
+    column: $table.roleKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get statusKey => $composableBuilder(
+    column: $table.statusKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get mustChangePassword => $composableBuilder(
+    column: $table.mustChangePassword,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get passwordHash => $composableBuilder(
+    column: $table.passwordHash,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$AccountsTableOrderingComposer get createdById {
+    final $$AccountsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.createdById,
+      referencedTable: $db.accounts,
+      getReferencedColumn: (t) => t.internalId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AccountsTableOrderingComposer(
+            $db: $db,
+            $table: $db.accounts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$AccountsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $AccountsTable> {
+  $$AccountsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get internalId => $composableBuilder(
+    column: $table.internalId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get username =>
+      $composableBuilder(column: $table.username, builder: (column) => column);
+
+  GeneratedColumn<String> get displayName => $composableBuilder(
+    column: $table.displayName,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get roleKey =>
+      $composableBuilder(column: $table.roleKey, builder: (column) => column);
+
+  GeneratedColumn<String> get statusKey =>
+      $composableBuilder(column: $table.statusKey, builder: (column) => column);
+
+  GeneratedColumn<bool> get mustChangePassword => $composableBuilder(
+    column: $table.mustChangePassword,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get passwordHash => $composableBuilder(
+    column: $table.passwordHash,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<String> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  $$AccountsTableAnnotationComposer get createdById {
+    final $$AccountsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.createdById,
+      referencedTable: $db.accounts,
+      getReferencedColumn: (t) => t.internalId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AccountsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.accounts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<T> accountSecurityStatesRefs<T extends Object>(
+    Expression<T> Function($$AccountSecurityStatesTableAnnotationComposer a) f,
+  ) {
+    final $$AccountSecurityStatesTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.internalId,
+          referencedTable: $db.accountSecurityStates,
+          getReferencedColumn: (t) => t.accountId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$AccountSecurityStatesTableAnnotationComposer(
+                $db: $db,
+                $table: $db.accountSecurityStates,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+
+  Expression<T> recoveryCredentialsRefs<T extends Object>(
+    Expression<T> Function($$RecoveryCredentialsTableAnnotationComposer a) f,
+  ) {
+    final $$RecoveryCredentialsTableAnnotationComposer composer =
+        $composerBuilder(
+          composer: this,
+          getCurrentColumn: (t) => t.internalId,
+          referencedTable: $db.recoveryCredentials,
+          getReferencedColumn: (t) => t.accountId,
+          builder:
+              (
+                joinBuilder, {
+                $addJoinBuilderToRootComposer,
+                $removeJoinBuilderFromRootComposer,
+              }) => $$RecoveryCredentialsTableAnnotationComposer(
+                $db: $db,
+                $table: $db.recoveryCredentials,
+                $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+                joinBuilder: joinBuilder,
+                $removeJoinBuilderFromRootComposer:
+                    $removeJoinBuilderFromRootComposer,
+              ),
+        );
+    return f(composer);
+  }
+}
+
+class $$AccountsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $AccountsTable,
+          AccountRow,
+          $$AccountsTableFilterComposer,
+          $$AccountsTableOrderingComposer,
+          $$AccountsTableAnnotationComposer,
+          $$AccountsTableCreateCompanionBuilder,
+          $$AccountsTableUpdateCompanionBuilder,
+          (AccountRow, $$AccountsTableReferences),
+          AccountRow,
+          PrefetchHooks Function({
+            bool createdById,
+            bool accountSecurityStatesRefs,
+            bool recoveryCredentialsRefs,
+          })
+        > {
+  $$AccountsTableTableManager(_$AppDatabase db, $AccountsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$AccountsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$AccountsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$AccountsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<String> internalId = const Value.absent(),
+                Value<String> username = const Value.absent(),
+                Value<String> displayName = const Value.absent(),
+                Value<String> roleKey = const Value.absent(),
+                Value<String> statusKey = const Value.absent(),
+                Value<bool> mustChangePassword = const Value.absent(),
+                Value<String> passwordHash = const Value.absent(),
+                Value<String> createdAt = const Value.absent(),
+                Value<String> updatedAt = const Value.absent(),
+                Value<String?> createdById = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => AccountsCompanion(
+                internalId: internalId,
+                username: username,
+                displayName: displayName,
+                roleKey: roleKey,
+                statusKey: statusKey,
+                mustChangePassword: mustChangePassword,
+                passwordHash: passwordHash,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                createdById: createdById,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String internalId,
+                required String username,
+                required String displayName,
+                required String roleKey,
+                Value<String> statusKey = const Value.absent(),
+                Value<bool> mustChangePassword = const Value.absent(),
+                required String passwordHash,
+                required String createdAt,
+                required String updatedAt,
+                Value<String?> createdById = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => AccountsCompanion.insert(
+                internalId: internalId,
+                username: username,
+                displayName: displayName,
+                roleKey: roleKey,
+                statusKey: statusKey,
+                mustChangePassword: mustChangePassword,
+                passwordHash: passwordHash,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+                createdById: createdById,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$AccountsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({
+                createdById = false,
+                accountSecurityStatesRefs = false,
+                recoveryCredentialsRefs = false,
+              }) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (accountSecurityStatesRefs) db.accountSecurityStates,
+                    if (recoveryCredentialsRefs) db.recoveryCredentials,
+                  ],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (createdById) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.createdById,
+                                    referencedTable: $$AccountsTableReferences
+                                        ._createdByIdTable(db),
+                                    referencedColumn: $$AccountsTableReferences
+                                        ._createdByIdTable(db)
+                                        .internalId,
+                                  )
+                                  as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (accountSecurityStatesRefs)
+                        await $_getPrefetchedData<
+                          AccountRow,
+                          $AccountsTable,
+                          AccountSecurityState
+                        >(
+                          currentTable: table,
+                          referencedTable: $$AccountsTableReferences
+                              ._accountSecurityStatesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$AccountsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).accountSecurityStatesRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.accountId == item.internalId,
+                              ),
+                          typedResults: items,
+                        ),
+                      if (recoveryCredentialsRefs)
+                        await $_getPrefetchedData<
+                          AccountRow,
+                          $AccountsTable,
+                          RecoveryCredential
+                        >(
+                          currentTable: table,
+                          referencedTable: $$AccountsTableReferences
+                              ._recoveryCredentialsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$AccountsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).recoveryCredentialsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.accountId == item.internalId,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$AccountsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $AccountsTable,
+      AccountRow,
+      $$AccountsTableFilterComposer,
+      $$AccountsTableOrderingComposer,
+      $$AccountsTableAnnotationComposer,
+      $$AccountsTableCreateCompanionBuilder,
+      $$AccountsTableUpdateCompanionBuilder,
+      (AccountRow, $$AccountsTableReferences),
+      AccountRow,
+      PrefetchHooks Function({
+        bool createdById,
+        bool accountSecurityStatesRefs,
+        bool recoveryCredentialsRefs,
+      })
+    >;
+typedef $$AccountSecurityStatesTableCreateCompanionBuilder =
+    AccountSecurityStatesCompanion Function({
+      required String accountId,
+      Value<int> consecutiveFailures,
+      Value<String?> unlockNotBefore,
+      Value<String?> lastFailedAt,
+      Value<String?> lastSucceededAt,
+      Value<int> recoveryAttemptCount,
+      Value<String?> recoveryWindowStart,
+      Value<int> rowid,
+    });
+typedef $$AccountSecurityStatesTableUpdateCompanionBuilder =
+    AccountSecurityStatesCompanion Function({
+      Value<String> accountId,
+      Value<int> consecutiveFailures,
+      Value<String?> unlockNotBefore,
+      Value<String?> lastFailedAt,
+      Value<String?> lastSucceededAt,
+      Value<int> recoveryAttemptCount,
+      Value<String?> recoveryWindowStart,
+      Value<int> rowid,
+    });
+
+final class $$AccountSecurityStatesTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $AccountSecurityStatesTable,
+          AccountSecurityState
+        > {
+  $$AccountSecurityStatesTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $AccountsTable _accountIdTable(_$AppDatabase db) =>
+      db.accounts.createAlias(
+        $_aliasNameGenerator(
+          db.accountSecurityStates.accountId,
+          db.accounts.internalId,
+        ),
+      );
+
+  $$AccountsTableProcessedTableManager get accountId {
+    final $_column = $_itemColumn<String>('account_id')!;
+
+    final manager = $$AccountsTableTableManager(
+      $_db,
+      $_db.accounts,
+    ).filter((f) => f.internalId.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_accountIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$AccountSecurityStatesTableFilterComposer
+    extends Composer<_$AppDatabase, $AccountSecurityStatesTable> {
+  $$AccountSecurityStatesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get consecutiveFailures => $composableBuilder(
+    column: $table.consecutiveFailures,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get unlockNotBefore => $composableBuilder(
+    column: $table.unlockNotBefore,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get lastFailedAt => $composableBuilder(
+    column: $table.lastFailedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get lastSucceededAt => $composableBuilder(
+    column: $table.lastSucceededAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get recoveryAttemptCount => $composableBuilder(
+    column: $table.recoveryAttemptCount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get recoveryWindowStart => $composableBuilder(
+    column: $table.recoveryWindowStart,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$AccountsTableFilterComposer get accountId {
+    final $$AccountsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.accountId,
+      referencedTable: $db.accounts,
+      getReferencedColumn: (t) => t.internalId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AccountsTableFilterComposer(
+            $db: $db,
+            $table: $db.accounts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$AccountSecurityStatesTableOrderingComposer
+    extends Composer<_$AppDatabase, $AccountSecurityStatesTable> {
+  $$AccountSecurityStatesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get consecutiveFailures => $composableBuilder(
+    column: $table.consecutiveFailures,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get unlockNotBefore => $composableBuilder(
+    column: $table.unlockNotBefore,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get lastFailedAt => $composableBuilder(
+    column: $table.lastFailedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get lastSucceededAt => $composableBuilder(
+    column: $table.lastSucceededAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get recoveryAttemptCount => $composableBuilder(
+    column: $table.recoveryAttemptCount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get recoveryWindowStart => $composableBuilder(
+    column: $table.recoveryWindowStart,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$AccountsTableOrderingComposer get accountId {
+    final $$AccountsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.accountId,
+      referencedTable: $db.accounts,
+      getReferencedColumn: (t) => t.internalId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AccountsTableOrderingComposer(
+            $db: $db,
+            $table: $db.accounts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$AccountSecurityStatesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $AccountSecurityStatesTable> {
+  $$AccountSecurityStatesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get consecutiveFailures => $composableBuilder(
+    column: $table.consecutiveFailures,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get unlockNotBefore => $composableBuilder(
+    column: $table.unlockNotBefore,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get lastFailedAt => $composableBuilder(
+    column: $table.lastFailedAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get lastSucceededAt => $composableBuilder(
+    column: $table.lastSucceededAt,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get recoveryAttemptCount => $composableBuilder(
+    column: $table.recoveryAttemptCount,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get recoveryWindowStart => $composableBuilder(
+    column: $table.recoveryWindowStart,
+    builder: (column) => column,
+  );
+
+  $$AccountsTableAnnotationComposer get accountId {
+    final $$AccountsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.accountId,
+      referencedTable: $db.accounts,
+      getReferencedColumn: (t) => t.internalId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AccountsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.accounts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$AccountSecurityStatesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $AccountSecurityStatesTable,
+          AccountSecurityState,
+          $$AccountSecurityStatesTableFilterComposer,
+          $$AccountSecurityStatesTableOrderingComposer,
+          $$AccountSecurityStatesTableAnnotationComposer,
+          $$AccountSecurityStatesTableCreateCompanionBuilder,
+          $$AccountSecurityStatesTableUpdateCompanionBuilder,
+          (AccountSecurityState, $$AccountSecurityStatesTableReferences),
+          AccountSecurityState,
+          PrefetchHooks Function({bool accountId})
+        > {
+  $$AccountSecurityStatesTableTableManager(
+    _$AppDatabase db,
+    $AccountSecurityStatesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$AccountSecurityStatesTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$AccountSecurityStatesTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$AccountSecurityStatesTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> accountId = const Value.absent(),
+                Value<int> consecutiveFailures = const Value.absent(),
+                Value<String?> unlockNotBefore = const Value.absent(),
+                Value<String?> lastFailedAt = const Value.absent(),
+                Value<String?> lastSucceededAt = const Value.absent(),
+                Value<int> recoveryAttemptCount = const Value.absent(),
+                Value<String?> recoveryWindowStart = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => AccountSecurityStatesCompanion(
+                accountId: accountId,
+                consecutiveFailures: consecutiveFailures,
+                unlockNotBefore: unlockNotBefore,
+                lastFailedAt: lastFailedAt,
+                lastSucceededAt: lastSucceededAt,
+                recoveryAttemptCount: recoveryAttemptCount,
+                recoveryWindowStart: recoveryWindowStart,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String accountId,
+                Value<int> consecutiveFailures = const Value.absent(),
+                Value<String?> unlockNotBefore = const Value.absent(),
+                Value<String?> lastFailedAt = const Value.absent(),
+                Value<String?> lastSucceededAt = const Value.absent(),
+                Value<int> recoveryAttemptCount = const Value.absent(),
+                Value<String?> recoveryWindowStart = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => AccountSecurityStatesCompanion.insert(
+                accountId: accountId,
+                consecutiveFailures: consecutiveFailures,
+                unlockNotBefore: unlockNotBefore,
+                lastFailedAt: lastFailedAt,
+                lastSucceededAt: lastSucceededAt,
+                recoveryAttemptCount: recoveryAttemptCount,
+                recoveryWindowStart: recoveryWindowStart,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$AccountSecurityStatesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({accountId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (accountId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.accountId,
+                                referencedTable:
+                                    $$AccountSecurityStatesTableReferences
+                                        ._accountIdTable(db),
+                                referencedColumn:
+                                    $$AccountSecurityStatesTableReferences
+                                        ._accountIdTable(db)
+                                        .internalId,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$AccountSecurityStatesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $AccountSecurityStatesTable,
+      AccountSecurityState,
+      $$AccountSecurityStatesTableFilterComposer,
+      $$AccountSecurityStatesTableOrderingComposer,
+      $$AccountSecurityStatesTableAnnotationComposer,
+      $$AccountSecurityStatesTableCreateCompanionBuilder,
+      $$AccountSecurityStatesTableUpdateCompanionBuilder,
+      (AccountSecurityState, $$AccountSecurityStatesTableReferences),
+      AccountSecurityState,
+      PrefetchHooks Function({bool accountId})
+    >;
+typedef $$RecoveryCredentialsTableCreateCompanionBuilder =
+    RecoveryCredentialsCompanion Function({
+      required String accountId,
+      required String keyHash,
+      Value<String> algorithmKey,
+      required String createdAt,
+      Value<String?> lastUsedAt,
+      Value<int> rowid,
+    });
+typedef $$RecoveryCredentialsTableUpdateCompanionBuilder =
+    RecoveryCredentialsCompanion Function({
+      Value<String> accountId,
+      Value<String> keyHash,
+      Value<String> algorithmKey,
+      Value<String> createdAt,
+      Value<String?> lastUsedAt,
+      Value<int> rowid,
+    });
+
+final class $$RecoveryCredentialsTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $RecoveryCredentialsTable,
+          RecoveryCredential
+        > {
+  $$RecoveryCredentialsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $AccountsTable _accountIdTable(_$AppDatabase db) =>
+      db.accounts.createAlias(
+        $_aliasNameGenerator(
+          db.recoveryCredentials.accountId,
+          db.accounts.internalId,
+        ),
+      );
+
+  $$AccountsTableProcessedTableManager get accountId {
+    final $_column = $_itemColumn<String>('account_id')!;
+
+    final manager = $$AccountsTableTableManager(
+      $_db,
+      $_db.accounts,
+    ).filter((f) => f.internalId.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_accountIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$RecoveryCredentialsTableFilterComposer
+    extends Composer<_$AppDatabase, $RecoveryCredentialsTable> {
+  $$RecoveryCredentialsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get keyHash => $composableBuilder(
+    column: $table.keyHash,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get algorithmKey => $composableBuilder(
+    column: $table.algorithmKey,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get lastUsedAt => $composableBuilder(
+    column: $table.lastUsedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$AccountsTableFilterComposer get accountId {
+    final $$AccountsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.accountId,
+      referencedTable: $db.accounts,
+      getReferencedColumn: (t) => t.internalId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AccountsTableFilterComposer(
+            $db: $db,
+            $table: $db.accounts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$RecoveryCredentialsTableOrderingComposer
+    extends Composer<_$AppDatabase, $RecoveryCredentialsTable> {
+  $$RecoveryCredentialsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get keyHash => $composableBuilder(
+    column: $table.keyHash,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get algorithmKey => $composableBuilder(
+    column: $table.algorithmKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get lastUsedAt => $composableBuilder(
+    column: $table.lastUsedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$AccountsTableOrderingComposer get accountId {
+    final $$AccountsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.accountId,
+      referencedTable: $db.accounts,
+      getReferencedColumn: (t) => t.internalId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AccountsTableOrderingComposer(
+            $db: $db,
+            $table: $db.accounts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$RecoveryCredentialsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $RecoveryCredentialsTable> {
+  $$RecoveryCredentialsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get keyHash =>
+      $composableBuilder(column: $table.keyHash, builder: (column) => column);
+
+  GeneratedColumn<String> get algorithmKey => $composableBuilder(
+    column: $table.algorithmKey,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<String> get lastUsedAt => $composableBuilder(
+    column: $table.lastUsedAt,
+    builder: (column) => column,
+  );
+
+  $$AccountsTableAnnotationComposer get accountId {
+    final $$AccountsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.accountId,
+      referencedTable: $db.accounts,
+      getReferencedColumn: (t) => t.internalId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AccountsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.accounts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$RecoveryCredentialsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $RecoveryCredentialsTable,
+          RecoveryCredential,
+          $$RecoveryCredentialsTableFilterComposer,
+          $$RecoveryCredentialsTableOrderingComposer,
+          $$RecoveryCredentialsTableAnnotationComposer,
+          $$RecoveryCredentialsTableCreateCompanionBuilder,
+          $$RecoveryCredentialsTableUpdateCompanionBuilder,
+          (RecoveryCredential, $$RecoveryCredentialsTableReferences),
+          RecoveryCredential,
+          PrefetchHooks Function({bool accountId})
+        > {
+  $$RecoveryCredentialsTableTableManager(
+    _$AppDatabase db,
+    $RecoveryCredentialsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$RecoveryCredentialsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$RecoveryCredentialsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$RecoveryCredentialsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<String> accountId = const Value.absent(),
+                Value<String> keyHash = const Value.absent(),
+                Value<String> algorithmKey = const Value.absent(),
+                Value<String> createdAt = const Value.absent(),
+                Value<String?> lastUsedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => RecoveryCredentialsCompanion(
+                accountId: accountId,
+                keyHash: keyHash,
+                algorithmKey: algorithmKey,
+                createdAt: createdAt,
+                lastUsedAt: lastUsedAt,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required String accountId,
+                required String keyHash,
+                Value<String> algorithmKey = const Value.absent(),
+                required String createdAt,
+                Value<String?> lastUsedAt = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => RecoveryCredentialsCompanion.insert(
+                accountId: accountId,
+                keyHash: keyHash,
+                algorithmKey: algorithmKey,
+                createdAt: createdAt,
+                lastUsedAt: lastUsedAt,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$RecoveryCredentialsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({accountId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (accountId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.accountId,
+                                referencedTable:
+                                    $$RecoveryCredentialsTableReferences
+                                        ._accountIdTable(db),
+                                referencedColumn:
+                                    $$RecoveryCredentialsTableReferences
+                                        ._accountIdTable(db)
+                                        .internalId,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$RecoveryCredentialsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $RecoveryCredentialsTable,
+      RecoveryCredential,
+      $$RecoveryCredentialsTableFilterComposer,
+      $$RecoveryCredentialsTableOrderingComposer,
+      $$RecoveryCredentialsTableAnnotationComposer,
+      $$RecoveryCredentialsTableCreateCompanionBuilder,
+      $$RecoveryCredentialsTableUpdateCompanionBuilder,
+      (RecoveryCredential, $$RecoveryCredentialsTableReferences),
+      RecoveryCredential,
+      PrefetchHooks Function({bool accountId})
+    >;
+typedef $$SecurityAuditLogTableCreateCompanionBuilder =
+    SecurityAuditLogCompanion Function({
+      Value<int> id,
+      required String eventTypeKey,
+      Value<String?> actorAccountId,
+      Value<String?> targetAccountId,
+      Value<String?> eventDataSafe,
+      required String createdAt,
+    });
+typedef $$SecurityAuditLogTableUpdateCompanionBuilder =
+    SecurityAuditLogCompanion Function({
+      Value<int> id,
+      Value<String> eventTypeKey,
+      Value<String?> actorAccountId,
+      Value<String?> targetAccountId,
+      Value<String?> eventDataSafe,
+      Value<String> createdAt,
+    });
+
+final class $$SecurityAuditLogTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $SecurityAuditLogTable,
+          SecurityAuditLogRow
+        > {
+  $$SecurityAuditLogTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $AccountsTable _actorAccountIdTable(_$AppDatabase db) =>
+      db.accounts.createAlias(
+        $_aliasNameGenerator(
+          db.securityAuditLog.actorAccountId,
+          db.accounts.internalId,
+        ),
+      );
+
+  $$AccountsTableProcessedTableManager? get actorAccountId {
+    final $_column = $_itemColumn<String>('actor_account_id');
+    if ($_column == null) return null;
+    final manager = $$AccountsTableTableManager(
+      $_db,
+      $_db.accounts,
+    ).filter((f) => f.internalId.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_actorAccountIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $AccountsTable _targetAccountIdTable(_$AppDatabase db) =>
+      db.accounts.createAlias(
+        $_aliasNameGenerator(
+          db.securityAuditLog.targetAccountId,
+          db.accounts.internalId,
+        ),
+      );
+
+  $$AccountsTableProcessedTableManager? get targetAccountId {
+    final $_column = $_itemColumn<String>('target_account_id');
+    if ($_column == null) return null;
+    final manager = $$AccountsTableTableManager(
+      $_db,
+      $_db.accounts,
+    ).filter((f) => f.internalId.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_targetAccountIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$SecurityAuditLogTableFilterComposer
+    extends Composer<_$AppDatabase, $SecurityAuditLogTable> {
+  $$SecurityAuditLogTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get eventTypeKey => $composableBuilder(
+    column: $table.eventTypeKey,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get eventDataSafe => $composableBuilder(
+    column: $table.eventDataSafe,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$AccountsTableFilterComposer get actorAccountId {
+    final $$AccountsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.actorAccountId,
+      referencedTable: $db.accounts,
+      getReferencedColumn: (t) => t.internalId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AccountsTableFilterComposer(
+            $db: $db,
+            $table: $db.accounts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$AccountsTableFilterComposer get targetAccountId {
+    final $$AccountsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.targetAccountId,
+      referencedTable: $db.accounts,
+      getReferencedColumn: (t) => t.internalId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AccountsTableFilterComposer(
+            $db: $db,
+            $table: $db.accounts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$SecurityAuditLogTableOrderingComposer
+    extends Composer<_$AppDatabase, $SecurityAuditLogTable> {
+  $$SecurityAuditLogTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get eventTypeKey => $composableBuilder(
+    column: $table.eventTypeKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get eventDataSafe => $composableBuilder(
+    column: $table.eventDataSafe,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$AccountsTableOrderingComposer get actorAccountId {
+    final $$AccountsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.actorAccountId,
+      referencedTable: $db.accounts,
+      getReferencedColumn: (t) => t.internalId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AccountsTableOrderingComposer(
+            $db: $db,
+            $table: $db.accounts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$AccountsTableOrderingComposer get targetAccountId {
+    final $$AccountsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.targetAccountId,
+      referencedTable: $db.accounts,
+      getReferencedColumn: (t) => t.internalId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AccountsTableOrderingComposer(
+            $db: $db,
+            $table: $db.accounts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$SecurityAuditLogTableAnnotationComposer
+    extends Composer<_$AppDatabase, $SecurityAuditLogTable> {
+  $$SecurityAuditLogTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get eventTypeKey => $composableBuilder(
+    column: $table.eventTypeKey,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get eventDataSafe => $composableBuilder(
+    column: $table.eventDataSafe,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  $$AccountsTableAnnotationComposer get actorAccountId {
+    final $$AccountsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.actorAccountId,
+      referencedTable: $db.accounts,
+      getReferencedColumn: (t) => t.internalId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AccountsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.accounts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$AccountsTableAnnotationComposer get targetAccountId {
+    final $$AccountsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.targetAccountId,
+      referencedTable: $db.accounts,
+      getReferencedColumn: (t) => t.internalId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$AccountsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.accounts,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$SecurityAuditLogTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $SecurityAuditLogTable,
+          SecurityAuditLogRow,
+          $$SecurityAuditLogTableFilterComposer,
+          $$SecurityAuditLogTableOrderingComposer,
+          $$SecurityAuditLogTableAnnotationComposer,
+          $$SecurityAuditLogTableCreateCompanionBuilder,
+          $$SecurityAuditLogTableUpdateCompanionBuilder,
+          (SecurityAuditLogRow, $$SecurityAuditLogTableReferences),
+          SecurityAuditLogRow,
+          PrefetchHooks Function({bool actorAccountId, bool targetAccountId})
+        > {
+  $$SecurityAuditLogTableTableManager(
+    _$AppDatabase db,
+    $SecurityAuditLogTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$SecurityAuditLogTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$SecurityAuditLogTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$SecurityAuditLogTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<String> eventTypeKey = const Value.absent(),
+                Value<String?> actorAccountId = const Value.absent(),
+                Value<String?> targetAccountId = const Value.absent(),
+                Value<String?> eventDataSafe = const Value.absent(),
+                Value<String> createdAt = const Value.absent(),
+              }) => SecurityAuditLogCompanion(
+                id: id,
+                eventTypeKey: eventTypeKey,
+                actorAccountId: actorAccountId,
+                targetAccountId: targetAccountId,
+                eventDataSafe: eventDataSafe,
+                createdAt: createdAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required String eventTypeKey,
+                Value<String?> actorAccountId = const Value.absent(),
+                Value<String?> targetAccountId = const Value.absent(),
+                Value<String?> eventDataSafe = const Value.absent(),
+                required String createdAt,
+              }) => SecurityAuditLogCompanion.insert(
+                id: id,
+                eventTypeKey: eventTypeKey,
+                actorAccountId: actorAccountId,
+                targetAccountId: targetAccountId,
+                eventDataSafe: eventDataSafe,
+                createdAt: createdAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$SecurityAuditLogTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({actorAccountId = false, targetAccountId = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (actorAccountId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.actorAccountId,
+                                    referencedTable:
+                                        $$SecurityAuditLogTableReferences
+                                            ._actorAccountIdTable(db),
+                                    referencedColumn:
+                                        $$SecurityAuditLogTableReferences
+                                            ._actorAccountIdTable(db)
+                                            .internalId,
+                                  )
+                                  as T;
+                        }
+                        if (targetAccountId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.targetAccountId,
+                                    referencedTable:
+                                        $$SecurityAuditLogTableReferences
+                                            ._targetAccountIdTable(db),
+                                    referencedColumn:
+                                        $$SecurityAuditLogTableReferences
+                                            ._targetAccountIdTable(db)
+                                            .internalId,
+                                  )
+                                  as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$SecurityAuditLogTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $SecurityAuditLogTable,
+      SecurityAuditLogRow,
+      $$SecurityAuditLogTableFilterComposer,
+      $$SecurityAuditLogTableOrderingComposer,
+      $$SecurityAuditLogTableAnnotationComposer,
+      $$SecurityAuditLogTableCreateCompanionBuilder,
+      $$SecurityAuditLogTableUpdateCompanionBuilder,
+      (SecurityAuditLogRow, $$SecurityAuditLogTableReferences),
+      SecurityAuditLogRow,
+      PrefetchHooks Function({bool actorAccountId, bool targetAccountId})
+    >;
 
 class $AppDatabaseManager {
   final _$AppDatabase _db;
@@ -31875,4 +35768,12 @@ class $AppDatabaseManager {
       $$ExportBatchesTableTableManager(_db, _db.exportBatches);
   $$ExportBatchDocumentsTableTableManager get exportBatchDocuments =>
       $$ExportBatchDocumentsTableTableManager(_db, _db.exportBatchDocuments);
+  $$AccountsTableTableManager get accounts =>
+      $$AccountsTableTableManager(_db, _db.accounts);
+  $$AccountSecurityStatesTableTableManager get accountSecurityStates =>
+      $$AccountSecurityStatesTableTableManager(_db, _db.accountSecurityStates);
+  $$RecoveryCredentialsTableTableManager get recoveryCredentials =>
+      $$RecoveryCredentialsTableTableManager(_db, _db.recoveryCredentials);
+  $$SecurityAuditLogTableTableManager get securityAuditLog =>
+      $$SecurityAuditLogTableTableManager(_db, _db.securityAuditLog);
 }

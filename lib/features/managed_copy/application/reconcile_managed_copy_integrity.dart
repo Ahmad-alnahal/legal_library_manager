@@ -3,6 +3,9 @@
 
 import '../../../core/time/clock.dart';
 import '../../import/domain/services/file_hasher.dart';
+import '../../security/application/session_manager.dart';
+import '../../security/application/unauthorized_exception.dart';
+import '../../security/domain/entities/account_role.dart';
 import '../domain/entities/managed_file_ref.dart';
 import '../domain/entities/reconcile_integrity_result.dart';
 import '../domain/repositories/managed_copy_repository.dart';
@@ -22,6 +25,9 @@ import '../domain/services/operation_id_generator.dart';
 ///   its workflow status is moved back to classified.
 ///
 /// No files are created, moved, copied, or deleted by this use case.
+///
+/// Throws [UnauthorizedException] if the caller does not hold an active
+/// administrator session.
 class ReconcileManagedCopyIntegrity {
   const ReconcileManagedCopyIntegrity({
     required ManagedCopyRepository repository,
@@ -29,19 +35,28 @@ class ReconcileManagedCopyIntegrity {
     required FileHasher hasher,
     required OperationIdGenerator operationIdGenerator,
     required Clock clock,
+    required SessionManager sessionManager,
   }) : _repository = repository,
        _filesystem = filesystem,
        _hasher = hasher,
        _operationIdGenerator = operationIdGenerator,
-       _clock = clock;
+       _clock = clock,
+       _sessionManager = sessionManager;
 
   final ManagedCopyRepository _repository;
   final ManagedLibraryFilesystem _filesystem;
   final FileHasher _hasher;
   final OperationIdGenerator _operationIdGenerator;
   final Clock _clock;
+  final SessionManager _sessionManager;
 
   Future<ReconcileIntegrityResult> call() async {
+    final session = _sessionManager.currentSession;
+    if (session == null || session.role != AccountRole.admin) {
+      throw const UnauthorizedException(
+          'Admin role required to run the managed-copy integrity scan.');
+    }
+
     final allFiles = await _repository.loadAllManagedCopyFiles();
     if (allFiles.isEmpty) return ReconcileIntegrityResult.empty;
 

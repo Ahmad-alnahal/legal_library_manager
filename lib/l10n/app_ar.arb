@@ -299,6 +299,7 @@
     }
   },
   "settingsSnackIntegrityFailed": "تعذّر فحص النسخ المدارة. حاول مرة أخرى.",
+  "settingsSnackUnauthorized": "هذه العملية تتطلب صلاحيات المشرف.",
 
   "duplicatesReviewStatusReviewed": "تمت المراجعة",
   "duplicatesReviewStatusDeferred": "مؤجلة",
@@ -322,5 +323,122 @@
       "n": { "type": "int" }
     }
   },
-  "dashboardRelativeNow": "الآن"
+  "dashboardRelativeNow": "الآن",
+
+  "loginTitle": "تسجيل الدخول",
+  "loginUsernameLabel": "اسم المستخدم",
+  "loginPasswordLabel": "كلمة المرور",
+  "loginSubmitButton": "دخول",
+  "loginShowPasswordTooltip": "إظهار كلمة المرور",
+  "loginHidePasswordTooltip": "إخفاء كلمة المرور",
+  "loginErrorInvalidCredentials": "اسم المستخدم أو كلمة المرور غير صحيحة.",
+  "loginErrorAccountSuspended": "تم تعليق الحساب. تواصل مع المدير.",
+  "loginErrorDelay": "يرجى الانتظار {seconds} ثانية قبل المحاولة مرة أخرى.",
+  "@loginErrorDelay": {
+    "placeholders": {
+      "seconds": { "type": "int" }
+    }
+  },
+
+  "setupTitle": "إعداد حساب المدير",
+  "setupSubtitle": "قم بإنشاء كلمة مرور آمنة لحساب مدير النظام.",
+  "setupPasswordLabel": "كلمة المرور الجديدة",
+  "setupConfirmPasswordLabel": "تأكيد كلمة المرور",
+  "setupPasswordHint": "8 أحرف على الأقل",
+  "setupSubmitButton": "تعيين كلمة المرور",
+  "setupErrorPasswordMismatch": "كلمتا المرور غير متطابقتين.",
+  "setupErrorPasswordTooShort": "كلمة المرور قصيرة جدًا. الحد الأدنى 8 أحرف.",
+  "setupErrorUnexpected": "حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.",
+  "setupRecoveryKeyTitle": "مفتاح الاسترداد",
+  "setupRecoveryKeyBody": "احتفظ بمفتاح الاسترداد هذا في مكان آمن بعيد عن الجهاز. هذه هي المرة الوحيدة التي يُعرض فيها. ستحتاجه لاستعادة حساب المدير إذا نسيت كلمة المرور.",
+  "setupRecoveryKeyCopyButton": "نسخ المفتاح",
+  "setupRecoveryKeyCopied": "تم نسخ مفتاح الاسترداد.",
+  "setupRecoveryKeyConfirmLabel": "لقد حفظت مفتاح الاسترداد في مكان آمن",
+  "setupContinueButton": "الدخول إلى التطبيق",
+  "setupInProgress": "جارٍ إعداد الحساب...",
+
+  "loginRecoveryLinkButton": "نسيت كلمة مرور المدير؟",
+
+  "recoveryTitle": "استعادة حساب المدير",
+  "recoverySubtitle": "أدخل مفتاح الاسترداد لإعادة تعيين كلمة المرور.",
+  "recoveryKeyLabel": "مفتاح الاسترداد",
+  "recoveryKeyHint": "XXXXXXXX-XXXXXXXX-XXXXXXXX-XXXXXXXX",
+  "recoverySubmitButton": "تأكيد",
+  "recoveryErrorInvalidKey": "مفتاح الاسترداد غير صحيح.",
+  "recoveryErrorThrottled": "يرجى الانتظار {seconds} ثانية قبل المحاولة مرة أخرى.",
+  "@recoveryErrorThrottled": {
+    "placeholders": {
+      "seconds": { "type": "int" }
+    }
+  },
+  "recoveryErrorUnexpected": "حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.",
+  "recoverySuccessTitle": "تمت الاستعادة بنجاح",
+  "recoverySuccessBody": "تم إعادة تعيين حساب المدير. احتفظ بمفتاح الاسترداد الجديد في مكان آمن — هذه هي المرة الوحيدة التي يُعرض فيها.",
+  "recoverySuccessCopyButton": "نسخ المفتاح",
+  "recoverySuccessCopied": "تم نسخ مفتاح الاسترداد.",
+  "recoverySuccessConfirmLabel": "لقد حفظت مفتاح الاسترداد الجديد في مكان آمن",
+  "recoveryContinueButton": "العودة لتسجيل الدخول",
+
+  "navAdministration": "إدارة الحسابات",
+  "navTooltipAdministration": "إدارة حسابات المشغلين",
+
+  "passwordChangeTitle": "تغيير كلمة المرور",
+  "passwordChangeSubtitle": "يجب تغيير كلمة المرور المؤقتة قبل المتابعة.",
+  "passwordChangeCurrentLabel": "كلمة المرور الحالية",
+  "passwordChangeNewLabel": "كلمة المرور الجديدة",
+  "passwordChangeConfirmLabel": "تأكيد كلمة المرور الجديدة",
+  "passwordChangeSubmitButton": "تغيير كلمة المرور",
+  "passwordChangeErrorIncorrectCurrent": "كلمة المرور الحالية غير صحيحة.",
+
+  "accountManagementTitle": "إدارة الحسابات",
+  "accountManagementCreateButton": "حساب جديد",
+  "accountManagementAdminSection": "حساب المدير",
+  "accountManagementOperatorsSection": "حسابات المشغلين",
+  "accountManagementNoOperators": "لا توجد حسابات مشغلين بعد.",
+  "accountManagementDisplayNameLabel": "الاسم المعروض",
+  "accountManagementTempPasswordLabel": "كلمة المرور المؤقتة",
+  "accountManagementCreateDialogTitle": "إنشاء حساب مشغل",
+  "accountManagementIssueTempPasswordTitle": "إصدار كلمة مرور مؤقتة",
+  "accountManagementIssueTempPasswordBody": "إصدار كلمة مرور مؤقتة للمشغل: {operatorName}",
+  "@accountManagementIssueTempPasswordBody": {
+    "placeholders": {
+      "operatorName": { "type": "String" }
+    }
+  },
+  "accountManagementCancelButton": "إلغاء",
+  "accountManagementCreateConfirmButton": "إنشاء",
+  "accountManagementConfirmButton": "تأكيد",
+  "accountManagementErrorDuplicateUsername": "اسم المستخدم هذا مستخدم بالفعل.",
+  "accountManagementErrorUnauthorized": "غير مصرح بهذه العملية. يُرجى إعادة تسجيل الدخول.",
+  "accountStatusActive": "نشط",
+  "accountStatusSuspended": "موقوف",
+  "accountStatusDisabled": "معطّل",
+  "accountActionSuspend": "تعليق الحساب",
+  "accountActionReactivate": "إعادة تفعيل",
+  "accountActionIssueTempPassword": "إصدار كلمة مرور مؤقتة",
+
+  "adminTabAccounts": "الحسابات",
+  "adminTabAuditLog": "سجل الأمان",
+
+  "auditLogTitle": "سجل الأمان",
+  "auditLogSubtitle": "سجل دائم لجميع أحداث الأمان، مرتبة من الأحدث إلى الأقدم.",
+  "auditLogEmpty": "لا توجد أحداث مسجلة بعد.",
+  "auditLogLoadMore": "تحميل المزيد",
+  "auditLogErrorBody": "تعذّر تحميل سجل الأمان.",
+  "auditLogRetry": "إعادة المحاولة",
+
+  "auditActorSystem": "النظام",
+  "auditActorAdmin": "المدير",
+
+  "auditEventAdminBootstrapped": "تهيئة حساب المدير",
+  "auditEventPasswordChanged": "تغيير كلمة المرور",
+  "auditEventLoginSuccess": "تسجيل دخول ناجح",
+  "auditEventLoginFailed": "محاولة دخول فاشلة",
+  "auditEventAccountCreated": "إنشاء حساب مشغل",
+  "auditEventAccountSuspended": "تعليق حساب",
+  "auditEventAccountReactivated": "إعادة تفعيل حساب",
+  "auditEventTempPasswordIssued": "إصدار كلمة مرور مؤقتة",
+  "auditEventAccountAutoSuspended": "تعليق تلقائي بسبب محاولات متكررة",
+  "auditEventRecoveryKeyRedeemed": "استخدام مفتاح الاسترداد",
+  "auditEventUnknown": "حدث غير معروف"
 }

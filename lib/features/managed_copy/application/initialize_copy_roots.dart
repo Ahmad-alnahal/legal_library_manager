@@ -2,7 +2,6 @@ import '../domain/entities/copy_roots_setup_report.dart';
 import '../domain/repositories/managed_copy_repository.dart';
 import '../domain/services/documents_directory_resolver.dart';
 import '../domain/services/managed_library_filesystem.dart';
-import 'configure_copy_roots.dart';
 
 /// Automatically configures safe default copy roots on startup (M8.4).
 ///
@@ -25,13 +24,11 @@ class InitializeCopyRoots {
     required this._repository,
     required this._filesystem,
     required this._documentsResolver,
-    required this._configureCopyRoots,
   });
 
   final ManagedCopyRepository _repository;
   final ManagedLibraryFilesystem _filesystem;
   final DocumentsDirectoryResolver _documentsResolver;
-  final ConfigureCopyRoots _configureCopyRoots;
 
   static const String marjiyFolderName = 'MARJIY';
   static const String managedLibraryFolderName = 'ManagedLibrary';
@@ -112,11 +109,17 @@ class InitializeCopyRoots {
         outcome: CopyRootsSetupOutcome.requiresAttention,
       );
     }
-    final result = await _configureCopyRoots(
-      defaults.managedLibrary,
-      defaults.databaseBackups,
-    );
-    if (result != ConfigureCopyRootsResult.saved) {
+    if (!await _isSafeToSave(defaults.managedLibrary, defaults.databaseBackups)) {
+      return const CopyRootsSetupReport(
+        outcome: CopyRootsSetupOutcome.requiresAttention,
+      );
+    }
+    try {
+      await _repository.saveCopyRoots(
+        managedLibraryRoot: defaults.managedLibrary,
+        backupRoot: defaults.databaseBackups,
+      );
+    } catch (_) {
       return const CopyRootsSetupReport(
         outcome: CopyRootsSetupOutcome.requiresAttention,
       );
@@ -170,11 +173,18 @@ class InitializeCopyRoots {
     }
     // Re-persisting the existing root with its unchanged value is not a
     // replacement; only the missing root receives a new (default) value.
-    final result = await _configureCopyRoots(
-      fillingManaged ? fillPath : managed,
-      fillingManaged ? backup : fillPath,
-    );
-    if (result != ConfigureCopyRootsResult.saved) {
+    // When filling one root, the other is guaranteed non-null by _run().
+    final String saveManagedRoot = fillingManaged ? fillPath : managed;
+    final String saveBackupRoot = fillingManaged ? backup! : fillPath;
+    if (!await _isSafeToSave(saveManagedRoot, saveBackupRoot)) {
+      return attention(existingResult.status);
+    }
+    try {
+      await _repository.saveCopyRoots(
+        managedLibraryRoot: saveManagedRoot,
+        backupRoot: saveBackupRoot,
+      );
+    } catch (_) {
       return attention(existingResult.status);
     }
     return CopyRootsSetupReport(
@@ -188,6 +198,49 @@ class InitializeCopyRoots {
           ? existingResult.status
           : CopyRootStatus.automatic,
     );
+  }
+
+  // ── Safety validation ──────────────────────────────────────────────────────
+
+  /// Returns false if persisting [managed] and [backup] as the new copy roots
+  /// would create an unsafe overlap with each other, the database root, or any
+  /// registered source-file path.
+  ///
+  /// This mirrors the validation in [ConfigureCopyRoots] for the paths that
+  /// [InitializeCopyRoots] computes internally — the MARJIY defaults. It is
+  /// called before [ManagedCopyRepository.saveCopyRoots] to guard startup
+  /// initialization from persisting dangerous configurations in edge cases
+  /// (e.g., Documents directory unexpectedly coinciding with app-data or
+  /// source-file roots).
+  Future<bool> _isSafeToSave(String managed, String backup) async {
+    if (_overlap(managed, backup)) return false;
+    final dbRoot = await _repository.loadDatabaseRoot();
+    if (_overlap(managed, dbRoot) || _overlap(backup, dbRoot)) return false;
+    for (final sourcePath in await _repository.loadAllSourcePaths()) {
+      final sourceParent = _parentOf(sourcePath);
+      if (_overlap(managed, sourceParent) || _overlap(backup, sourceParent)) {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  bool _overlap(String a, String b) {
+    String normalize(String value) => value
+        .replaceAll('/', r'\')
+        .toLowerCase()
+        .replaceFirst(RegExp(r'\\+$'), '');
+    final x = normalize(a);
+    final y = normalize(b);
+    return x == y || x.startsWith('$y\\') || y.startsWith('$x\\');
+  }
+
+  String _parentOf(String path) {
+    final normalized = path.replaceAll('/', r'\');
+    final separator = normalized.lastIndexOf(r'\');
+    return separator <= 2
+        ? normalized.substring(0, separator + 1)
+        : normalized.substring(0, separator);
   }
 
   // ── Helpers ────────────────────────────────────────────────────────────────

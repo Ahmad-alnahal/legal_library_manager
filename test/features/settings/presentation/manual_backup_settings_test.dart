@@ -10,6 +10,7 @@ import 'package:legal_library_manager/core/di/injection.dart';
 import 'package:legal_library_manager/core/time/clock.dart';
 import 'package:legal_library_manager/features/managed_copy/application/create_manual_backup.dart';
 import 'package:legal_library_manager/features/managed_copy/domain/entities/copy_roots.dart';
+import 'package:legal_library_manager/features/security/application/session_manager.dart';
 import 'package:legal_library_manager/features/managed_copy/domain/entities/copy_roots_setup_report.dart';
 import 'package:legal_library_manager/features/managed_copy/domain/entities/document_copy_state.dart';
 import 'package:legal_library_manager/features/managed_copy/domain/entities/managed_copy_persistence_data.dart';
@@ -25,6 +26,8 @@ import 'package:legal_library_manager/features/managed_copy/presentation/bloc/ma
 import 'package:legal_library_manager/features/managed_copy/application/initialize_copy_roots.dart';
 import 'package:legal_library_manager/features/settings/presentation/pages/settings_page.dart';
 import 'package:legal_library_manager/l10n/app_localizations.dart';
+
+import '../../../support/security_test_doubles.dart';
 
 // ── Test doubles ──────────────────────────────────────────────────────────────
 
@@ -179,6 +182,8 @@ class _FixedClock extends Clock {
 }
 
 /// [CreateManualBackup] subclass that overrides [call] to return a scripted result.
+/// The [sessionManager] passed to [super] is never consulted because [call] is
+/// overridden; a blank manager avoids spurious pending-timer failures in widget tests.
 class _FakeCreateManualBackup extends CreateManualBackup {
   _FakeCreateManualBackup(this._result)
     : super(
@@ -189,6 +194,7 @@ class _FakeCreateManualBackup extends CreateManualBackup {
         filesystem: _FakeFilesystem(),
         operationIdGenerator: _FakeOpGen(),
         clock: _FixedClock(),
+        sessionManager: SessionManager(),
       );
 
   final ManualBackupResult _result;
@@ -219,6 +225,9 @@ Future<void> _pumpSettings(
     dispose: (db) => db.close(),
   );
   configureDependencies();
+  // Settings page hides admin-only controls from operators. Swap in the
+  // FakeSessionManager so the admin session is visible without a pending timer.
+  useStubSessionManager();
 
   // Override copy-roots initialization to use the scripted report.
   if (getIt.isRegistered<InitializeCopyRoots>()) {
@@ -560,6 +569,7 @@ class _CountingCreateManualBackup extends CreateManualBackup {
         filesystem: _FakeFilesystem(),
         operationIdGenerator: _FakeOpGen(),
         clock: _FixedClock(),
+        sessionManager: SessionManager(),
       );
 
   final ManualBackupResult Function() onCall;

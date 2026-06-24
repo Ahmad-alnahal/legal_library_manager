@@ -1,8 +1,12 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../security/application/session_manager.dart';
+import '../../../security/domain/entities/account_role.dart';
 import '../../../../core/theme/app_radii.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_status_colors.dart';
@@ -66,12 +70,39 @@ Future<void> _openRecoveryReview(BuildContext context) async {
   }
 }
 
-class _SettingsBody extends StatelessWidget {
+class _SettingsBody extends StatefulWidget {
   const _SettingsBody();
+
+  @override
+  State<_SettingsBody> createState() => _SettingsBodyState();
+}
+
+class _SettingsBodyState extends State<_SettingsBody> {
+  late bool _isAdmin;
+  late final StreamSubscription<SessionState> _sessionSub;
+
+  @override
+  void initState() {
+    super.initState();
+    final sm = getIt<SessionManager>();
+    _isAdmin = sm.currentSession?.role == AccountRole.admin;
+    _sessionSub = sm.sessionStream.listen((state) {
+      final nowAdmin =
+          state is Authenticated && state.session.role == AccountRole.admin;
+      if (nowAdmin != _isAdmin) setState(() => _isAdmin = nowAdmin);
+    });
+  }
+
+  @override
+  void dispose() {
+    _sessionSub.cancel();
+    super.dispose();
+  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final isAdmin = _isAdmin;
     return MultiBlocListener(
       listeners: [
         BlocListener<CopySettingsBloc, CopySettingsState>(
@@ -91,6 +122,7 @@ class _SettingsBody extends StatelessWidget {
                 l10n.settingsSnackDefaultsResolutionFailed,
               'defaults_creation_failed' =>
                 l10n.settingsSnackDefaultsCreationFailed,
+              'unauthorized' => l10n.settingsSnackUnauthorized,
               _ => l10n.settingsSnackFallback,
             };
             ScaffoldMessenger.of(context)
@@ -106,6 +138,7 @@ class _SettingsBody extends StatelessWidget {
               'success' => l10n.settingsSnackBackupSuccess,
               'not_configured' => l10n.settingsSnackBackupNotConfigured,
               'root_missing' => l10n.settingsSnackBackupRootMissing,
+              'unauthorized' => l10n.settingsSnackUnauthorized,
               _ => l10n.settingsSnackBackupFailed,
             };
             ScaffoldMessenger.of(context)
@@ -120,6 +153,7 @@ class _SettingsBody extends StatelessWidget {
             final text = switch (state.messageKey) {
               'clean' => l10n.settingsSnackIntegrityClean,
               'issues' => l10n.settingsSnackIntegrityIssues(state.issueCount),
+              'unauthorized' => l10n.settingsSnackUnauthorized,
               _ => l10n.settingsSnackIntegrityFailed,
             };
             ScaffoldMessenger.of(context)
@@ -137,7 +171,7 @@ class _SettingsBody extends StatelessWidget {
           const SizedBox(height: AppSpacing.lg),
           const _CopyOnlyPolicyPanel(),
           const SizedBox(height: AppSpacing.lg),
-          const _SettingsPanels(),
+          _SettingsPanels(isAdmin: isAdmin),
         ],
       ),
     );
@@ -145,40 +179,45 @@ class _SettingsBody extends StatelessWidget {
 }
 
 class _SettingsPanels extends StatelessWidget {
-  const _SettingsPanels();
+  const _SettingsPanels({required this.isAdmin});
+
+  final bool isAdmin;
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, constraints) {
         if (constraints.maxWidth >= 1000) {
-          return const Row(
+          return Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Expanded(flex: 3, child: _CopyLocationsPanel()),
-              SizedBox(width: AppSpacing.lg),
-              SizedBox(
-                width: 360,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    _ManualBackupPanel(),
-                    SizedBox(height: AppSpacing.lg),
-                    _CopyIntegrityPanel(),
-                  ],
+              Expanded(flex: 3, child: _CopyLocationsPanel(isAdmin: isAdmin)),
+              const SizedBox(width: AppSpacing.lg),
+              if (isAdmin)
+                SizedBox(
+                  width: 360,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: const [
+                      _ManualBackupPanel(),
+                      SizedBox(height: AppSpacing.lg),
+                      _CopyIntegrityPanel(),
+                    ],
+                  ),
                 ),
-              ),
             ],
           );
         }
-        return const Column(
+        return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            _ManualBackupPanel(),
-            SizedBox(height: AppSpacing.lg),
-            _CopyIntegrityPanel(),
-            SizedBox(height: AppSpacing.lg),
-            _CopyLocationsPanel(),
+            if (isAdmin) ...[
+              const _ManualBackupPanel(),
+              const SizedBox(height: AppSpacing.lg),
+              const _CopyIntegrityPanel(),
+              const SizedBox(height: AppSpacing.lg),
+            ],
+            _CopyLocationsPanel(isAdmin: isAdmin),
           ],
         );
       },
@@ -231,7 +270,9 @@ class _CopyOnlyPolicyPanel extends StatelessWidget {
 }
 
 class _CopyLocationsPanel extends StatelessWidget {
-  const _CopyLocationsPanel();
+  const _CopyLocationsPanel({required this.isAdmin});
+
+  final bool isAdmin;
 
   @override
   Widget build(BuildContext context) {
@@ -272,22 +313,26 @@ class _CopyLocationsPanel extends StatelessWidget {
                   onReview: () => _openRecoveryReview(context),
                 ),
               ],
-              const SizedBox(height: AppSpacing.md),
-              Align(
-                alignment: AlignmentDirectional.centerStart,
-                child: AppSecondaryButton(
-                  label: l10n.settingsResetToDefaults,
-                  icon: Icons.restore_outlined,
-                  onPressed: !state.busy
-                      ? () => _confirmResetToDefaults(context, bloc)
-                      : null,
+              // "Reset to Defaults" and path-change controls are admin-only:
+              // operators may see their current paths but cannot change them.
+              if (isAdmin) ...[
+                const SizedBox(height: AppSpacing.md),
+                Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: AppSecondaryButton(
+                    label: l10n.settingsResetToDefaults,
+                    icon: Icons.restore_outlined,
+                    onPressed: !state.busy
+                        ? () => _confirmResetToDefaults(context, bloc)
+                        : null,
+                  ),
                 ),
-              ),
-              const SizedBox(height: AppSpacing.xs),
-              Text(
-                l10n.settingsResetWarning,
-                style: const TextStyle(fontSize: 12),
-              ),
+                const SizedBox(height: AppSpacing.xs),
+                Text(
+                  l10n.settingsResetWarning,
+                  style: const TextStyle(fontSize: 12),
+                ),
+              ],
               if (state.requiresAttention) ...[
                 const SizedBox(height: AppSpacing.md),
                 const _AttentionBanner(),
@@ -299,6 +344,7 @@ class _CopyLocationsPanel extends StatelessWidget {
                 status: state.managedStatus,
                 icon: Icons.library_books_outlined,
                 enabled: !state.busy,
+                isAdmin: isAdmin,
                 onChoose: () => _confirmAndChange(
                   context,
                   bloc,
@@ -320,6 +366,7 @@ class _CopyLocationsPanel extends StatelessWidget {
                 status: state.backupStatus,
                 icon: Icons.backup_outlined,
                 enabled: !state.busy,
+                isAdmin: isAdmin,
                 onChoose: () => _confirmAndChange(
                   context,
                   bloc,
@@ -763,6 +810,7 @@ class _LocationRow extends StatelessWidget {
     required this.status,
     required this.icon,
     required this.enabled,
+    required this.isAdmin,
     required this.onChoose,
     this.onRecreate,
   });
@@ -772,6 +820,9 @@ class _LocationRow extends StatelessWidget {
   final CopyRootStatus status;
   final IconData icon;
   final bool enabled;
+  /// When false the Choose/Change path button is hidden; the re-create button
+  /// remains available since operators are allowed to recreate missing folders.
+  final bool isAdmin;
   final VoidCallback onChoose;
   final VoidCallback? onRecreate;
 
@@ -812,6 +863,10 @@ class _LocationRow extends StatelessWidget {
               ),
             ],
           );
+
+          // The Choose/Change path button is restricted to administrators.
+          if (!isAdmin) return details;
+
           final button = AppSecondaryButton(
             label: value == null
                 ? l10n.settingsChooseButton

@@ -3,6 +3,9 @@ import 'package:legal_library_manager/features/managed_copy/application/configur
 import 'package:legal_library_manager/features/managed_copy/domain/repositories/managed_copy_repository.dart';
 import 'package:legal_library_manager/features/managed_copy/domain/services/managed_library_filesystem.dart';
 import 'package:legal_library_manager/features/managed_copy/domain/services/path_canonicalizer.dart';
+import 'package:legal_library_manager/features/security/application/session_manager.dart';
+import 'package:legal_library_manager/features/security/domain/entities/account_role.dart';
+import 'package:legal_library_manager/features/security/domain/entities/session.dart';
 
 class _Repo implements ManagedCopyRepository {
   String databaseRoot = r'C:\AppSupport';
@@ -46,15 +49,68 @@ class _Canonicalizer implements PathCanonicalizer {
   String? canonicalize(String path) => path;
 }
 
+final _adminSession = Session(
+  accountId: 'admin',
+  username: 'marjiy@admin',
+  role: AccountRole.admin,
+  startedAt: DateTime.utc(2026, 6, 24, 9),
+);
+
 void main() {
   late _Repo repo;
   late _Filesystem filesystem;
+  late SessionManager sessionManager;
   late ConfigureCopyRoots configure;
 
   setUp(() {
     repo = _Repo();
     filesystem = _Filesystem();
-    configure = ConfigureCopyRoots(repo, filesystem, _Canonicalizer());
+    sessionManager = SessionManager();
+    sessionManager.login(_adminSession);
+    configure = ConfigureCopyRoots(
+      repo,
+      filesystem,
+      _Canonicalizer(),
+      sessionManager: sessionManager,
+    );
+  });
+
+  tearDown(() => sessionManager.dispose());
+
+  test('returns unauthorized when no session is active', () async {
+    final noSessionManager = SessionManager();
+    final unauthConfigure = ConfigureCopyRoots(
+      repo,
+      filesystem,
+      _Canonicalizer(),
+      sessionManager: noSessionManager,
+    );
+    expect(
+      await unauthConfigure(r'C:\Managed', r'D:\Backups'),
+      ConfigureCopyRootsResult.unauthorized,
+    );
+    noSessionManager.dispose();
+  });
+
+  test('returns unauthorized when an operator session is active', () async {
+    final operatorManager = SessionManager();
+    operatorManager.login(Session(
+      accountId: 'op1',
+      username: 'op@operator',
+      role: AccountRole.operator,
+      startedAt: DateTime.utc(2026, 6, 24, 9),
+    ));
+    final unauthConfigure = ConfigureCopyRoots(
+      repo,
+      filesystem,
+      _Canonicalizer(),
+      sessionManager: operatorManager,
+    );
+    expect(
+      await unauthConfigure(r'C:\Managed', r'D:\Backups'),
+      ConfigureCopyRootsResult.unauthorized,
+    );
+    operatorManager.dispose();
   });
 
   test('saves separate existing safe roots', () async {

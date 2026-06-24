@@ -14,6 +14,8 @@ import 'package:legal_library_manager/core/widgets/app_buttons.dart';
 import 'package:legal_library_manager/features/settings/presentation/pages/settings_page.dart';
 import 'package:legal_library_manager/l10n/app_localizations.dart';
 
+import '../../../support/security_test_doubles.dart';
+
 // ── Test doubles ──────────────────────────────────────────────────────────────
 
 class _FakeInitializeCopyRoots implements InitializeCopyRoots {
@@ -108,6 +110,9 @@ void main() {
       dispose: (db) => db.close(),
     );
     configureDependencies();
+    // Settings page hides admin-only controls from operators. Swap in the
+    // FakeSessionManager so the admin session is visible without a pending timer.
+    useStubSessionManager();
   });
 
   tearDown(() => getIt.reset());

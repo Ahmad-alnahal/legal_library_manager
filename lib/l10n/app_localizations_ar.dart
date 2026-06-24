@@ -811,6 +811,10 @@ class AppLocalizationsAr extends AppLocalizations {
       'تعذّر فحص النسخ المدارة. حاول مرة أخرى.';
 
   @override
+  String get settingsSnackUnauthorized =>
+      'هذه العملية تتطلب صلاحيات المشرف.';
+
+  @override
   String get duplicatesReviewStatusReviewed => 'تمت المراجعة';
 
   @override
@@ -836,4 +840,298 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get dashboardRelativeNow => 'الآن';
+
+  @override
+  String get loginTitle => 'تسجيل الدخول';
+
+  @override
+  String get loginUsernameLabel => 'اسم المستخدم';
+
+  @override
+  String get loginPasswordLabel => 'كلمة المرور';
+
+  @override
+  String get loginSubmitButton => 'دخول';
+
+  @override
+  String get loginShowPasswordTooltip => 'إظهار كلمة المرور';
+
+  @override
+  String get loginHidePasswordTooltip => 'إخفاء كلمة المرور';
+
+  @override
+  String get loginErrorInvalidCredentials =>
+      'اسم المستخدم أو كلمة المرور غير صحيحة.';
+
+  @override
+  String get loginErrorAccountSuspended => 'تم تعليق الحساب. تواصل مع المدير.';
+
+  @override
+  String loginErrorDelay(int seconds) {
+    return 'يرجى الانتظار $seconds ثانية قبل المحاولة مرة أخرى.';
+  }
+
+  @override
+  String get setupTitle => 'إعداد حساب المدير';
+
+  @override
+  String get setupSubtitle => 'قم بإنشاء كلمة مرور آمنة لحساب مدير النظام.';
+
+  @override
+  String get setupPasswordLabel => 'كلمة المرور الجديدة';
+
+  @override
+  String get setupConfirmPasswordLabel => 'تأكيد كلمة المرور';
+
+  @override
+  String get setupPasswordHint => '8 أحرف على الأقل';
+
+  @override
+  String get setupSubmitButton => 'تعيين كلمة المرور';
+
+  @override
+  String get setupErrorPasswordMismatch => 'كلمتا المرور غير متطابقتين.';
+
+  @override
+  String get setupErrorPasswordTooShort =>
+      'كلمة المرور قصيرة جدًا. الحد الأدنى 8 أحرف.';
+
+  @override
+  String get setupErrorUnexpected =>
+      'حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.';
+
+  @override
+  String get setupRecoveryKeyTitle => 'مفتاح الاسترداد';
+
+  @override
+  String get setupRecoveryKeyBody =>
+      'احتفظ بمفتاح الاسترداد هذا في مكان آمن بعيد عن الجهاز. هذه هي المرة الوحيدة التي يُعرض فيها. ستحتاجه لاستعادة حساب المدير إذا نسيت كلمة المرور.';
+
+  @override
+  String get setupRecoveryKeyCopyButton => 'نسخ المفتاح';
+
+  @override
+  String get setupRecoveryKeyCopied => 'تم نسخ مفتاح الاسترداد.';
+
+  @override
+  String get setupRecoveryKeyConfirmLabel =>
+      'لقد حفظت مفتاح الاسترداد في مكان آمن';
+
+  @override
+  String get setupContinueButton => 'الدخول إلى التطبيق';
+
+  @override
+  String get setupInProgress => 'جارٍ إعداد الحساب...';
+
+  @override
+  String get loginRecoveryLinkButton => 'نسيت كلمة مرور المدير؟';
+
+  @override
+  String get recoveryTitle => 'استعادة حساب المدير';
+
+  @override
+  String get recoverySubtitle =>
+      'أدخل مفتاح الاسترداد لإعادة تعيين كلمة المرور.';
+
+  @override
+  String get recoveryKeyLabel => 'مفتاح الاسترداد';
+
+  @override
+  String get recoveryKeyHint => 'XXXXXXXX-XXXXXXXX-XXXXXXXX-XXXXXXXX';
+
+  @override
+  String get recoverySubmitButton => 'تأكيد';
+
+  @override
+  String get recoveryErrorInvalidKey => 'مفتاح الاسترداد غير صحيح.';
+
+  @override
+  String recoveryErrorThrottled(int seconds) {
+    return 'يرجى الانتظار $seconds ثانية قبل المحاولة مرة أخرى.';
+  }
+
+  @override
+  String get recoveryErrorUnexpected =>
+      'حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.';
+
+  @override
+  String get recoverySuccessTitle => 'تمت الاستعادة بنجاح';
+
+  @override
+  String get recoverySuccessBody =>
+      'تم إعادة تعيين حساب المدير. احتفظ بمفتاح الاسترداد الجديد في مكان آمن — هذه هي المرة الوحيدة التي يُعرض فيها.';
+
+  @override
+  String get recoverySuccessCopyButton => 'نسخ المفتاح';
+
+  @override
+  String get recoverySuccessCopied => 'تم نسخ مفتاح الاسترداد.';
+
+  @override
+  String get recoverySuccessConfirmLabel =>
+      'لقد حفظت مفتاح الاسترداد الجديد في مكان آمن';
+
+  @override
+  String get recoveryContinueButton => 'العودة لتسجيل الدخول';
+
+  @override
+  String get navAdministration => 'إدارة الحسابات';
+
+  @override
+  String get navTooltipAdministration => 'إدارة حسابات المشغلين';
+
+  @override
+  String get passwordChangeTitle => 'تغيير كلمة المرور';
+
+  @override
+  String get passwordChangeSubtitle =>
+      'يجب تغيير كلمة المرور المؤقتة قبل المتابعة.';
+
+  @override
+  String get passwordChangeCurrentLabel => 'كلمة المرور الحالية';
+
+  @override
+  String get passwordChangeNewLabel => 'كلمة المرور الجديدة';
+
+  @override
+  String get passwordChangeConfirmLabel => 'تأكيد كلمة المرور الجديدة';
+
+  @override
+  String get passwordChangeSubmitButton => 'تغيير كلمة المرور';
+
+  @override
+  String get passwordChangeErrorIncorrectCurrent =>
+      'كلمة المرور الحالية غير صحيحة.';
+
+  @override
+  String get accountManagementTitle => 'إدارة الحسابات';
+
+  @override
+  String get accountManagementCreateButton => 'حساب جديد';
+
+  @override
+  String get accountManagementAdminSection => 'حساب المدير';
+
+  @override
+  String get accountManagementOperatorsSection => 'حسابات المشغلين';
+
+  @override
+  String get accountManagementNoOperators => 'لا توجد حسابات مشغلين بعد.';
+
+  @override
+  String get accountManagementDisplayNameLabel => 'الاسم المعروض';
+
+  @override
+  String get accountManagementTempPasswordLabel => 'كلمة المرور المؤقتة';
+
+  @override
+  String get accountManagementCreateDialogTitle => 'إنشاء حساب مشغل';
+
+  @override
+  String get accountManagementIssueTempPasswordTitle => 'إصدار كلمة مرور مؤقتة';
+
+  @override
+  String accountManagementIssueTempPasswordBody(String operatorName) {
+    return 'إصدار كلمة مرور مؤقتة للمشغل: $operatorName';
+  }
+
+  @override
+  String get accountManagementCancelButton => 'إلغاء';
+
+  @override
+  String get accountManagementCreateConfirmButton => 'إنشاء';
+
+  @override
+  String get accountManagementConfirmButton => 'تأكيد';
+
+  @override
+  String get accountManagementErrorDuplicateUsername =>
+      'اسم المستخدم هذا مستخدم بالفعل.';
+
+  @override
+  String get accountManagementErrorUnauthorized =>
+      'غير مصرح بهذه العملية. يُرجى إعادة تسجيل الدخول.';
+
+  @override
+  String get accountStatusActive => 'نشط';
+
+  @override
+  String get accountStatusSuspended => 'موقوف';
+
+  @override
+  String get accountStatusDisabled => 'معطّل';
+
+  @override
+  String get accountActionSuspend => 'تعليق الحساب';
+
+  @override
+  String get accountActionReactivate => 'إعادة تفعيل';
+
+  @override
+  String get accountActionIssueTempPassword => 'إصدار كلمة مرور مؤقتة';
+
+  @override
+  String get adminTabAccounts => 'الحسابات';
+
+  @override
+  String get adminTabAuditLog => 'سجل الأمان';
+
+  @override
+  String get auditLogTitle => 'سجل الأمان';
+
+  @override
+  String get auditLogSubtitle =>
+      'سجل دائم لجميع أحداث الأمان، مرتبة من الأحدث إلى الأقدم.';
+
+  @override
+  String get auditLogEmpty => 'لا توجد أحداث مسجلة بعد.';
+
+  @override
+  String get auditLogLoadMore => 'تحميل المزيد';
+
+  @override
+  String get auditLogErrorBody => 'تعذّر تحميل سجل الأمان.';
+
+  @override
+  String get auditLogRetry => 'إعادة المحاولة';
+
+  @override
+  String get auditActorSystem => 'النظام';
+
+  @override
+  String get auditActorAdmin => 'المدير';
+
+  @override
+  String get auditEventAdminBootstrapped => 'تهيئة حساب المدير';
+
+  @override
+  String get auditEventPasswordChanged => 'تغيير كلمة المرور';
+
+  @override
+  String get auditEventLoginSuccess => 'تسجيل دخول ناجح';
+
+  @override
+  String get auditEventLoginFailed => 'محاولة دخول فاشلة';
+
+  @override
+  String get auditEventAccountCreated => 'إنشاء حساب مشغل';
+
+  @override
+  String get auditEventAccountSuspended => 'تعليق حساب';
+
+  @override
+  String get auditEventAccountReactivated => 'إعادة تفعيل حساب';
+
+  @override
+  String get auditEventTempPasswordIssued => 'إصدار كلمة مرور مؤقتة';
+
+  @override
+  String get auditEventAccountAutoSuspended =>
+      'تعليق تلقائي بسبب محاولات متكررة';
+
+  @override
+  String get auditEventRecoveryKeyRedeemed => 'استخدام مفتاح الاسترداد';
+
+  @override
+  String get auditEventUnknown => 'حدث غير معروف';
 }

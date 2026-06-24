@@ -3,6 +3,8 @@ import 'package:drift/native.dart';
 
 import '../validation/category_name.dart';
 import 'database_connection.dart';
+import 'tables/account_security_state.dart';
+import 'tables/accounts.dart';
 import 'tables/book_details.dart';
 import 'tables/court_case_details.dart';
 import 'tables/document_classifications.dart';
@@ -22,9 +24,11 @@ import 'tables/import_batches.dart';
 import 'tables/keywords.dart';
 import 'tables/legislation_details.dart';
 import 'tables/main_categories.dart';
+import 'tables/recovery_credentials.dart';
 import 'tables/reference_tables.dart';
 import 'tables/report_details.dart';
 import 'tables/research_details.dart';
+import 'tables/security_audit_log.dart';
 import 'tables/settings.dart';
 import 'tables/sub_categories.dart';
 import 'tables/thesis_details.dart';
@@ -72,6 +76,10 @@ part 'app_database.g.dart';
     Settings,
     ExportBatches,
     ExportBatchDocuments,
+    Accounts,
+    AccountSecurityStates,
+    RecoveryCredentials,
+    SecurityAuditLog,
   ],
 )
 class AppDatabase extends _$AppDatabase {
@@ -86,11 +94,14 @@ class AppDatabase extends _$AppDatabase {
   factory AppDatabase.inMemory() =>
       AppDatabase.forExecutor(NativeDatabase.memory());
 
-  /// Schema version 2 adds the internal normalized-name columns and the unique
-  /// indexes that enforce category-name integrity (M6.4). Version 1 databases
-  /// are migrated transactionally with a collision-safe backfill.
+  /// Schema version 3 adds the four security tables (accounts,
+  /// account_security_state, recovery_credentials, security_audit_log) for
+  /// M14 local security and administration.
+  ///
+  /// Version 2 added normalized category-name columns and unique indexes
+  /// (M6.4). Version 1 databases are migrated through both steps in sequence.
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -104,6 +115,9 @@ class AppDatabase extends _$AppDatabase {
     onUpgrade: (Migrator m, int from, int to) async {
       if (from < 2) {
         await _migrateV1ToV2();
+      }
+      if (from < 3) {
+        await _migrateV2ToV3(m);
       }
     },
     beforeOpen: (OpeningDetails details) async {
@@ -156,6 +170,18 @@ class AppDatabase extends _$AppDatabase {
       'CREATE UNIQUE INDEX ux_sub_categories_main_normalized_name_en '
       'ON sub_categories (main_category_id, normalized_name_en)',
     );
+  }
+
+  /// Adds the four M14 security tables to a v2 database.
+  ///
+  /// Creates accounts, account_security_state, recovery_credentials, and
+  /// security_audit_log. No existing data is touched. The migration is
+  /// idempotent from the perspective of existing rows: it only adds tables.
+  Future<void> _migrateV2ToV3(Migrator m) async {
+    await m.createTable(accounts);
+    await m.createTable(accountSecurityStates);
+    await m.createTable(recoveryCredentials);
+    await m.createTable(securityAuditLog);
   }
 
   /// Transactional v1 -> v2 migration.
