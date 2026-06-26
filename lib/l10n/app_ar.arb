@@ -460,42 +460,6 @@
   "stepUpErrorUnexpected": "حدث خطأ غير متوقع. حاول مرة أخرى.",
   "settingsSnackStepUpRequired": "يجب التحقق من هوية المدير أولاً قبل تنفيذ هذه العملية.",
 
-  "navWordConversionReview": "مراجعة التحويل",
-  "navTooltipWordConversionReview": "مراجعة جودة ملفات PDF المحوّلة من Word",
-
-  "conversionReviewTitle": "مراجعة جودة التحويل",
-  "conversionReviewSubtitle": "مراجعة واعتماد أو رفض ملفات PDF المحوّلة من مستندات Word.",
-  "conversionReviewEmptyTitle": "لا توجد تحويلات بانتظار المراجعة",
-  "conversionReviewEmptyBody": "ستظهر هنا ملفات PDF المحوّلة التي تحتاج إلى مراجعة الجودة.",
-  "conversionReviewLoadError": "تعذّر تحميل قائمة التحويلات.",
-  "conversionReviewRetry": "إعادة المحاولة",
-  "conversionReviewRefreshTooltip": "تحديث القائمة",
-
-  "conversionReviewSourceLabel": "المصدر",
-  "conversionReviewOutputLabel": "PDF المحوّل",
-  "conversionReviewCompletedLabel": "تاريخ التحويل",
-
-  "conversionReviewOpenPdf": "فتح PDF",
-  "conversionReviewApprove": "اعتماد",
-  "conversionReviewReject": "رفض",
-  "conversionReviewCancel": "إلغاء",
-
-  "conversionReviewApproveDialogTitle": "اعتماد جودة PDF المحوّل",
-  "conversionReviewApproveDialogContent": "سيتم اعتماد هذا الملف المحوّل وسيصبح مؤهلاً للتصنيف والنسخ إلى المكتبة المدارة.\n\nالملفات الأصلية تبقى سليمة دون أي تعديل أو حذف.",
-  "conversionReviewApproveConfirm": "اعتماد",
-
-  "conversionReviewRejectDialogTitle": "رفض جودة PDF المحوّل",
-  "conversionReviewRejectDialogContent": "سيتم رفض هذا الملف المحوّل ولن يكون مؤهلاً للتصنيف. الملفات الأصلية والمحوّلة تبقى محفوظة دون حذف.",
-  "conversionReviewRejectNoteLabel": "ملاحظة الرفض (اختياري)",
-  "conversionReviewRejectConfirm": "رفض",
-
-  "conversionReviewSnackApproved": "تم اعتماد جودة PDF المحوّل بنجاح.",
-  "conversionReviewSnackRejected": "تم رفض جودة PDF المحوّل. الملف محفوظ دون حذف.",
-  "conversionReviewSnackAlreadyDecided": "تم البت في هذا التحويل مسبقاً.",
-  "conversionReviewSnackApproveFailed": "تعذّر اعتماد التحويل. حاول مرة أخرى.",
-  "conversionReviewSnackRejectFailed": "تعذّر رفض التحويل. حاول مرة أخرى.",
-  "conversionReviewSnackGenericFailed": "تعذّر تنفيذ العملية على التحويل.",
-
   "conversionWorkTitle": "تحويل مستندات Word",
   "conversionWorkSubtitle": "تظهر هنا ملفات Word التي تنتظر التحويل أو تحتاج إلى إعادة محاولة.",
   "conversionWorkEmpty": "لا توجد ملفات Word بانتظار التحويل.",

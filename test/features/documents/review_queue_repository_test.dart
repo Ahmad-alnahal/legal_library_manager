@@ -331,8 +331,8 @@ void main() {
       test(
         'Word-imported document has null document_code in review queue (no premature allocation)',
         () async {
-          // After import+conversion, document_code must still be null:
-          // ConvertStagedWordSource no longer calls allocateDocumentCode.
+          // After Word source import, document_code must still be null:
+          // code allocation is deferred until managed copy.
           // Simulate by inserting a document with no code.
           final id = await db
               .into(db.documents)

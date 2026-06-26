@@ -1585,18 +1585,16 @@ void main() {
     });
   });
 
-  // ── Word-converted document managed copy (bug fix: deferred code allocation) -
+  // ── Historical converted_pdf managed copy compatibility ───────────────────
 
-  group('ManagedCopyUseCase — Word-converted source (converted_pdf role)', () {
-    // The converted PDF lives in WordStaging/ (not files/), so it is a valid
-    // managed-copy source: the overlap guard only inspects source_original
-    // paths; the source-inside-files/ guard compares the selected file path
-    // against canonFilesDir, which doesn't match WordStaging/.
+  group('ManagedCopyUseCase — converted_pdf source compatibility', () {
+    // Older libraries may contain converted_pdf rows outside files/. Keep them
+    // eligible so those documents can still be copied into the managed library.
     const kConvertedPath =
         r'C:\Library\WordStaging\deadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeefdeadbeef.pdf';
 
     test(
-      'succeeds when the only eligible source is a converted_pdf in WordStaging',
+      'succeeds when the only eligible source is a historical converted_pdf',
       () async {
         final repo = _FakeRepo()
           ..docState = _classifiedState()
@@ -1615,29 +1613,24 @@ void main() {
       },
     );
 
-    test(
-      'document_code is null before managed copy runs (allocate not called during conversion)',
-      () async {
-        // Simulate the state after import+conversion but before managed copy:
-        // document_code is null because ConvertStagedWordSource no longer calls
-        // allocateDocumentCode.
-        final repo = _FakeRepo()
-          ..docState =
-              _classifiedState(code: null) // null = no code yet
-          ..sourcePaths = []
-          ..candidates = [_sourceCandidate(path: kConvertedPath, hash: _kHash)];
+    test('document_code is null before managed copy runs', () async {
+      // Simulate the state after Word source import but before managed copy.
+      final repo = _FakeRepo()
+        ..docState =
+            _classifiedState(code: null) // null = no code yet
+        ..sourcePaths = []
+        ..candidates = [_sourceCandidate(path: kConvertedPath, hash: _kHash)];
 
-        // Before managed copy: no code set.
-        expect(repo.docState?.existingDocumentCode, isNull);
+      // Before managed copy: no code set.
+      expect(repo.docState?.existingDocumentCode, isNull);
 
-        // Run managed copy.
-        await _makeUseCase(repo: repo).execute(_kDocId);
+      // Run managed copy.
+      await _makeUseCase(repo: repo).execute(_kDocId);
 
-        // After managed copy: code allocated by the use case.
-        // (The fake repo records the allocation via allocatedCode.)
-        expect(repo.allocatedCode, 'DOC-0000001');
-      },
-    );
+      // After managed copy: code allocated by the use case.
+      // (The fake repo records the allocation via allocatedCode.)
+      expect(repo.allocatedCode, 'DOC-0000001');
+    });
 
     test(
       'plain PDF import also leaves document_code null before managed copy',
