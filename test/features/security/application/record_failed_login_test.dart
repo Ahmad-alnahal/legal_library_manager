@@ -86,37 +86,40 @@ void main() {
       );
     });
 
-    test('$kAutoSuspendAfter consecutive failures auto-suspends the account',
-        () async {
-      for (var i = 0; i < kAutoSuspendAfter; i++) {
-        await useCase.call('admin');
-      }
-      final account = await accountRepo.findById('admin');
-      expect(account!.status, AccountStatus.suspended);
-    });
+    test(
+      '$kAutoSuspendAfter consecutive failures auto-suspends the account',
+      () async {
+        for (var i = 0; i < kAutoSuspendAfter; i++) {
+          await useCase.call('admin');
+        }
+        final account = await accountRepo.findById('admin');
+        expect(account!.status, AccountStatus.suspended);
+      },
+    );
 
-    test('suspension is recorded only once even with further failures',
-        () async {
-      for (var i = 0; i < kAutoSuspendAfter + 2; i++) {
-        await useCase.call('admin');
-      }
-      final account = await accountRepo.findById('admin');
-      expect(account!.status, AccountStatus.suspended);
-      final events = await auditRepo.loadEvents(limit: 50, offset: 0);
-      expect(
-        events.where((e) => e.eventTypeKey == 'account_auto_suspended').length,
-        1,
-      );
-    });
+    test(
+      'suspension is recorded only once even with further failures',
+      () async {
+        for (var i = 0; i < kAutoSuspendAfter + 2; i++) {
+          await useCase.call('admin');
+        }
+        final account = await accountRepo.findById('admin');
+        expect(account!.status, AccountStatus.suspended);
+        final events = await auditRepo.loadEvents(limit: 50, offset: 0);
+        expect(
+          events
+              .where((e) => e.eventTypeKey == 'account_auto_suspended')
+              .length,
+          1,
+        );
+      },
+    );
 
     test('records a login_failed audit event on every call', () async {
       await useCase.call('admin');
       await useCase.call('admin');
       final events = await auditRepo.loadEvents(limit: 20, offset: 0);
-      expect(
-        events.where((e) => e.eventTypeKey == 'login_failed').length,
-        2,
-      );
+      expect(events.where((e) => e.eventTypeKey == 'login_failed').length, 2);
     });
 
     test('records account_auto_suspended audit event on suspension', () async {
@@ -133,10 +136,7 @@ void main() {
     test('preserves recoveryAttemptCount across login failures', () async {
       await accountRepo.upsertSecurityState(
         'admin',
-        const FailedLoginState(
-          consecutiveFailures: 0,
-          recoveryAttemptCount: 2,
-        ),
+        const FailedLoginState(consecutiveFailures: 0, recoveryAttemptCount: 2),
       );
       await useCase.call('admin');
       final state = await accountRepo.getSecurityState('admin');

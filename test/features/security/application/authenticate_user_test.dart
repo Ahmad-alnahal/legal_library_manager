@@ -89,8 +89,10 @@ void main() {
     });
 
     test('wrong password returns AuthInvalidCredentials', () async {
-      final result =
-          await useCase(username: 'marjiy@admin', password: 'WrongPass');
+      final result = await useCase(
+        username: 'marjiy@admin',
+        password: 'WrongPass',
+      );
       expect(result, isA<AuthInvalidCredentials>());
       expect(sessionManager.currentSession, isNull);
     });
@@ -100,50 +102,55 @@ void main() {
       expect(result, isA<AuthInvalidCredentials>());
     });
 
-    test('suspended account returns AuthAccountSuspended without checking password',
-        () async {
-      final admin = await accountRepo.findById('admin');
-      await accountRepo.updateAccount(
-        admin!.copyWith(status: AccountStatus.suspended),
-      );
-      final result =
-          await useCase(username: 'marjiy@admin', password: 'AdminPass1');
-      expect(result, isA<AuthAccountSuspended>());
-      expect(sessionManager.currentSession, isNull);
-    });
+    test(
+      'suspended account returns AuthAccountSuspended without checking password',
+      () async {
+        final admin = await accountRepo.findById('admin');
+        await accountRepo.updateAccount(
+          admin!.copyWith(status: AccountStatus.suspended),
+        );
+        final result = await useCase(
+          username: 'marjiy@admin',
+          password: 'AdminPass1',
+        );
+        expect(result, isA<AuthAccountSuspended>());
+        expect(sessionManager.currentSession, isNull);
+      },
+    );
 
-    test('active delay returns AuthLoginDelayed with remaining seconds',
-        () async {
-      final futureUnlock =
-          fixedNow.add(const Duration(seconds: 30));
-      await accountRepo.upsertSecurityState(
-        'admin',
-        FailedLoginState(
-          consecutiveFailures: 1,
-          unlockNotBefore: futureUnlock,
-        ),
-      );
-      final result =
-          await useCase(username: 'marjiy@admin', password: 'AdminPass1');
-      expect(result, isA<AuthLoginDelayed>());
-      final delayed = result as AuthLoginDelayed;
-      expect(delayed.remainingSeconds, greaterThan(0));
-      expect(delayed.remainingSeconds, lessThanOrEqualTo(30));
-      expect(sessionManager.currentSession, isNull);
-    });
+    test(
+      'active delay returns AuthLoginDelayed with remaining seconds',
+      () async {
+        final futureUnlock = fixedNow.add(const Duration(seconds: 30));
+        await accountRepo.upsertSecurityState(
+          'admin',
+          FailedLoginState(
+            consecutiveFailures: 1,
+            unlockNotBefore: futureUnlock,
+          ),
+        );
+        final result = await useCase(
+          username: 'marjiy@admin',
+          password: 'AdminPass1',
+        );
+        expect(result, isA<AuthLoginDelayed>());
+        final delayed = result as AuthLoginDelayed;
+        expect(delayed.remainingSeconds, greaterThan(0));
+        expect(delayed.remainingSeconds, lessThanOrEqualTo(30));
+        expect(sessionManager.currentSession, isNull);
+      },
+    );
 
     test('expired delay does not block login', () async {
-      final pastUnlock =
-          fixedNow.subtract(const Duration(seconds: 1));
+      final pastUnlock = fixedNow.subtract(const Duration(seconds: 1));
       await accountRepo.upsertSecurityState(
         'admin',
-        FailedLoginState(
-          consecutiveFailures: 1,
-          unlockNotBefore: pastUnlock,
-        ),
+        FailedLoginState(consecutiveFailures: 1, unlockNotBefore: pastUnlock),
       );
-      final result =
-          await useCase(username: 'marjiy@admin', password: 'AdminPass1');
+      final result = await useCase(
+        username: 'marjiy@admin',
+        password: 'AdminPass1',
+      );
       expect(result, isA<AuthSuccess>());
     });
 
@@ -160,24 +167,23 @@ void main() {
     test('successful login records login_success audit event', () async {
       await useCase(username: 'marjiy@admin', password: 'AdminPass1');
       final events = await auditRepo.loadEvents(limit: 20, offset: 0);
-      expect(
-        events.any((e) => e.eventTypeKey == 'login_success'),
-        isTrue,
-      );
+      expect(events.any((e) => e.eventTypeKey == 'login_success'), isTrue);
     });
 
-    test('mustChangePassword on account sets isRestrictedToPasswordChange',
-        () async {
-      // Bootstrap creates admin with mustChangePassword=true then
-      // SetInitialAdminPassword sets it to false. Re-set it to true.
-      final admin = await accountRepo.findById('admin');
-      await accountRepo.updateAccount(
-        admin!.copyWith(mustChangePassword: true),
-      );
-      final result =
-          await useCase(username: 'marjiy@admin', password: 'AdminPass1')
-              as AuthSuccess;
-      expect(result.session.isRestrictedToPasswordChange, isTrue);
-    });
+    test(
+      'mustChangePassword on account sets isRestrictedToPasswordChange',
+      () async {
+        // Bootstrap creates admin with mustChangePassword=true then
+        // SetInitialAdminPassword sets it to false. Re-set it to true.
+        final admin = await accountRepo.findById('admin');
+        await accountRepo.updateAccount(
+          admin!.copyWith(mustChangePassword: true),
+        );
+        final result =
+            await useCase(username: 'marjiy@admin', password: 'AdminPass1')
+                as AuthSuccess;
+        expect(result.session.isRestrictedToPasswordChange, isTrue);
+      },
+    );
   });
 }

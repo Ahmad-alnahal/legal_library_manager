@@ -228,7 +228,8 @@ CreateManualBackup _makeUseCase({
 }) {
   final effectiveStepUp = stepUpManager ?? StepUpManager();
   if (grantStepUp) effectiveStepUp.grant();
-  final effectiveSession = sessionManager ??
+  final effectiveSession =
+      sessionManager ??
       (SessionManager(stepUpManager: effectiveStepUp)..login(_adminSession));
   return CreateManualBackup(
     repository: repository,
@@ -279,12 +280,14 @@ void main() {
       );
       final stepUp = StepUpManager();
       final manager = SessionManager(stepUpManager: stepUp);
-      manager.login(Session(
-        accountId: 'op1',
-        username: 'op@operator',
-        role: AccountRole.operator,
-        startedAt: DateTime.utc(2026, 6, 24, 9),
-      ));
+      manager.login(
+        Session(
+          accountId: 'op1',
+          username: 'op@operator',
+          role: AccountRole.operator,
+          startedAt: DateTime.utc(2026, 6, 24, 9),
+        ),
+      );
       final result = await _makeUseCase(
         repository: repo,
         backupService: svc,

@@ -84,43 +84,47 @@ void main() {
     });
 
     test('valid key invalidates the active session', () async {
-      sessionManager.login(Session(
-        accountId: 'admin',
-        username: 'marjiy@admin',
-        role: AccountRole.admin,
-        startedAt: clock.nowUtc(),
-      ));
+      sessionManager.login(
+        Session(
+          accountId: 'admin',
+          username: 'marjiy@admin',
+          role: AccountRole.admin,
+          startedAt: clock.nowUtc(),
+        ),
+      );
       expect(sessionManager.currentSession, isNotNull);
       await useCase.call(recoveryKey);
       expect(sessionManager.currentSession, isNull);
     });
 
-    test('valid key resets security state (failures + recovery attempts)',
-        () async {
-      await accountRepo.upsertSecurityState(
-        'admin',
-        const FailedLoginState(
-          consecutiveFailures: 3,
-          recoveryAttemptCount: 2,
-        ),
-      );
-      await useCase.call(recoveryKey);
-      final state = await accountRepo.getSecurityState('admin');
-      expect(state?.consecutiveFailures, 0);
-      expect(state?.recoveryAttemptCount, 0);
-    });
+    test(
+      'valid key resets security state (failures + recovery attempts)',
+      () async {
+        await accountRepo.upsertSecurityState(
+          'admin',
+          const FailedLoginState(
+            consecutiveFailures: 3,
+            recoveryAttemptCount: 2,
+          ),
+        );
+        await useCase.call(recoveryKey);
+        final state = await accountRepo.getSecurityState('admin');
+        expect(state?.consecutiveFailures, 0);
+        expect(state?.recoveryAttemptCount, 0);
+      },
+    );
 
-    test('valid key rotates the recovery credential (new hash stored)', () async {
-      final hashBefore = await accountRepo.getRecoveryKeyHash('admin');
-      final newKey = await useCase.call(recoveryKey);
-      final hashAfter = await accountRepo.getRecoveryKeyHash('admin');
-      expect(hashAfter, isNot(equals(hashBefore)));
-      // The new key verifies against the new hash.
-      expect(
-        await minimalHasher.verify(newKey, hashAfter!),
-        isTrue,
-      );
-    });
+    test(
+      'valid key rotates the recovery credential (new hash stored)',
+      () async {
+        final hashBefore = await accountRepo.getRecoveryKeyHash('admin');
+        final newKey = await useCase.call(recoveryKey);
+        final hashAfter = await accountRepo.getRecoveryKeyHash('admin');
+        expect(hashAfter, isNot(equals(hashBefore)));
+        // The new key verifies against the new hash.
+        expect(await minimalHasher.verify(newKey, hashAfter!), isTrue);
+      },
+    );
 
     test('valid key returns new raw recovery key in correct format', () async {
       final newKey = await useCase.call(recoveryKey);
@@ -146,34 +150,36 @@ void main() {
       );
     });
 
-    test('throws InvalidRecoveryKeyException when no credentials stored',
-        () async {
-      final db2 = AppDatabase.inMemory();
-      final repo2 = DriftAccountRepository(db2);
-      final audit2 = DriftSecurityAuditRepository(db2);
-      final sm2 = SessionManager();
-      try {
-        await BootstrapAdminAccount(
-          accounts: repo2,
-          auditLog: audit2,
-          clock: clock,
-        ).call();
-        final useCase2 = RedeemRecoveryKey(
-          accounts: repo2,
-          hasher: minimalHasher,
-          auditLog: audit2,
-          clock: clock,
-          sessionManager: sm2,
-        );
-        await expectLater(
-          useCase2.call(recoveryKey),
-          throwsA(isA<InvalidRecoveryKeyException>()),
-        );
-      } finally {
-        sm2.dispose();
-        await db2.close();
-      }
-    });
+    test(
+      'throws InvalidRecoveryKeyException when no credentials stored',
+      () async {
+        final db2 = AppDatabase.inMemory();
+        final repo2 = DriftAccountRepository(db2);
+        final audit2 = DriftSecurityAuditRepository(db2);
+        final sm2 = SessionManager();
+        try {
+          await BootstrapAdminAccount(
+            accounts: repo2,
+            auditLog: audit2,
+            clock: clock,
+          ).call();
+          final useCase2 = RedeemRecoveryKey(
+            accounts: repo2,
+            hasher: minimalHasher,
+            auditLog: audit2,
+            clock: clock,
+            sessionManager: sm2,
+          );
+          await expectLater(
+            useCase2.call(recoveryKey),
+            throwsA(isA<InvalidRecoveryKeyException>()),
+          );
+        } finally {
+          sm2.dispose();
+          await db2.close();
+        }
+      },
+    );
 
     test('increments recovery attempt count on wrong key', () async {
       try {
@@ -185,19 +191,21 @@ void main() {
       expect(state!.recoveryAttemptCount, 1);
     });
 
-    test('throws RecoveryKeyThrottledException after max attempts in window',
-        () async {
-      for (var i = 0; i < 3; i++) {
-        try {
-          await useCase.call('AAAAAAAA-BBBBBBBB-CCCCCCCC-DDDDDDDD');
-        } on InvalidRecoveryKeyException {
-          // expected each time
+    test(
+      'throws RecoveryKeyThrottledException after max attempts in window',
+      () async {
+        for (var i = 0; i < 3; i++) {
+          try {
+            await useCase.call('AAAAAAAA-BBBBBBBB-CCCCCCCC-DDDDDDDD');
+          } on InvalidRecoveryKeyException {
+            // expected each time
+          }
         }
-      }
-      expect(
-        () => useCase.call('AAAAAAAA-BBBBBBBB-CCCCCCCC-DDDDDDDD'),
-        throwsA(isA<RecoveryKeyThrottledException>()),
-      );
-    });
+        expect(
+          () => useCase.call('AAAAAAAA-BBBBBBBB-CCCCCCCC-DDDDDDDD'),
+          throwsA(isA<RecoveryKeyThrottledException>()),
+        );
+      },
+    );
   });
 }

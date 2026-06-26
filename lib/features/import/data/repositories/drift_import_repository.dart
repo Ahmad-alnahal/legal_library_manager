@@ -307,6 +307,59 @@ class DriftImportRepository implements ImportRepository {
     });
   }
 
+  @override
+  Future<ImportFileResult> persistPairedWordSource(
+    PreparedSourceFile file, {
+    required int existingDocumentId,
+    required String operationId,
+    required DateTime now,
+    int? batchId,
+  }) {
+    final String nowIso = now.toUtc().toIso8601String();
+    return _db.transaction(() async {
+      final DocumentFile? existing = await _findFileByPath(file.canonicalPath);
+      if (existing != null) {
+        return _recordAlreadyImported(
+          existing,
+          operationId: operationId,
+          nowIso: nowIso,
+          batchId: batchId,
+        );
+      }
+
+      final int fileId = await _insertSourceFile(
+        existingDocumentId,
+        file,
+        nowIso,
+      );
+
+      await _insertEvent(
+        documentId: existingDocumentId,
+        fileId: fileId,
+        eventType: 'paired_source_detected',
+        result: 'succeeded',
+        operationId: operationId,
+        nowIso: nowIso,
+        sourcePath: file.canonicalPath,
+        actualSha256: file.sha256,
+      );
+
+      if (batchId != null) {
+        await _attachBatchFile(
+          batchId,
+          fileId,
+          ImportFileOutcome.pairedWordSource,
+          nowIso,
+        );
+      }
+      return ImportFileResult(
+        outcome: ImportFileOutcome.pairedWordSource,
+        documentId: existingDocumentId,
+        fileId: fileId,
+      );
+    });
+  }
+
   // --- internal helpers (Drift types only) ---
 
   /// Same exact path, already successfully imported: updates last-checked

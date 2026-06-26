@@ -13,9 +13,7 @@ Future<void> _pumpLoginPage(WidgetTester tester) async {
   tester.view.physicalSize = const Size(1280, 800);
   addTearDown(tester.view.resetPhysicalSize);
   addTearDown(tester.view.resetDevicePixelRatio);
-  await tester.pumpWidget(
-    const MarjiyApp(home: LoginPage()),
-  );
+  await tester.pumpWidget(const MarjiyApp(home: LoginPage()));
   await tester.pumpAndSettle();
 }
 
@@ -63,10 +61,7 @@ void main() {
     await tester.tap(find.byType(FilledButton));
     await tester.pumpAndSettle(const Duration(seconds: 5));
     // An error banner must appear (contains Arabic warning text).
-    expect(
-      find.textContaining('غير صحيحة'),
-      findsOneWidget,
-    );
+    expect(find.textContaining('غير صحيحة'), findsOneWidget);
   });
 
   testWidgets('password field has show/hide toggle', (tester) async {

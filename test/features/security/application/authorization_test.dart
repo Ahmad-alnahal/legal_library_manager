@@ -96,12 +96,14 @@ void main() {
   });
 
   void loginAsAdmin() {
-    sessionManager.login(Session(
-      accountId: 'admin',
-      username: 'marjiy@admin',
-      role: AccountRole.admin,
-      startedAt: clock.nowUtc(),
-    ));
+    sessionManager.login(
+      Session(
+        accountId: 'admin',
+        username: 'marjiy@admin',
+        role: AccountRole.admin,
+        startedAt: clock.nowUtc(),
+      ),
+    );
   }
 
   /// Creates a test operator; uses admin session + step-up approval.
@@ -132,12 +134,14 @@ void main() {
 
     test('throws UnauthorizedException when operator session', () async {
       final opId = await createTestOperator();
-      sessionManager.login(Session(
-        accountId: opId,
-        username: 'op1',
-        role: AccountRole.operator,
-        startedAt: clock.nowUtc(),
-      ));
+      sessionManager.login(
+        Session(
+          accountId: opId,
+          username: 'op1',
+          role: AccountRole.operator,
+          startedAt: clock.nowUtc(),
+        ),
+      );
       expect(
         () => createOperator.call(
           username: 'op2',
@@ -192,12 +196,14 @@ void main() {
 
     test('throws UnauthorizedException when operator session', () async {
       final opId = await createTestOperator();
-      sessionManager.login(Session(
-        accountId: opId,
-        username: 'op1',
-        role: AccountRole.operator,
-        startedAt: clock.nowUtc(),
-      ));
+      sessionManager.login(
+        Session(
+          accountId: opId,
+          username: 'op1',
+          role: AccountRole.operator,
+          startedAt: clock.nowUtc(),
+        ),
+      );
       expect(
         () => updateOperator.call(
           operatorId: opId,
@@ -254,12 +260,14 @@ void main() {
 
     test('throws UnauthorizedException when operator session', () async {
       final opId = await createTestOperator();
-      sessionManager.login(Session(
-        accountId: opId,
-        username: 'op1',
-        role: AccountRole.operator,
-        startedAt: clock.nowUtc(),
-      ));
+      sessionManager.login(
+        Session(
+          accountId: opId,
+          username: 'op1',
+          role: AccountRole.operator,
+          startedAt: clock.nowUtc(),
+        ),
+      );
       expect(
         () => issueTempPassword.call(
           operatorId: opId,
@@ -311,19 +319,21 @@ void main() {
       );
     });
 
-    test('throws UnauthorizedException when trying to change another account',
-        () async {
-      final opId = await createTestOperator();
-      loginAsAdmin();
-      expect(
-        () => changeOwnPassword.call(
-          accountId: opId,
-          currentPassword: 'TempPass1',
-          newPassword: 'NewPass99',
-        ),
-        throwsA(isA<UnauthorizedException>()),
-      );
-    });
+    test(
+      'throws UnauthorizedException when trying to change another account',
+      () async {
+        final opId = await createTestOperator();
+        loginAsAdmin();
+        expect(
+          () => changeOwnPassword.call(
+            accountId: opId,
+            currentPassword: 'TempPass1',
+            newPassword: 'NewPass99',
+          ),
+          throwsA(isA<UnauthorizedException>()),
+        );
+      },
+    );
 
     test('succeeds with active session — no step-up required', () async {
       loginAsAdmin();

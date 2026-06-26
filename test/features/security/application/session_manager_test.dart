@@ -6,21 +6,20 @@ import 'package:legal_library_manager/features/security/domain/entities/session.
 Session _adminSession({
   DateTime? startedAt,
   bool restrictedToPasswordChange = false,
-}) =>
-    Session(
-      accountId: 'admin',
-      username: 'marjiy@admin',
-      role: AccountRole.admin,
-      startedAt: startedAt ?? DateTime.utc(2026, 6, 23, 10),
-      isRestrictedToPasswordChange: restrictedToPasswordChange,
-    );
+}) => Session(
+  accountId: 'admin',
+  username: 'marjiy@admin',
+  role: AccountRole.admin,
+  startedAt: startedAt ?? DateTime.utc(2026, 6, 23, 10),
+  isRestrictedToPasswordChange: restrictedToPasswordChange,
+);
 
 Session _operatorSession() => Session(
-      accountId: 'op_1',
-      username: 'operator1',
-      role: AccountRole.operator,
-      startedAt: DateTime.utc(2026, 6, 23, 10),
-    );
+  accountId: 'op_1',
+  username: 'operator1',
+  role: AccountRole.operator,
+  startedAt: DateTime.utc(2026, 6, 23, 10),
+);
 
 void main() {
   late SessionManager manager;
@@ -50,10 +49,7 @@ void main() {
 
     test('emits Authenticated state', () async {
       final session = _adminSession();
-      expect(
-        manager.sessionStream,
-        emits(isA<Authenticated>()),
-      );
+      expect(manager.sessionStream, emits(isA<Authenticated>()));
       manager.login(session);
     });
 
@@ -73,10 +69,7 @@ void main() {
 
     test('emits Unauthenticated state', () async {
       manager.login(_adminSession());
-      expect(
-        manager.sessionStream,
-        emits(isA<Unauthenticated>()),
-      );
+      expect(manager.sessionStream, emits(isA<Unauthenticated>()));
       manager.logout();
     });
   });
@@ -90,10 +83,7 @@ void main() {
 
     test('emits Unauthenticated state', () async {
       manager.login(_adminSession());
-      expect(
-        manager.sessionStream,
-        emits(isA<Unauthenticated>()),
-      );
+      expect(manager.sessionStream, emits(isA<Unauthenticated>()));
       manager.invalidateAll();
     });
   });
@@ -159,21 +149,26 @@ void main() {
   // (once per pointer/scroll event) keep the admin session alive as long as
   // the admin is actively using the app.
   group('repeated-activity pattern (AppShellPage Listener contract)', () {
-    test('continuous activity beyond one timeout window keeps session alive',
-        () async {
-      manager.login(_adminSession());
+    test(
+      'continuous activity beyond one timeout window keeps session alive',
+      () async {
+        manager.login(_adminSession());
 
-      // Simulate pointer-down events at 60 ms intervals (6 events = 360 ms
-      // total — well past the 200 ms timeout, but the timer is reset each
-      // time so the session should remain active throughout).
-      for (var i = 0; i < 6; i++) {
-        await Future<void>.delayed(const Duration(milliseconds: 60));
-        manager.resetAdminInactivityTimer();
-      }
+        // Simulate pointer-down events at 60 ms intervals (6 events = 360 ms
+        // total — well past the 200 ms timeout, but the timer is reset each
+        // time so the session should remain active throughout).
+        for (var i = 0; i < 6; i++) {
+          await Future<void>.delayed(const Duration(milliseconds: 60));
+          manager.resetAdminInactivityTimer();
+        }
 
-      expect(manager.currentSession, isNotNull,
-          reason: 'Session must survive repeated resets');
-    });
+        expect(
+          manager.currentSession,
+          isNotNull,
+          reason: 'Session must survive repeated resets',
+        );
+      },
+    );
 
     test('session expires after activity stops', () async {
       final states = <SessionState>[];

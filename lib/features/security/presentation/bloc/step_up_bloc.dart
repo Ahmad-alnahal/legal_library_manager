@@ -8,7 +8,8 @@ import 'step_up_event.dart';
 import 'step_up_state.dart';
 
 class StepUpBloc extends Bloc<StepUpEvent, StepUpState> {
-  StepUpBloc({required this._verifyAdminStepUp}) : super(const StepUpInitial()) {
+  StepUpBloc({required this._verifyAdminStepUp})
+    : super(const StepUpInitial()) {
     on<StepUpPasswordSubmitted>(_onPasswordSubmitted);
     on<StepUpErrorDismissed>(_onErrorDismissed);
   }

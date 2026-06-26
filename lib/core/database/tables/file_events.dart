@@ -52,6 +52,7 @@ class FileEvents extends Table {
       'conversion_failed',
       'backup_created',
       'export_copy_created',
+      'paired_source_detected',
     ]),
   )();
   TextColumn get operationId => text()();

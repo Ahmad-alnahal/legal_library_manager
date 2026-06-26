@@ -165,6 +165,15 @@ void main() {
         reason: 'No elevation via runas verb is permitted',
       );
     });
+
+    test('maps both Windows no-association codes', () {
+      expect(
+        source.contains('31 || 1155') || source.contains('1155 || 31'),
+        isTrue,
+        reason:
+            'Windows may report missing file association as either SE_ERR_NOASSOC (31) or ERROR_NO_ASSOCIATION (1155)',
+      );
+    });
   });
 
   // -------------------------------------------------------------------------

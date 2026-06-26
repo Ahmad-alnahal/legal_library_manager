@@ -78,45 +78,52 @@ void main() {
       expect(bloc.state, isA<LoginInitial>());
     });
 
-    test('emits LoginInProgress then LoginSuccess on correct credentials',
-        () async {
-      expect(
-        bloc.stream,
-        emitsInOrder([isA<LoginInProgress>(), isA<LoginSuccess>()]),
-      );
-      bloc.add(const LoginSubmitted(
-        username: 'marjiy@admin',
-        password: 'AdminPass1',
-      ));
-    });
+    test(
+      'emits LoginInProgress then LoginSuccess on correct credentials',
+      () async {
+        expect(
+          bloc.stream,
+          emitsInOrder([isA<LoginInProgress>(), isA<LoginSuccess>()]),
+        );
+        bloc.add(
+          const LoginSubmitted(
+            username: 'marjiy@admin',
+            password: 'AdminPass1',
+          ),
+        );
+      },
+    );
 
     test('LoginSuccess carries the session', () async {
       final states = <LoginState>[];
       bloc.stream.listen(states.add);
-      bloc.add(const LoginSubmitted(
-        username: 'marjiy@admin',
-        password: 'AdminPass1',
-      ));
+      bloc.add(
+        const LoginSubmitted(username: 'marjiy@admin', password: 'AdminPass1'),
+      );
       await Future<void>.delayed(const Duration(milliseconds: 500));
       final success = states.whereType<LoginSuccess>().firstOrNull;
       expect(success, isNotNull);
       expect(success!.session.accountId, 'admin');
     });
 
-    test('emits LoginInProgress then LoginInvalidCredentials on wrong password',
-        () async {
-      expect(
-        bloc.stream,
-        emitsInOrder([
-          isA<LoginInProgress>(),
-          isA<LoginInvalidCredentials>(),
-        ]),
-      );
-      bloc.add(const LoginSubmitted(
-        username: 'marjiy@admin',
-        password: 'WrongPassword',
-      ));
-    });
+    test(
+      'emits LoginInProgress then LoginInvalidCredentials on wrong password',
+      () async {
+        expect(
+          bloc.stream,
+          emitsInOrder([
+            isA<LoginInProgress>(),
+            isA<LoginInvalidCredentials>(),
+          ]),
+        );
+        bloc.add(
+          const LoginSubmitted(
+            username: 'marjiy@admin',
+            password: 'WrongPassword',
+          ),
+        );
+      },
+    );
 
     test('emits LoginAccountSuspended when account is suspended', () async {
       final admin = await accountRepo.findById('admin');
@@ -128,38 +135,34 @@ void main() {
         bloc.stream,
         emitsInOrder([isA<LoginInProgress>(), isA<LoginAccountSuspended>()]),
       );
-      bloc.add(const LoginSubmitted(
-        username: 'marjiy@admin',
-        password: 'AdminPass1',
-      ));
+      bloc.add(
+        const LoginSubmitted(username: 'marjiy@admin', password: 'AdminPass1'),
+      );
     });
 
     test('emits LoginDelayed when delay is active', () async {
-      final futureUnlock =
-          clock.nowUtc().add(const Duration(seconds: 60));
+      final futureUnlock = clock.nowUtc().add(const Duration(seconds: 60));
       await accountRepo.upsertSecurityState(
         'admin',
-        FailedLoginState(
-          consecutiveFailures: 1,
-          unlockNotBefore: futureUnlock,
-        ),
+        FailedLoginState(consecutiveFailures: 1, unlockNotBefore: futureUnlock),
       );
 
       expect(
         bloc.stream,
         emitsInOrder([isA<LoginInProgress>(), isA<LoginDelayed>()]),
       );
-      bloc.add(const LoginSubmitted(
-        username: 'marjiy@admin',
-        password: 'AdminPass1',
-      ));
+      bloc.add(
+        const LoginSubmitted(username: 'marjiy@admin', password: 'AdminPass1'),
+      );
     });
 
     test('LoginErrorDismissed resets state to LoginInitial', () async {
-      bloc.add(const LoginSubmitted(
-        username: 'marjiy@admin',
-        password: 'WrongPassword',
-      ));
+      bloc.add(
+        const LoginSubmitted(
+          username: 'marjiy@admin',
+          password: 'WrongPassword',
+        ),
+      );
       await Future<void>.delayed(const Duration(milliseconds: 500));
       bloc.add(const LoginErrorDismissed());
       await Future<void>.delayed(const Duration(milliseconds: 100));

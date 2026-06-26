@@ -53,6 +53,8 @@ import '../../features/managed_copy/application/managed_copy_use_case.dart';
 import '../../features/managed_copy/application/repair_copy_root.dart';
 import '../../features/managed_copy/data/repositories/drift_managed_copy_repository.dart';
 import '../../features/managed_copy/data/services/default_operation_id_generator.dart';
+import '../../features/managed_copy/data/services/managed_copy_word_converter.dart';
+import '../../features/managed_copy/domain/services/word_document_converter.dart';
 import '../../features/managed_copy/data/services/file_picker_copy_root_picker.dart';
 import '../../features/managed_copy/data/services/path_provider_documents_directory_resolver.dart';
 import '../../features/managed_copy/data/services/sqlite_database_backup_service.dart';
@@ -112,6 +114,21 @@ import '../../features/security/presentation/bloc/password_change_bloc.dart';
 import '../../features/security/presentation/bloc/recovery_bloc.dart';
 import '../../features/security/presentation/bloc/step_up_bloc.dart';
 import '../../features/shell/presentation/bloc/navigation_bloc.dart';
+import '../../features/word_conversion/application/check_word_conversion_readiness.dart';
+import '../../features/word_conversion/application/convert_staged_word_source.dart';
+import '../../features/word_conversion/application/stage_word_source.dart';
+import '../../features/word_conversion/data/repositories/drift_word_conversion_repository.dart';
+import '../../features/word_conversion/data/services/file_system_word_source_scanner.dart';
+import '../../features/word_conversion/data/services/windows_microsoft_word_converter.dart';
+import '../../features/word_conversion/data/services/windows_microsoft_word_probe.dart';
+import '../../features/word_conversion/data/services/windows_word_output_filesystem.dart';
+import '../../features/word_conversion/data/services/windows_word_staging_filesystem.dart';
+import '../../features/word_conversion/domain/repositories/word_conversion_repository.dart';
+import '../../features/word_conversion/domain/services/microsoft_word_probe.dart';
+import '../../features/word_conversion/domain/services/word_converter.dart';
+import '../../features/word_conversion/domain/services/word_output_filesystem.dart';
+import '../../features/word_conversion/domain/services/word_source_scanner.dart';
+import '../../features/word_conversion/domain/services/word_staging_filesystem.dart';
 import '../database/app_database.dart';
 import '../time/clock.dart';
 
@@ -294,6 +311,7 @@ void configureDependencies() {
         clock: getIt<Clock>(),
         pathCanonicalizer: getIt<PathCanonicalizer>(),
         operationIdGenerator: getIt<OperationIdGenerator>(),
+        wordConverter: getIt<WordDocumentConverter>(),
       ),
     )
     ..registerLazySingleton<ConfigureCopyRoots>(
@@ -591,5 +609,50 @@ void configureDependencies() {
     )
     ..registerFactory<AuditLogBloc>(
       () => AuditLogBloc(loadAuditLog: getIt<LoadAuditLog>()),
+    )
+    // P1 Word-to-PDF conversion capability detection and staging foundation.
+    // Conversion uses local Microsoft Word for best Arabic document fidelity.
+    ..registerLazySingleton<MicrosoftWordProbe>(WindowsMicrosoftWordProbe.new)
+    ..registerLazySingleton<CheckWordConversionReadiness>(
+      () => CheckWordConversionReadiness(getIt<MicrosoftWordProbe>()),
+    )
+    ..registerLazySingleton<WordSourceScanner>(FileSystemWordSourceScanner.new)
+    ..registerLazySingleton<WordStagingFilesystem>(
+      WindowsWordStagingFilesystem.new,
+    )
+    ..registerLazySingleton<WordConversionRepository>(
+      () => DriftWordConversionRepository(getIt<AppDatabase>()),
+    )
+    ..registerLazySingleton<StageWordSource>(
+      () => StageWordSource(
+        repository: getIt<WordConversionRepository>(),
+        filesystem: getIt<WordStagingFilesystem>(),
+        clock: getIt<Clock>(),
+      ),
+    )
+    // P1.3 Microsoft Word PDF export execution.
+    ..registerLazySingleton<WordConverter>(WindowsMicrosoftWordConverter.new)
+    ..registerLazySingleton<WordOutputFilesystem>(
+      WindowsWordOutputFilesystem.new,
+    )
+    // Managed-copy Word converter: converts .doc sources to a temporary PDF
+    // inside the managed-copy flow, without staging to the database.
+    ..registerLazySingleton<WordDocumentConverter>(
+      () => ManagedCopyWordConverter(
+        probe: getIt<MicrosoftWordProbe>(),
+        converter: getIt<WordConverter>(),
+        outputFs: getIt<WordOutputFilesystem>(),
+        hasher: getIt<FileHasher>(),
+      ),
+    )
+    ..registerLazySingleton<ConvertStagedWordSource>(
+      () => ConvertStagedWordSource(
+        repository: getIt<WordConversionRepository>(),
+        probe: getIt<MicrosoftWordProbe>(),
+        converter: getIt<WordConverter>(),
+        outputFs: getIt<WordOutputFilesystem>(),
+        stagingFs: getIt<WordStagingFilesystem>(),
+        hasher: getIt<FileHasher>(),
+      ),
     );
 }

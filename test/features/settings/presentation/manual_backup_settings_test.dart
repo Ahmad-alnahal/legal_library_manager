@@ -63,12 +63,16 @@ Future<void> _pumpSettings(
   if (getIt.isRegistered<InitializeCopyRoots>()) {
     getIt.unregister<InitializeCopyRoots>();
   }
-  getIt.registerSingleton<InitializeCopyRoots>(_FakeInitializeCopyRoots(report));
+  getIt.registerSingleton<InitializeCopyRoots>(
+    _FakeInitializeCopyRoots(report),
+  );
 
   if (getIt.isRegistered<CreateManualBackup>()) {
     getIt.unregister<CreateManualBackup>();
   }
-  getIt.registerSingleton<CreateManualBackup>(_FakeCreateManualBackup(backupResult));
+  getIt.registerSingleton<CreateManualBackup>(
+    _FakeCreateManualBackup(backupResult),
+  );
 
   tester.view.devicePixelRatio = 1;
   tester.view.physicalSize = size;

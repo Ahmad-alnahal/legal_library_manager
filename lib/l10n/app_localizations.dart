@@ -349,7 +349,7 @@ abstract class AppLocalizations {
   /// No description provided for @importTitle.
   ///
   /// In ar, this message translates to:
-  /// **'استيراد ملفات PDF'**
+  /// **'استيراد ملفات PDF وWord'**
   String get importTitle;
 
   /// No description provided for @importSubtitle.
@@ -856,6 +856,12 @@ abstract class AppLocalizations {
   /// **'مستوردة مسبقًا'**
   String get importSummaryAlreadyImported;
 
+  /// No description provided for @importSummaryPairedWordSource.
+  ///
+  /// In ar, this message translates to:
+  /// **'مصادر Word مقترنة'**
+  String get importSummaryPairedWordSource;
+
   /// No description provided for @importSummaryFailed.
   ///
   /// In ar, this message translates to:
@@ -871,7 +877,7 @@ abstract class AppLocalizations {
   /// No description provided for @importResultsEmpty.
   ///
   /// In ar, this message translates to:
-  /// **'لم يتم اكتشاف ملفات PDF في هذا المجلد.'**
+  /// **'لم يتم اكتشاف ملفات PDF أو Word في هذا المجلد.'**
   String get importResultsEmpty;
 
   /// No description provided for @importCompletedTitle.
@@ -957,6 +963,12 @@ abstract class AppLocalizations {
   /// In ar, this message translates to:
   /// **'ملف تالف'**
   String get importStatusCorrupted;
+
+  /// No description provided for @importStatusPairedWordSource.
+  ///
+  /// In ar, this message translates to:
+  /// **'مصدر Word مقترن بـ PDF'**
+  String get importStatusPairedWordSource;
 
   /// No description provided for @importValidationDoesNotExist.
   ///
@@ -1948,6 +1960,30 @@ abstract class AppLocalizations {
   /// **'تأكيد'**
   String get accountManagementConfirmButton;
 
+  /// No description provided for @accountManagementLogoutButton.
+  ///
+  /// In ar, this message translates to:
+  /// **'تسجيل الخروج'**
+  String get accountManagementLogoutButton;
+
+  /// No description provided for @accountManagementLogoutDialogTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'تسجيل الخروج'**
+  String get accountManagementLogoutDialogTitle;
+
+  /// No description provided for @accountManagementLogoutDialogBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'هل تريد تسجيل الخروج من الحساب الحالي؟'**
+  String get accountManagementLogoutDialogBody;
+
+  /// No description provided for @accountManagementLogoutDialogConfirm.
+  ///
+  /// In ar, this message translates to:
+  /// **'تسجيل الخروج'**
+  String get accountManagementLogoutDialogConfirm;
+
   /// No description provided for @accountManagementErrorDuplicateUsername.
   ///
   /// In ar, this message translates to:
@@ -2181,6 +2217,300 @@ abstract class AppLocalizations {
   /// In ar, this message translates to:
   /// **'يجب التحقق من هوية المدير أولاً قبل تنفيذ هذه العملية.'**
   String get settingsSnackStepUpRequired;
+
+  /// No description provided for @navWordConversionReview.
+  ///
+  /// In ar, this message translates to:
+  /// **'مراجعة التحويل'**
+  String get navWordConversionReview;
+
+  /// No description provided for @navTooltipWordConversionReview.
+  ///
+  /// In ar, this message translates to:
+  /// **'مراجعة جودة ملفات PDF المحوّلة من Word'**
+  String get navTooltipWordConversionReview;
+
+  /// No description provided for @conversionReviewTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'مراجعة جودة التحويل'**
+  String get conversionReviewTitle;
+
+  /// No description provided for @conversionReviewSubtitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'مراجعة واعتماد أو رفض ملفات PDF المحوّلة من مستندات Word.'**
+  String get conversionReviewSubtitle;
+
+  /// No description provided for @conversionReviewEmptyTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا توجد تحويلات بانتظار المراجعة'**
+  String get conversionReviewEmptyTitle;
+
+  /// No description provided for @conversionReviewEmptyBody.
+  ///
+  /// In ar, this message translates to:
+  /// **'ستظهر هنا ملفات PDF المحوّلة التي تحتاج إلى مراجعة الجودة.'**
+  String get conversionReviewEmptyBody;
+
+  /// No description provided for @conversionReviewLoadError.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر تحميل قائمة التحويلات.'**
+  String get conversionReviewLoadError;
+
+  /// No description provided for @conversionReviewRetry.
+  ///
+  /// In ar, this message translates to:
+  /// **'إعادة المحاولة'**
+  String get conversionReviewRetry;
+
+  /// No description provided for @conversionReviewRefreshTooltip.
+  ///
+  /// In ar, this message translates to:
+  /// **'تحديث القائمة'**
+  String get conversionReviewRefreshTooltip;
+
+  /// No description provided for @conversionReviewSourceLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'المصدر'**
+  String get conversionReviewSourceLabel;
+
+  /// No description provided for @conversionReviewOutputLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'PDF المحوّل'**
+  String get conversionReviewOutputLabel;
+
+  /// No description provided for @conversionReviewCompletedLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'تاريخ التحويل'**
+  String get conversionReviewCompletedLabel;
+
+  /// No description provided for @conversionReviewOpenPdf.
+  ///
+  /// In ar, this message translates to:
+  /// **'فتح PDF'**
+  String get conversionReviewOpenPdf;
+
+  /// No description provided for @conversionReviewApprove.
+  ///
+  /// In ar, this message translates to:
+  /// **'اعتماد'**
+  String get conversionReviewApprove;
+
+  /// No description provided for @conversionReviewReject.
+  ///
+  /// In ar, this message translates to:
+  /// **'رفض'**
+  String get conversionReviewReject;
+
+  /// No description provided for @conversionReviewCancel.
+  ///
+  /// In ar, this message translates to:
+  /// **'إلغاء'**
+  String get conversionReviewCancel;
+
+  /// No description provided for @conversionReviewApproveDialogTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'اعتماد جودة PDF المحوّل'**
+  String get conversionReviewApproveDialogTitle;
+
+  /// No description provided for @conversionReviewApproveDialogContent.
+  ///
+  /// In ar, this message translates to:
+  /// **'سيتم اعتماد هذا الملف المحوّل وسيصبح مؤهلاً للتصنيف والنسخ إلى المكتبة المدارة.\n\nالملفات الأصلية تبقى سليمة دون أي تعديل أو حذف.'**
+  String get conversionReviewApproveDialogContent;
+
+  /// No description provided for @conversionReviewApproveConfirm.
+  ///
+  /// In ar, this message translates to:
+  /// **'اعتماد'**
+  String get conversionReviewApproveConfirm;
+
+  /// No description provided for @conversionReviewRejectDialogTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'رفض جودة PDF المحوّل'**
+  String get conversionReviewRejectDialogTitle;
+
+  /// No description provided for @conversionReviewRejectDialogContent.
+  ///
+  /// In ar, this message translates to:
+  /// **'سيتم رفض هذا الملف المحوّل ولن يكون مؤهلاً للتصنيف. الملفات الأصلية والمحوّلة تبقى محفوظة دون حذف.'**
+  String get conversionReviewRejectDialogContent;
+
+  /// No description provided for @conversionReviewRejectNoteLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'ملاحظة الرفض (اختياري)'**
+  String get conversionReviewRejectNoteLabel;
+
+  /// No description provided for @conversionReviewRejectConfirm.
+  ///
+  /// In ar, this message translates to:
+  /// **'رفض'**
+  String get conversionReviewRejectConfirm;
+
+  /// No description provided for @conversionReviewSnackApproved.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم اعتماد جودة PDF المحوّل بنجاح.'**
+  String get conversionReviewSnackApproved;
+
+  /// No description provided for @conversionReviewSnackRejected.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم رفض جودة PDF المحوّل. الملف محفوظ دون حذف.'**
+  String get conversionReviewSnackRejected;
+
+  /// No description provided for @conversionReviewSnackAlreadyDecided.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم البت في هذا التحويل مسبقاً.'**
+  String get conversionReviewSnackAlreadyDecided;
+
+  /// No description provided for @conversionReviewSnackApproveFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر اعتماد التحويل. حاول مرة أخرى.'**
+  String get conversionReviewSnackApproveFailed;
+
+  /// No description provided for @conversionReviewSnackRejectFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر رفض التحويل. حاول مرة أخرى.'**
+  String get conversionReviewSnackRejectFailed;
+
+  /// No description provided for @conversionReviewSnackGenericFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر تنفيذ العملية على التحويل.'**
+  String get conversionReviewSnackGenericFailed;
+
+  /// No description provided for @conversionWorkTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'تحويل مستندات Word'**
+  String get conversionWorkTitle;
+
+  /// No description provided for @conversionWorkSubtitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'تظهر هنا ملفات Word التي تنتظر التحويل أو تحتاج إلى إعادة محاولة.'**
+  String get conversionWorkSubtitle;
+
+  /// No description provided for @conversionWorkEmpty.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا توجد ملفات Word بانتظار التحويل.'**
+  String get conversionWorkEmpty;
+
+  /// No description provided for @conversionWorkLoadError.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر تحميل قائمة ملفات Word.'**
+  String get conversionWorkLoadError;
+
+  /// No description provided for @conversionWorkRun.
+  ///
+  /// In ar, this message translates to:
+  /// **'تحويل'**
+  String get conversionWorkRun;
+
+  /// No description provided for @conversionWorkRetry.
+  ///
+  /// In ar, this message translates to:
+  /// **'إعادة محاولة'**
+  String get conversionWorkRetry;
+
+  /// No description provided for @conversionWorkStatusPending.
+  ///
+  /// In ar, this message translates to:
+  /// **'جاهز للتحويل'**
+  String get conversionWorkStatusPending;
+
+  /// No description provided for @conversionWorkStatusConverting.
+  ///
+  /// In ar, this message translates to:
+  /// **'جارٍ التحويل'**
+  String get conversionWorkStatusConverting;
+
+  /// No description provided for @conversionWorkStatusFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'فشل التحويل'**
+  String get conversionWorkStatusFailed;
+
+  /// No description provided for @conversionWorkStatusUnknown.
+  ///
+  /// In ar, this message translates to:
+  /// **'حالة غير معروفة'**
+  String get conversionWorkStatusUnknown;
+
+  /// No description provided for @conversionWorkSnackRunSucceeded.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم تحويل الملف. راجع جودة PDF المحوّل.'**
+  String get conversionWorkSnackRunSucceeded;
+
+  /// No description provided for @conversionWorkSnackRunBlocked.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر بدء التحويل حالياً. تحقق من توفر المحوّل ثم حاول مرة أخرى.'**
+  String get conversionWorkSnackRunBlocked;
+
+  /// No description provided for @conversionWorkSnackRunFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'فشل التحويل. يمكنك إعادة المحاولة بعد معالجة السبب.'**
+  String get conversionWorkSnackRunFailed;
+
+  /// No description provided for @conversionWorkStagePreparing.
+  ///
+  /// In ar, this message translates to:
+  /// **'جارٍ التحضير'**
+  String get conversionWorkStagePreparing;
+
+  /// No description provided for @conversionWorkStageOpeningDocument.
+  ///
+  /// In ar, this message translates to:
+  /// **'جارٍ فتح مستند Word'**
+  String get conversionWorkStageOpeningDocument;
+
+  /// No description provided for @conversionWorkStageExportingPdf.
+  ///
+  /// In ar, this message translates to:
+  /// **'جارٍ تصدير PDF'**
+  String get conversionWorkStageExportingPdf;
+
+  /// No description provided for @conversionWorkStageValidatingOutput.
+  ///
+  /// In ar, this message translates to:
+  /// **'جارٍ التحقق من الملف الناتج'**
+  String get conversionWorkStageValidatingOutput;
+
+  /// No description provided for @conversionWorkStageSavingResult.
+  ///
+  /// In ar, this message translates to:
+  /// **'جارٍ حفظ النتيجة'**
+  String get conversionWorkStageSavingResult;
+
+  /// No description provided for @conversionWorkStageCleaningUp.
+  ///
+  /// In ar, this message translates to:
+  /// **'جارٍ تنظيف الملفات المؤقتة'**
+  String get conversionWorkStageCleaningUp;
+
+  /// No description provided for @conversionWorkQueueProgress.
+  ///
+  /// In ar, this message translates to:
+  /// **'{completed} من {total} ملفات اكتملت'**
+  String conversionWorkQueueProgress(int completed, int total);
 }
 
 class _AppLocalizationsDelegate

@@ -31,10 +31,7 @@ void main() {
     accountRepo = DriftAccountRepository(db);
     auditRepo = DriftSecurityAuditRepository(db);
     sessionManager = SessionManager();
-    useCase = LoadAuditLog(
-      auditLog: auditRepo,
-      sessionManager: sessionManager,
-    );
+    useCase = LoadAuditLog(auditLog: auditRepo, sessionManager: sessionManager);
 
     await BootstrapAdminAccount(
       accounts: accountRepo,
@@ -57,12 +54,14 @@ void main() {
     });
 
     test('throws UnauthorizedException for operator session', () async {
-      sessionManager.login(Session(
-        accountId: 'op_1',
-        username: 'operator1',
-        role: AccountRole.operator,
-        startedAt: clock.nowUtc(),
-      ));
+      sessionManager.login(
+        Session(
+          accountId: 'op_1',
+          username: 'operator1',
+          role: AccountRole.operator,
+          startedAt: clock.nowUtc(),
+        ),
+      );
       await expectLater(
         useCase(limit: 25, offset: 0),
         throwsA(isA<UnauthorizedException>()),
@@ -70,26 +69,33 @@ void main() {
     });
 
     test('returns events for admin session', () async {
-      sessionManager.login(Session(
-        accountId: 'admin',
-        username: 'marjiy@admin',
-        role: AccountRole.admin,
-        startedAt: clock.nowUtc(),
-      ));
+      sessionManager.login(
+        Session(
+          accountId: 'admin',
+          username: 'marjiy@admin',
+          role: AccountRole.admin,
+          startedAt: clock.nowUtc(),
+        ),
+      );
       final events = await useCase(limit: 25, offset: 0);
       expect(events, isNotEmpty);
       expect(events.first.eventTypeKey, 'admin_bootstrapped');
     });
 
     test('respects limit and offset for admin session', () async {
-      sessionManager.login(Session(
-        accountId: 'admin',
-        username: 'marjiy@admin',
-        role: AccountRole.admin,
-        startedAt: clock.nowUtc(),
-      ));
+      sessionManager.login(
+        Session(
+          accountId: 'admin',
+          username: 'marjiy@admin',
+          role: AccountRole.admin,
+          startedAt: clock.nowUtc(),
+        ),
+      );
       // Insert an additional event.
-      await auditRepo.insertEvent(eventTypeKey: 'login_success', actorAccountId: 'admin');
+      await auditRepo.insertEvent(
+        eventTypeKey: 'login_success',
+        actorAccountId: 'admin',
+      );
 
       final page1 = await useCase(limit: 1, offset: 0);
       final page2 = await useCase(limit: 1, offset: 1);

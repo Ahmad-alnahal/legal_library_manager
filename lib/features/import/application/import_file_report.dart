@@ -25,7 +25,12 @@ enum ImportFileStatus {
   /// The file is structurally corrupted (zero-byte, bad PDF header, etc.).
   /// Never hashed or grouped as a duplicate. Retryable in case the source is
   /// later repaired or replaced.
-  corrupted;
+  corrupted,
+
+  /// A `.doc` source that was detected as a paired counterpart to an existing
+  /// `.pdf` with the same normalized basename in the same folder. Hashed and
+  /// attached to the same document as the PDF. No conversion task is created.
+  pairedWordSource;
 
   /// Whether a file with this status can be re-attempted by "retry failed".
   bool get isRetryable =>
@@ -49,6 +54,7 @@ enum ImportFileStatus {
       ImportFileOutcome.hashFailed => ImportFileStatus.hashFailed,
       ImportFileOutcome.scanFailed => ImportFileStatus.scanFailed,
       ImportFileOutcome.corrupted => ImportFileStatus.corrupted,
+      ImportFileOutcome.pairedWordSource => ImportFileStatus.pairedWordSource,
     };
   }
 }

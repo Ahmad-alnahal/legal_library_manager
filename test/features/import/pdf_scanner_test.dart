@@ -64,15 +64,19 @@ void main() {
     expect(r.candidates.every((c) => c.extension == '.pdf'), isTrue);
   });
 
-  test('unsupported files are excluded (no doc/docx/txt in MVP)', () async {
-    writeFile(source, 'keep.pdf', healthyPdfBytes());
-    writeFile(source, 'skip.docx', 'x'.codeUnits);
-    writeFile(source, 'skip.doc', 'x'.codeUnits);
-    writeFile(source, 'skip.txt', 'x'.codeUnits);
+  test(
+    'PDF and .doc Word sources are included; .docx and other files are excluded',
+    () async {
+      writeFile(source, 'keep.pdf', healthyPdfBytes());
+      writeFile(source, 'word.docx', 'x'.codeUnits);
+      writeFile(source, 'legacy.doc', 'x'.codeUnits);
+      writeFile(source, 'skip.txt', 'x'.codeUnits);
 
-    final r = await scanner.scan(request(recursive: false));
-    expect(names(r), ['keep.pdf']);
-  });
+      final r = await scanner.scan(request(recursive: false));
+      expect(names(r), ['keep.pdf', 'legacy.doc']);
+      expect(r.candidates.map((c) => c.extension).toSet(), {'.pdf', '.doc'});
+    },
+  );
 
   test('ordering is deterministic (case-insensitive path order)', () async {
     writeFile(source, 'c.pdf', healthyPdfBytes());

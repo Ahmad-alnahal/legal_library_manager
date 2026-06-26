@@ -110,15 +110,22 @@ class DriftDocumentMetadataRepository implements DocumentMetadataRepository {
         .toList();
 
     // Preferred original source filename: prefer the explicitly-preferred row,
-    // then the lowest id, among `source_original` files. Read-only projection.
-    final List<DocumentFile> sourceFiles =
-        files.where((f) => f.fileRoleKey == 'source_original').toList()
-          ..sort((a, b) {
-            if (a.isPreferred != b.isPreferred) {
-              return a.isPreferred ? -1 : 1;
-            }
-            return a.id.compareTo(b.id);
-          });
+    // then any file marked as preferred_file_id in a duplicate group (defensive
+    // fallback for data predating the is_preferred sync), then the lowest id,
+    // among `source_original` files. Read-only projection.
+    final List<DocumentFile> sourceFiles = files
+        .where((f) => f.fileRoleKey == 'source_original')
+        .toList();
+    final Set<int> groupPreferredIds = await _groupPreferredFileIds(
+      sourceFiles.map((f) => f.id).toList(),
+    );
+    sourceFiles.sort((a, b) {
+      if (a.isPreferred != b.isPreferred) return a.isPreferred ? -1 : 1;
+      final aPref = groupPreferredIds.contains(a.id);
+      final bPref = groupPreferredIds.contains(b.id);
+      if (aPref != bPref) return aPref ? -1 : 1;
+      return a.id.compareTo(b.id);
+    });
     final String? preferredSourceFileName = sourceFiles.isEmpty
         ? null
         : sourceFiles.first.fileName;
@@ -275,6 +282,22 @@ class DriftDocumentMetadataRepository implements DocumentMetadataRepository {
             ))
             .get();
     return rows.map((r) => r.fileId).toSet();
+  }
+
+  /// Returns the subset of [fileIds] that are recorded as
+  /// `preferred_file_id` in any duplicate group. Used as a fallback sort key
+  /// when `document_files.is_preferred` has not yet been synced.
+  Future<Set<int>> _groupPreferredFileIds(List<int> fileIds) async {
+    if (fileIds.isEmpty) return const {};
+    final rows =
+        await (_db.selectOnly(_db.duplicateGroups)
+              ..addColumns([_db.duplicateGroups.preferredFileId])
+              ..where(_db.duplicateGroups.preferredFileId.isIn(fileIds)))
+            .get();
+    return rows
+        .map((r) => r.read(_db.duplicateGroups.preferredFileId))
+        .whereType<int>()
+        .toSet();
   }
 
   Future<void> _ensureExists(int documentId) async {

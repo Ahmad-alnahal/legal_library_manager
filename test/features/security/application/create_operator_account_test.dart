@@ -46,12 +46,14 @@ void main() {
       clock: clock,
     ).call();
 
-    sessionManager.login(Session(
-      accountId: 'admin',
-      username: 'marjiy@admin',
-      role: AccountRole.admin,
-      startedAt: clock.nowUtc(),
-    ));
+    sessionManager.login(
+      Session(
+        accountId: 'admin',
+        username: 'marjiy@admin',
+        role: AccountRole.admin,
+        startedAt: clock.nowUtc(),
+      ),
+    );
     stepUpManager.grant();
 
     useCase = CreateOperatorAccount(
@@ -105,9 +107,13 @@ void main() {
 
       expect(id1, isNot(equals(id2)));
       expect(
-          id1,
-          matches(RegExp(
-              r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$')));
+        id1,
+        matches(
+          RegExp(
+            r'^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$',
+          ),
+        ),
+      );
     });
 
     test('password is stored as an Argon2id hash, never plaintext', () async {
@@ -130,55 +136,64 @@ void main() {
         createdById: 'admin',
       );
       final account = await accountRepo.findById(id);
-      final valid =
-          await minimalHasher.verify('TempPass1', account!.passwordHash);
+      final valid = await minimalHasher.verify(
+        'TempPass1',
+        account!.passwordHash,
+      );
       expect(valid, isTrue);
     });
 
-    test('throws DuplicateUsernameException for a duplicate username', () async {
-      await useCase.call(
-        username: 'op1',
-        displayName: 'مشغل أول',
-        password: 'TempPass1',
-        createdById: 'admin',
-      );
-
-      expect(
-        () => useCase.call(
+    test(
+      'throws DuplicateUsernameException for a duplicate username',
+      () async {
+        await useCase.call(
           username: 'op1',
-          displayName: 'مشغل ثاني',
-          password: 'TempPass2',
-          createdById: 'admin',
-        ),
-        throwsA(isA<DuplicateUsernameException>()),
-      );
-    });
-
-    test('throws DuplicateUsernameException if username matches the admin',
-        () async {
-      expect(
-        () => useCase.call(
-          username: 'marjiy@admin',
-          displayName: 'مشغل',
+          displayName: 'مشغل أول',
           password: 'TempPass1',
           createdById: 'admin',
-        ),
-        throwsA(isA<DuplicateUsernameException>()),
-      );
-    });
+        );
 
-    test('throws WeakPasswordException for passwords shorter than 8 chars',
-        () async {
-      expect(
-        () => useCase.call(
-          username: 'op1',
-          displayName: 'مشغل',
-          password: 'Short',
-          createdById: 'admin',
-        ),
-        throwsA(isA<WeakPasswordException>()),
-      );
-    });
+        expect(
+          () => useCase.call(
+            username: 'op1',
+            displayName: 'مشغل ثاني',
+            password: 'TempPass2',
+            createdById: 'admin',
+          ),
+          throwsA(isA<DuplicateUsernameException>()),
+        );
+      },
+    );
+
+    test(
+      'throws DuplicateUsernameException if username matches the admin',
+      () async {
+        expect(
+          () => useCase.call(
+            username: 'marjiy@admin',
+            displayName: 'مشغل',
+            password: 'TempPass1',
+            createdById: 'admin',
+          ),
+          throwsA(isA<DuplicateUsernameException>()),
+        );
+      },
+    );
+
+    test(
+      'throws WeakPasswordException for passwords shorter than 8 chars',
+      () async {
+        expect(
+          () => useCase.call(
+            username: 'op1',
+            displayName: 'مشغل',
+            password: 'Short',
+            createdById: 'admin',
+          ),
+          throwsA(isA<WeakPasswordException>()),
+        );
+      },
+    );
 
     test('records an account_created audit event', () async {
       await useCase.call(
@@ -188,10 +203,7 @@ void main() {
         createdById: 'admin',
       );
       final events = await auditRepo.loadEvents(limit: 10, offset: 0);
-      expect(
-        events.any((e) => e.eventTypeKey == 'account_created'),
-        isTrue,
-      );
+      expect(events.any((e) => e.eventTypeKey == 'account_created'), isTrue);
     });
 
     test('listOperators returns only operator accounts', () async {
@@ -229,43 +241,49 @@ void main() {
       expect(after!.internalId, equals(id));
     });
 
-    test('throws UnauthorizedException when there is no active session',
-        () async {
-      sessionManager.logout();
-      expect(
-        () => useCase.call(
+    test(
+      'throws UnauthorizedException when there is no active session',
+      () async {
+        sessionManager.logout();
+        expect(
+          () => useCase.call(
+            username: 'op1',
+            displayName: 'مشغل',
+            password: 'TempPass1',
+            createdById: 'admin',
+          ),
+          throwsA(isA<UnauthorizedException>()),
+        );
+      },
+    );
+
+    test(
+      'throws UnauthorizedException when the current session is operator',
+      () async {
+        final opId = await useCase.call(
           username: 'op1',
           displayName: 'مشغل',
           password: 'TempPass1',
           createdById: 'admin',
-        ),
-        throwsA(isA<UnauthorizedException>()),
-      );
-    });
-
-    test('throws UnauthorizedException when the current session is operator',
-        () async {
-      final opId = await useCase.call(
-        username: 'op1',
-        displayName: 'مشغل',
-        password: 'TempPass1',
-        createdById: 'admin',
-      );
-      sessionManager.login(Session(
-        accountId: opId,
-        username: 'op1',
-        role: AccountRole.operator,
-        startedAt: clock.nowUtc(),
-      ));
-      expect(
-        () => useCase.call(
-          username: 'op2',
-          displayName: 'مشغل ثاني',
-          password: 'TempPass2',
-          createdById: opId,
-        ),
-        throwsA(isA<UnauthorizedException>()),
-      );
-    });
+        );
+        sessionManager.login(
+          Session(
+            accountId: opId,
+            username: 'op1',
+            role: AccountRole.operator,
+            startedAt: clock.nowUtc(),
+          ),
+        );
+        expect(
+          () => useCase.call(
+            username: 'op2',
+            displayName: 'مشغل ثاني',
+            password: 'TempPass2',
+            createdById: opId,
+          ),
+          throwsA(isA<UnauthorizedException>()),
+        );
+      },
+    );
   });
 }

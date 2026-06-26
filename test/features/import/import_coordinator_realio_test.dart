@@ -24,10 +24,22 @@ import 'package:path/path.dart' as p;
 
 import 'support/import_test_support.dart';
 
+Future<void> _deleteTempDirSafely(Directory dir) async {
+  for (var attempt = 0; attempt < 5; attempt++) {
+    try {
+      if (dir.existsSync()) dir.deleteSync(recursive: true);
+      return;
+    } on FileSystemException {
+      if (attempt == 4) rethrow;
+      await Future<void>.delayed(const Duration(milliseconds: 100));
+    }
+  }
+}
+
 void main() {
   test('real PDF scanner runs correctly on a background isolate', () async {
     final Directory root = makeTempDir('iso_scan');
-    addTearDown(() => root.deleteSync(recursive: true));
+    addTearDown(() => _deleteTempDirSafely(root));
     final Directory src = Directory(p.join(root.path, 'src'))..createSync();
     final Directory dbRoot = Directory(p.join(root.path, 'db'))..createSync();
     writeFile(src, 'a.pdf', healthyPdfBytes());
@@ -48,7 +60,7 @@ void main() {
     'real PDF health inspector runs correctly on a background isolate',
     () async {
       final Directory root = makeTempDir('iso_health');
-      addTearDown(() => root.deleteSync(recursive: true));
+      addTearDown(() => _deleteTempDirSafely(root));
       final File f = writeFile(root, 'ok.pdf', healthyPdfBytes());
 
       final PdfHealthResult health = await Isolate.run(
@@ -62,7 +74,7 @@ void main() {
     'full run with real services imports and leaves source files unchanged',
     () async {
       final Directory root = makeTempDir('coord_real');
-      addTearDown(() => root.deleteSync(recursive: true));
+      addTearDown(() => _deleteTempDirSafely(root));
       final Directory src = Directory(p.join(root.path, 'src'))..createSync();
       final Directory dbRoot = Directory(p.join(root.path, 'db'))..createSync();
       final File a = writeFile(src, 'a.pdf', healthyPdfBytes());
@@ -118,7 +130,7 @@ void main() {
     'zero-byte PDF produces a corrupted result and leaves source bytes unchanged',
     () async {
       final Directory root = makeTempDir('coord_zero');
-      addTearDown(() => root.deleteSync(recursive: true));
+      addTearDown(() => _deleteTempDirSafely(root));
       final Directory src = Directory(p.join(root.path, 'src'))..createSync();
       final Directory dbRoot = Directory(p.join(root.path, 'db'))..createSync();
 
@@ -172,7 +184,7 @@ void main() {
     'bad-header PDF (non-zero-byte corrupted) produces a corrupted result',
     () async {
       final Directory root = makeTempDir('coord_badhdr');
-      addTearDown(() => root.deleteSync(recursive: true));
+      addTearDown(() => _deleteTempDirSafely(root));
       final Directory src = Directory(p.join(root.path, 'src'))..createSync();
       final Directory dbRoot = Directory(p.join(root.path, 'db'))..createSync();
 

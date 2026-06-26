@@ -23,9 +23,9 @@ class OpenFileUseCase {
   final FileExistenceChecker _existenceChecker;
   final OsFileOpener _osOpener;
 
-  /// MVP allowed extensions (lowercase). Both the stored field and the
+  /// Safe-open allowed extensions (lowercase). Both the stored field and the
   /// extension derived from absolutePath must be in this list and must agree.
-  static const List<String> _allowedExtensions = ['.pdf'];
+  static const List<String> _allowedExtensions = ['.pdf', '.doc'];
 
   /// Extracts the file extension (including leading dot) from a Windows or
   /// POSIX absolute path without importing dart:io or dart:path.
@@ -137,7 +137,7 @@ class OpenFileUseCase {
     }
 
     // 4. Validate both the stored extension and the extension derived from the
-    // registered absolutePath. Both must be .pdf (case-insensitive) and they
+    // registered absolutePath. Both must be allowed (case-insensitive) and
     // must agree. This guards against stale document_files.extension values
     // and against paths whose actual suffix differs from the stored field.
     final storedExt = record.extension.toLowerCase();

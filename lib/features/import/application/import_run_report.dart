@@ -46,8 +46,10 @@ class ImportRunReport extends Equatable {
   int get importedNewCount => countOf(ImportFileStatus.importedNew);
   int get duplicateCount => countOf(ImportFileStatus.importedDuplicatePath);
   int get alreadyImportedCount => countOf(ImportFileStatus.alreadyImported);
+  int get pairedWordSourceCount => countOf(ImportFileStatus.pairedWordSource);
 
-  int get importedCount => importedNewCount + duplicateCount;
+  int get importedCount =>
+      importedNewCount + duplicateCount + pairedWordSourceCount;
 
   int get failedCount => files.where((f) => f.status.isFailure).length;
 

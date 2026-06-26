@@ -190,7 +190,7 @@ void main() {
   });
 
   group('OpenFileUseCase — extension validation', () {
-    test('non-PDF extension (.docx) returns blocked', () async {
+    test('Word .docx extension is blocked (not a supported format)', () async {
       final repo = _FakeRepo()
         ..recordToReturn = const FileOpenRecord(
           fileId: 1,
@@ -214,6 +214,55 @@ void main() {
         FileOpenError.unsupportedExtension,
       );
       expect(opener.openFileCalls, isEmpty);
+    });
+
+    test('Word .doc extension is accepted for direct open', () async {
+      final repo = _FakeRepo()
+        ..recordToReturn = const FileOpenRecord(
+          fileId: 1,
+          documentId: 10,
+          absolutePath: r'C:\Library\doc.doc',
+          extension: '.doc',
+          fileHealthKey: 'healthy',
+        );
+      final opener = _FakeOpener();
+      final uc = OpenFileUseCase(
+        repository: repo,
+        existenceChecker: _FakeChecker(FileExistenceStatus.regularFile),
+        osOpener: opener,
+      );
+
+      final result = await uc.execute(1, OpenTarget.file);
+
+      expect(result, isA<OpenFileSuccess>());
+      expect(opener.openFileCalls, [r'C:\Library\doc.doc']);
+      expect(opener.openFolderCalls, isEmpty);
+    });
+
+    test('Word .docx extension is blocked for folder reveal too', () async {
+      final repo = _FakeRepo()
+        ..recordToReturn = const FileOpenRecord(
+          fileId: 1,
+          documentId: 10,
+          absolutePath: r'C:\Library\doc.docx',
+          extension: '.docx',
+          fileHealthKey: 'healthy',
+        );
+      final opener = _FakeOpener();
+      final uc = OpenFileUseCase(
+        repository: repo,
+        existenceChecker: _FakeChecker(FileExistenceStatus.regularFile),
+        osOpener: opener,
+      );
+
+      final result = await uc.execute(1, OpenTarget.folder);
+
+      expect(result, isA<OpenFileBlocked>());
+      expect(
+        (result as OpenFileBlocked).code,
+        FileOpenError.unsupportedExtension,
+      );
+      expect(opener.openFolderCalls, isEmpty);
     });
 
     test('misleading double extension (.pdf.exe) returns blocked', () async {

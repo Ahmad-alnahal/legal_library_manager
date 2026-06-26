@@ -89,4 +89,8 @@ enum ManagedCopyError {
   /// Returned instead of [alreadyCopied] so the UI can show a distinct,
   /// positive confirmation rather than a "nothing to do" message.
   restoredFromDisk,
+
+  /// The in-flow Word-to-PDF conversion (run inside managed-copy) failed.
+  /// No managed-copy row or temp file is left behind.
+  wordConversionFailed,
 }

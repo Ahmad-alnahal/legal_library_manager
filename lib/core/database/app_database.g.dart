@@ -11957,6 +11957,7 @@ class $FileEventsTable extends FileEvents
       'conversion_failed',
       'backup_created',
       'export_copy_created',
+      'paired_source_detected',
     ]),
     type: DriftSqlType.string,
     requiredDuringInsert: true,

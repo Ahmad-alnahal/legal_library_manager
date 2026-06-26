@@ -318,11 +318,14 @@ class _RecoveryKeyStep extends StatelessWidget {
           ),
         ),
         const SizedBox(height: AppSpacing.xl),
-        CheckboxListTile(
-          value: keySaved,
-          onChanged: onKeySavedChanged,
-          title: Text(l10n.setupRecoveryKeyConfirmLabel),
-          controlAffinity: ListTileControlAffinity.leading,
+        Material(
+          type: MaterialType.transparency,
+          child: CheckboxListTile(
+            value: keySaved,
+            onChanged: onKeySavedChanged,
+            title: Text(l10n.setupRecoveryKeyConfirmLabel),
+            controlAffinity: ListTileControlAffinity.leading,
+          ),
         ),
         const SizedBox(height: AppSpacing.xl),
         FilledButton(

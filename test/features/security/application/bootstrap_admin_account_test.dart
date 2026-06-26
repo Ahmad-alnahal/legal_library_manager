@@ -29,7 +29,7 @@ void main() {
     accountRepo = DriftAccountRepository(db);
     auditRepo = DriftSecurityAuditRepository(db);
     useCase = BootstrapAdminAccount(
-      accounts: accountRepo,   // external name strips '_' per Dart convention
+      accounts: accountRepo, // external name strips '_' per Dart convention
       auditLog: auditRepo,
       clock: _FixedClock(fixedNow),
     );
@@ -83,8 +83,7 @@ void main() {
       await useCase.call();
       final admin = await accountRepo.findById('admin');
       // The password hasher with minimal params to keep the test fast.
-      const hasher =
-          Argon2idPasswordHasher(memoryKib: 256, iterations: 1);
+      const hasher = Argon2idPasswordHasher(memoryKib: 256, iterations: 1);
       expect(
         await hasher.verify('anything', admin!.passwordHash),
         isFalse,
@@ -108,27 +107,36 @@ void main() {
       expect(events.first.actorAccountId, 'admin');
     });
 
-    test('is idempotent: calling twice does not duplicate the account',
-        () async {
-      await useCase.call();
-      await useCase.call();
-      // findByUsername uniquely identifies the account; if a duplicate were
-      // inserted the unique index would have thrown, but double-check count.
-      final admin = await accountRepo.findByUsername('marjiy@admin');
-      expect(admin, isNotNull);
-      // Audit log gets only one entry (second call returns early).
-      final events = await auditRepo.loadEvents(limit: 10, offset: 0);
-      expect(events.length, 1,
-          reason: 'audit log must have exactly one bootstrap event');
-    });
+    test(
+      'is idempotent: calling twice does not duplicate the account',
+      () async {
+        await useCase.call();
+        await useCase.call();
+        // findByUsername uniquely identifies the account; if a duplicate were
+        // inserted the unique index would have thrown, but double-check count.
+        final admin = await accountRepo.findByUsername('marjiy@admin');
+        expect(admin, isNotNull);
+        // Audit log gets only one entry (second call returns early).
+        final events = await auditRepo.loadEvents(limit: 10, offset: 0);
+        expect(
+          events.length,
+          1,
+          reason: 'audit log must have exactly one bootstrap event',
+        );
+      },
+    );
 
-    test('is idempotent: calling twice does not record a second audit event',
-        () async {
-      await useCase.call();
-      await useCase.call();
-      final events = await auditRepo.loadEvents(limit: 10, offset: 0);
-      expect(events.where((e) => e.eventTypeKey == 'admin_bootstrapped').length,
-          1);
-    });
+    test(
+      'is idempotent: calling twice does not record a second audit event',
+      () async {
+        await useCase.call();
+        await useCase.call();
+        final events = await auditRepo.loadEvents(limit: 10, offset: 0);
+        expect(
+          events.where((e) => e.eventTypeKey == 'admin_bootstrapped').length,
+          1,
+        );
+      },
+    );
   });
 }

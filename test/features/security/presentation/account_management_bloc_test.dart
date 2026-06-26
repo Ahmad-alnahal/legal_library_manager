@@ -56,12 +56,14 @@ void main() {
 
     // Seed the admin session so _actorId resolves.
     final admin = await accountRepo.findById('admin');
-    sessionManager.login(Session(
-      accountId: 'admin',
-      username: admin!.username,
-      role: admin.role,
-      startedAt: clock.nowUtc(),
-    ));
+    sessionManager.login(
+      Session(
+        accountId: 'admin',
+        username: admin!.username,
+        role: admin.role,
+        startedAt: clock.nowUtc(),
+      ),
+    );
     // Grant step-up so that all use cases pass for this admin session.
     stepUpManager.grant();
 
@@ -130,11 +132,13 @@ void main() {
       bloc.add(const AccountManagementLoadRequested());
       await _settle(bloc);
 
-      bloc.add(const AccountManagementCreateOperator(
-        username: 'op1',
-        displayName: 'مشغل أول',
-        temporaryPassword: 'TempPass1',
-      ));
+      bloc.add(
+        const AccountManagementCreateOperator(
+          username: 'op1',
+          displayName: 'مشغل أول',
+          temporaryPassword: 'TempPass1',
+        ),
+      );
       await _settle(bloc);
 
       final loaded = bloc.state as AccountManagementLoaded;
@@ -147,18 +151,22 @@ void main() {
       bloc.add(const AccountManagementLoadRequested());
       await _settle(bloc);
 
-      bloc.add(const AccountManagementCreateOperator(
-        username: 'op1',
-        displayName: 'مشغل أول',
-        temporaryPassword: 'TempPass1',
-      ));
+      bloc.add(
+        const AccountManagementCreateOperator(
+          username: 'op1',
+          displayName: 'مشغل أول',
+          temporaryPassword: 'TempPass1',
+        ),
+      );
       await _settle(bloc);
 
-      bloc.add(const AccountManagementCreateOperator(
-        username: 'op1',
-        displayName: 'مشغل ثاني',
-        temporaryPassword: 'TempPass2',
-      ));
+      bloc.add(
+        const AccountManagementCreateOperator(
+          username: 'op1',
+          displayName: 'مشغل ثاني',
+          temporaryPassword: 'TempPass2',
+        ),
+      );
       await _settle(bloc);
 
       expect(bloc.state, isA<AccountManagementError>());
@@ -168,43 +176,49 @@ void main() {
       );
     });
 
-    test('issue temp password emits Loaded with mustChangePassword set',
-        () async {
-      bloc.add(const AccountManagementLoadRequested());
-      await _settle(bloc);
+    test(
+      'issue temp password emits Loaded with mustChangePassword set',
+      () async {
+        bloc.add(const AccountManagementLoadRequested());
+        await _settle(bloc);
 
-      bloc.add(const AccountManagementCreateOperator(
-        username: 'op1',
-        displayName: 'مشغل',
-        temporaryPassword: 'TempPass1',
-      ));
-      await _settle(bloc);
+        bloc.add(
+          const AccountManagementCreateOperator(
+            username: 'op1',
+            displayName: 'مشغل',
+            temporaryPassword: 'TempPass1',
+          ),
+        );
+        await _settle(bloc);
 
-      // Clear must_change_password by simulating a password change.
-      final op = (bloc.state as AccountManagementLoaded).operators.first;
-      await accountRepo.updateAccount(
-        op.copyWith(mustChangePassword: false),
-      );
+        // Clear must_change_password by simulating a password change.
+        final op = (bloc.state as AccountManagementLoaded).operators.first;
+        await accountRepo.updateAccount(op.copyWith(mustChangePassword: false));
 
-      bloc.add(AccountManagementIssueTempPassword(
-        operatorId: op.internalId,
-        temporaryPassword: 'NewTemp1',
-      ));
-      await _settle(bloc);
+        bloc.add(
+          AccountManagementIssueTempPassword(
+            operatorId: op.internalId,
+            temporaryPassword: 'NewTemp1',
+          ),
+        );
+        await _settle(bloc);
 
-      final loaded = bloc.state as AccountManagementLoaded;
-      expect(loaded.operators.first.mustChangePassword, isTrue);
-    });
+        final loaded = bloc.state as AccountManagementLoaded;
+        expect(loaded.operators.first.mustChangePassword, isTrue);
+      },
+    );
 
     test('suspend operator sets status to suspended', () async {
       bloc.add(const AccountManagementLoadRequested());
       await _settle(bloc);
 
-      bloc.add(const AccountManagementCreateOperator(
-        username: 'op1',
-        displayName: 'مشغل',
-        temporaryPassword: 'TempPass1',
-      ));
+      bloc.add(
+        const AccountManagementCreateOperator(
+          username: 'op1',
+          displayName: 'مشغل',
+          temporaryPassword: 'TempPass1',
+        ),
+      );
       await _settle(bloc);
 
       final op = (bloc.state as AccountManagementLoaded).operators.first;
@@ -219,11 +233,13 @@ void main() {
       bloc.add(const AccountManagementLoadRequested());
       await _settle(bloc);
 
-      bloc.add(const AccountManagementCreateOperator(
-        username: 'op1',
-        displayName: 'مشغل',
-        temporaryPassword: 'TempPass1',
-      ));
+      bloc.add(
+        const AccountManagementCreateOperator(
+          username: 'op1',
+          displayName: 'مشغل',
+          temporaryPassword: 'TempPass1',
+        ),
+      );
       await _settle(bloc);
 
       final op = (bloc.state as AccountManagementLoaded).operators.first;
@@ -241,17 +257,21 @@ void main() {
       await _settle(bloc);
 
       // Trigger an error (duplicate username).
-      bloc.add(const AccountManagementCreateOperator(
-        username: 'op1',
-        displayName: 'مشغل',
-        temporaryPassword: 'TempPass1',
-      ));
+      bloc.add(
+        const AccountManagementCreateOperator(
+          username: 'op1',
+          displayName: 'مشغل',
+          temporaryPassword: 'TempPass1',
+        ),
+      );
       await _settle(bloc);
-      bloc.add(const AccountManagementCreateOperator(
-        username: 'op1',
-        displayName: 'مشغل',
-        temporaryPassword: 'TempPass2',
-      ));
+      bloc.add(
+        const AccountManagementCreateOperator(
+          username: 'op1',
+          displayName: 'مشغل',
+          temporaryPassword: 'TempPass2',
+        ),
+      );
       await _settle(bloc);
       expect(bloc.state, isA<AccountManagementError>());
 
@@ -260,27 +280,62 @@ void main() {
       expect(bloc.state, isA<AccountManagementLoaded>());
     });
 
-    test('emits stepUpRequired error when step-up is revoked mid-session',
-        () async {
-      bloc.add(const AccountManagementLoadRequested());
-      await _settle(bloc);
+    test(
+      'LogoutRequested calls sessionManager.logout and emits Unauthenticated',
+      () async {
+        final states = <SessionState>[];
+        final sub = sessionManager.sessionStream.listen(states.add);
 
-      // Revoke step-up so the next operation fails.
-      stepUpManager.revoke();
+        bloc.add(const AccountManagementLogoutRequested());
+        await Future<void>.delayed(const Duration(milliseconds: 50));
 
-      bloc.add(const AccountManagementCreateOperator(
-        username: 'op1',
-        displayName: 'مشغل',
-        temporaryPassword: 'TempPass1',
-      ));
-      await _settle(bloc);
+        expect(states, contains(isA<Unauthenticated>()));
+        expect(sessionManager.currentSession, isNull);
 
-      expect(bloc.state, isA<AccountManagementError>());
-      expect(
-        (bloc.state as AccountManagementError).messageKey,
-        equals('stepUpRequired'),
-      );
-    });
+        await sub.cancel();
+      },
+    );
+
+    test(
+      'LogoutRequested does not emit bloc state other than whatever was current',
+      () async {
+        bloc.add(const AccountManagementLoadRequested());
+        await _settle(bloc);
+
+        final statesBefore = bloc.state;
+        bloc.add(const AccountManagementLogoutRequested());
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+
+        // The bloc state itself doesn't change — the session stream drives navigation.
+        expect(bloc.state, equals(statesBefore));
+      },
+    );
+
+    test(
+      'emits stepUpRequired error when step-up is revoked mid-session',
+      () async {
+        bloc.add(const AccountManagementLoadRequested());
+        await _settle(bloc);
+
+        // Revoke step-up so the next operation fails.
+        stepUpManager.revoke();
+
+        bloc.add(
+          const AccountManagementCreateOperator(
+            username: 'op1',
+            displayName: 'مشغل',
+            temporaryPassword: 'TempPass1',
+          ),
+        );
+        await _settle(bloc);
+
+        expect(bloc.state, isA<AccountManagementError>());
+        expect(
+          (bloc.state as AccountManagementError).messageKey,
+          equals('stepUpRequired'),
+        );
+      },
+    );
   });
 }
 

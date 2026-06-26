@@ -335,14 +335,17 @@ void main() {
         // ── Phase 7: Integrity reconciliation — all healthy ──────────────────────
 
         final workflowStepUpManager = StepUpManager();
-        final workflowSessionManager =
-            SessionManager(stepUpManager: workflowStepUpManager);
-        workflowSessionManager.login(Session(
-          accountId: 'admin',
-          username: 'marjiy@admin',
-          role: AccountRole.admin,
-          startedAt: DateTime.utc(2026, 6, 24, 9),
-        ));
+        final workflowSessionManager = SessionManager(
+          stepUpManager: workflowStepUpManager,
+        );
+        workflowSessionManager.login(
+          Session(
+            accountId: 'admin',
+            username: 'marjiy@admin',
+            role: AccountRole.admin,
+            startedAt: DateTime.utc(2026, 6, 24, 9),
+          ),
+        );
         workflowStepUpManager.grant();
         final reconcile = ReconcileManagedCopyIntegrity(
           repository: repo,
@@ -373,7 +376,7 @@ void main() {
         // On Windows the async hasher may hold the OS handle briefly after the
         // reconcile Future resolves — retry a few times before failing.
         final hiddenPath = p.join(root.path, '_hidden_beta.pdf');
-        for (var attempt = 0;; attempt++) {
+        for (var attempt = 0; ; attempt++) {
           try {
             managedPdf.renameSync(hiddenPath);
             break;

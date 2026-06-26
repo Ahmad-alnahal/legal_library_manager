@@ -183,7 +183,8 @@ class DriftManagedCopyRepository implements ManagedCopyRepository {
         await (_db.select(_db.documentFiles)..where(
               (f) =>
                   f.documentId.equals(documentId) &
-                  f.fileRoleKey.equals('source_original'),
+                  (f.fileRoleKey.equals('source_original') |
+                      f.fileRoleKey.equals('converted_pdf')),
             ))
             .get();
     return rows
@@ -194,7 +195,8 @@ class DriftManagedCopyRepository implements ManagedCopyRepository {
             absolutePath: r.absolutePath,
             storedExtension: r.extension,
             fileHealthKey: r.fileHealthKey,
-            isPreferred: r.isPreferred,
+            // converted_pdf files are never preferred over a source_original PDF.
+            isPreferred: r.fileRoleKey == 'source_original' && r.isPreferred,
             sha256Hash: r.sha256Hash,
           ),
         )

@@ -104,4 +104,18 @@ abstract class ImportRepository {
     String? errorCode,
     String? safeMessage,
   });
+
+  /// Persists a paired `.doc` source file on an existing document (the one that
+  /// owns the paired `.pdf`). Hashes, creates a `source_original` file row on
+  /// [existingDocumentId], and records a `paired_source_detected` audit event.
+  /// No new document row is created. A same-path match short-circuits to
+  /// `already_imported`. When [batchId] is given, attaches an
+  /// `import_batch_files` result row.
+  Future<ImportFileResult> persistPairedWordSource(
+    PreparedSourceFile file, {
+    required int existingDocumentId,
+    required String operationId,
+    required DateTime now,
+    int? batchId,
+  });
 }

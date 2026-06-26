@@ -193,6 +193,8 @@ ORDER BY is_preferred DESC, d.document_code ASC, df.id ASC
     await _db.transaction(() async {
       await _ensureGroupExists(groupId);
       await _ensureMemberExists(groupId: groupId, fileId: fileId);
+
+      // Record the group-level preference.
       await (_db.update(
         _db.duplicateGroups,
       )..where((g) => g.id.equals(groupId))).write(
@@ -201,6 +203,39 @@ ORDER BY is_preferred DESC, d.document_code ASC, df.id ASC
           updatedAt: Value(_nowIso()),
         ),
       );
+
+      // Always un-hide the chosen member so classification queries can see it.
+      await (_db.update(_db.duplicateGroupMembers)
+            ..where((m) => m.duplicateGroupId.equals(groupId))
+            ..where((m) => m.fileId.equals(fileId)))
+          .write(
+            const DuplicateGroupMembersCompanion(
+              isHiddenFromSearch: Value(false),
+            ),
+          );
+
+      // Sync document_files.is_preferred when the selected file qualifies as a
+      // healthy source-original PDF, so classification sees the same preference
+      // without joining duplicate_groups.
+      final DocumentFile? qualified =
+          await (_db.select(_db.documentFiles)..where(
+                (f) =>
+                    f.id.equals(fileId) &
+                    f.fileRoleKey.equals('source_original') &
+                    f.fileHealthKey.equals('healthy') &
+                    f.extension.lower().equals('.pdf'),
+              ))
+              .getSingleOrNull();
+      if (qualified != null) {
+        await (_db.update(_db.documentFiles)..where(
+              (f) =>
+                  f.documentId.equals(qualified.documentId) &
+                  f.fileRoleKey.equals('source_original'),
+            ))
+            .write(const DocumentFilesCompanion(isPreferred: Value(false)));
+        await (_db.update(_db.documentFiles)..where((f) => f.id.equals(fileId)))
+            .write(const DocumentFilesCompanion(isPreferred: Value(true)));
+      }
     });
   }
 

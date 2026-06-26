@@ -69,12 +69,14 @@ void main() {
   });
 
   void loginAsAdmin() {
-    sessionManager.login(Session(
-      accountId: 'admin',
-      username: 'marjiy@admin',
-      role: AccountRole.admin,
-      startedAt: clock.nowUtc(),
-    ));
+    sessionManager.login(
+      Session(
+        accountId: 'admin',
+        username: 'marjiy@admin',
+        role: AccountRole.admin,
+        startedAt: clock.nowUtc(),
+      ),
+    );
   }
 
   group('VerifyAdminStepUp', () {
@@ -87,12 +89,14 @@ void main() {
     });
 
     test('throws UnauthorizedException when operator session', () async {
-      sessionManager.login(Session(
-        accountId: 'some-op',
-        username: 'op1',
-        role: AccountRole.operator,
-        startedAt: clock.nowUtc(),
-      ));
+      sessionManager.login(
+        Session(
+          accountId: 'some-op',
+          username: 'op1',
+          role: AccountRole.operator,
+          startedAt: clock.nowUtc(),
+        ),
+      );
       await expectLater(
         verifyStepUp.call(adminPassword),
         throwsA(isA<UnauthorizedException>()),
@@ -100,49 +104,49 @@ void main() {
       expect(stepUpManager.isApproved, isFalse);
     });
 
-    test('returns StepUpVerifySuccess and grants approval on correct password',
-        () async {
-      loginAsAdmin();
-      final result = await verifyStepUp.call(adminPassword);
-      expect(result, isA<StepUpVerifySuccess>());
-      expect(stepUpManager.isApproved, isTrue);
-    });
+    test(
+      'returns StepUpVerifySuccess and grants approval on correct password',
+      () async {
+        loginAsAdmin();
+        final result = await verifyStepUp.call(adminPassword);
+        expect(result, isA<StepUpVerifySuccess>());
+        expect(stepUpManager.isApproved, isTrue);
+      },
+    );
 
-    test('returns StepUpVerifyWrongPassword and does not grant on wrong password',
-        () async {
-      loginAsAdmin();
-      final result = await verifyStepUp.call('WrongPassword99');
-      expect(result, isA<StepUpVerifyWrongPassword>());
-      expect(stepUpManager.isApproved, isFalse);
-    });
+    test(
+      'returns StepUpVerifyWrongPassword and does not grant on wrong password',
+      () async {
+        loginAsAdmin();
+        final result = await verifyStepUp.call('WrongPassword99');
+        expect(result, isA<StepUpVerifyWrongPassword>());
+        expect(stepUpManager.isApproved, isFalse);
+      },
+    );
 
-    test('wrong password does not revoke an existing step-up approval',
-        () async {
-      loginAsAdmin();
-      stepUpManager.grant();
-      await verifyStepUp.call('WrongPassword99');
-      // A wrong attempt must NOT clear existing approval.
-      expect(stepUpManager.isApproved, isTrue);
-    });
+    test(
+      'wrong password does not revoke an existing step-up approval',
+      () async {
+        loginAsAdmin();
+        stepUpManager.grant();
+        await verifyStepUp.call('WrongPassword99');
+        // A wrong attempt must NOT clear existing approval.
+        expect(stepUpManager.isApproved, isTrue);
+      },
+    );
 
     test('records step_up_granted audit event on success', () async {
       loginAsAdmin();
       await verifyStepUp.call(adminPassword);
       final events = await auditRepo.loadEvents(limit: 10, offset: 0);
-      expect(
-        events.any((e) => e.eventTypeKey == 'step_up_granted'),
-        isTrue,
-      );
+      expect(events.any((e) => e.eventTypeKey == 'step_up_granted'), isTrue);
     });
 
     test('records step_up_denied audit event on wrong password', () async {
       loginAsAdmin();
       await verifyStepUp.call('BadPassword1');
       final events = await auditRepo.loadEvents(limit: 10, offset: 0);
-      expect(
-        events.any((e) => e.eventTypeKey == 'step_up_denied'),
-        isTrue,
-      );
+      expect(events.any((e) => e.eventTypeKey == 'step_up_denied'), isTrue);
     });
   });
 }

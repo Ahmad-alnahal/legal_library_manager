@@ -62,12 +62,26 @@ class _AccountManagementView extends StatelessWidget {
                       final canCreate =
                           state is AccountManagementLoaded ||
                           state is AccountManagementError;
-                      return FilledButton.icon(
-                        onPressed: canCreate
-                            ? () => _showCreateDialog(context, l10n)
-                            : null,
-                        icon: const Icon(Icons.person_add_outlined, size: 18),
-                        label: Text(l10n.accountManagementCreateButton),
+                      return Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          TextButton.icon(
+                            onPressed: () => _showLogoutDialog(context, l10n),
+                            icon: const Icon(Icons.logout_outlined, size: 18),
+                            label: Text(l10n.accountManagementLogoutButton),
+                          ),
+                          const SizedBox(width: AppSpacing.sm),
+                          FilledButton.icon(
+                            onPressed: canCreate
+                                ? () => _showCreateDialog(context, l10n)
+                                : null,
+                            icon: const Icon(
+                              Icons.person_add_outlined,
+                              size: 18,
+                            ),
+                            label: Text(l10n.accountManagementCreateButton),
+                          ),
+                        ],
                       );
                     },
                   ),
@@ -99,6 +113,34 @@ class _AccountManagementView extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _showLogoutDialog(
+    BuildContext context,
+    AppLocalizations l10n,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (_) => AlertDialog(
+        title: Text(l10n.accountManagementLogoutDialogTitle),
+        content: Text(l10n.accountManagementLogoutDialogBody),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(context).pop(false),
+            child: Text(l10n.accountManagementCancelButton),
+          ),
+          FilledButton(
+            onPressed: () => Navigator.of(context).pop(true),
+            child: Text(l10n.accountManagementLogoutDialogConfirm),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && context.mounted) {
+      context.read<AccountManagementBloc>().add(
+        const AccountManagementLogoutRequested(),
+      );
+    }
   }
 
   void _showCreateDialog(BuildContext context, AppLocalizations l10n) {

@@ -106,8 +106,9 @@ class _NullRepo implements ManagedCopyRepository {
   @override
   Future<String> allocateDocumentCode(int documentId) async => 'DOC-0000001';
   @override
-  Future<int> persistManagedCopySuccess(ManagedCopyPersistenceData data) async =>
-      0;
+  Future<int> persistManagedCopySuccess(
+    ManagedCopyPersistenceData data,
+  ) async => 0;
   @override
   Future<List<ManagedFileRef>> loadManagedCopyFiles(int documentId) async =>
       const [];
@@ -122,26 +123,30 @@ class _NullFilesystem implements ManagedLibraryFilesystem {
   bool isExistingFile(String path) => false;
   @override
   Future<FilesystemOperationResult> ensureDirectoryExists(
-          String absoluteDirPath) async =>
-      const FilesystemSuccess();
+    String absoluteDirPath,
+  ) async => const FilesystemSuccess();
   @override
   Future<FilesystemOperationResult> copyFile(
-          String sourcePath, String destPath) async =>
-      const FilesystemSuccess();
+    String sourcePath,
+    String destPath,
+  ) async => const FilesystemSuccess();
   @override
   Future<FilesystemOperationResult> finalizeFile(
-          String tmpPath, String finalPath) async =>
-      const FilesystemSuccess();
+    String tmpPath,
+    String finalPath,
+  ) async => const FilesystemSuccess();
   @override
   Future<int?> fileSize(String path) async => null;
   @override
   Future<List<String>?> findRecoveryArtifacts(
-          String managedFilesDir, String documentCode) async =>
-      const [];
+    String managedFilesDir,
+    String documentCode,
+  ) async => const [];
   @override
   Future<List<String>?> findStartupRecoveryArtifacts(
-          String managedFilesDir, List<String> documentCodes) async =>
-      const [];
+    String managedFilesDir,
+    List<String> documentCodes,
+  ) async => const [];
   @override
   Future<List<String>?> findStartupBackupArtifacts(String backupRoot) async =>
       const [];
@@ -150,8 +155,9 @@ class _NullFilesystem implements ManagedLibraryFilesystem {
       const FilesystemSuccess();
   @override
   Future<FilesystemOperationResult> deleteRecoveryArtifact(
-          String path, String allowedRoot) async =>
-      const FilesystemSuccess();
+    String path,
+    String allowedRoot,
+  ) async => const FilesystemSuccess();
 }
 
 class _NullBackupService implements DatabaseBackupService {
@@ -160,8 +166,7 @@ class _NullBackupService implements DatabaseBackupService {
     required String backupRoot,
     required String operationId,
     required DateTime timestamp,
-  }) async =>
-      const BackupSuccess(backupPath: r'C:\bk\x.sqlite');
+  }) async => const BackupSuccess(backupPath: r'C:\bk\x.sqlite');
 }
 
 class _NullCanonicalizer implements PathCanonicalizer {
@@ -190,10 +195,13 @@ class _NullHasher implements FileHasher {
     String absolutePath, {
     HashCancellation? cancellation,
     void Function(HashProgress progress)? onProgress,
-  }) async =>
-      Sha256Result.failure(
-        ImportError(code: ImportErrorCode.hashFailed, path: absolutePath, message: ''),
-      );
+  }) async => Sha256Result.failure(
+    ImportError(
+      code: ImportErrorCode.hashFailed,
+      path: absolutePath,
+      message: '',
+    ),
+  );
 }
 
 // ── Session fixtures ──────────────────────────────────────────────────────────
@@ -203,12 +211,14 @@ class _NullHasher implements FileHasher {
 ({SessionManager manager, StepUpManager stepUp}) _operatorSession() {
   final stepUp = StepUpManager();
   final mgr = SessionManager(stepUpManager: stepUp);
-  mgr.login(Session(
-    accountId: 'op1',
-    username: 'op@operator',
-    role: AccountRole.operator,
-    startedAt: DateTime.utc(2026, 6, 24, 9),
-  ));
+  mgr.login(
+    Session(
+      accountId: 'op1',
+      username: 'op@operator',
+      role: AccountRole.operator,
+      startedAt: DateTime.utc(2026, 6, 24, 9),
+    ),
+  );
   return (manager: mgr, stepUp: stepUp);
 }
 
@@ -278,14 +288,20 @@ void main() {
 
       test('operator session → unauthorized', () async {
         final (:manager, :stepUp) = _operatorSession();
-        expect(await make(manager, stepUp)(), ApplyDefaultCopyRootsResult.unauthorized);
+        expect(
+          await make(manager, stepUp)(),
+          ApplyDefaultCopyRootsResult.unauthorized,
+        );
         stepUp.dispose();
         manager.dispose();
       });
 
       test('no session → unauthorized', () async {
         final (:manager, :stepUp) = _noSession();
-        expect(await make(manager, stepUp)(), ApplyDefaultCopyRootsResult.unauthorized);
+        expect(
+          await make(manager, stepUp)(),
+          ApplyDefaultCopyRootsResult.unauthorized,
+        );
         stepUp.dispose();
         manager.dispose();
       });
@@ -330,16 +346,15 @@ void main() {
       ReconcileManagedCopyIntegrity make(
         SessionManager mgr,
         StepUpManager stepUp,
-      ) =>
-          ReconcileManagedCopyIntegrity(
-            repository: _NullRepo(),
-            filesystem: _NullFilesystem(),
-            hasher: _NullHasher(),
-            operationIdGenerator: _NullOpGen(),
-            clock: _NullClock(),
-            sessionManager: mgr,
-            stepUpManager: stepUp,
-          );
+      ) => ReconcileManagedCopyIntegrity(
+        repository: _NullRepo(),
+        filesystem: _NullFilesystem(),
+        hasher: _NullHasher(),
+        operationIdGenerator: _NullOpGen(),
+        clock: _NullClock(),
+        sessionManager: mgr,
+        stepUpManager: stepUp,
+      );
 
       test('operator session → throws UnauthorizedException', () async {
         final (:manager, :stepUp) = _operatorSession();

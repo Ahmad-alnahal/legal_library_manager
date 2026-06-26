@@ -325,15 +325,38 @@ class FakeImportRepository implements ImportRepository {
     }
     return ImportFileResult(outcome: outcome);
   }
+
+  @override
+  Future<ImportFileResult> persistPairedWordSource(
+    PreparedSourceFile file, {
+    required int existingDocumentId,
+    required String operationId,
+    required DateTime now,
+    int? batchId,
+  }) async {
+    if (failPersistPaths.contains(file.canonicalPath)) {
+      throw StateError('persist failed (test)');
+    }
+    return ImportFileResult(
+      outcome: ImportFileOutcome.pairedWordSource,
+      documentId: existingDocumentId,
+      fileId: ++_fileSeq,
+    );
+  }
 }
 
 /// Builds a [PdfCandidate] for tests.
-PdfCandidate candidate(String path, {String? name, int size = 100}) {
+PdfCandidate candidate(
+  String path, {
+  String? name,
+  int size = 100,
+  String extension = '.pdf',
+}) {
   final String base = name ?? path.split(RegExp(r'[\\/]')).last;
   return PdfCandidate(
     absolutePath: path,
     fileName: base,
-    extension: '.pdf',
+    extension: extension,
     sizeBytes: size,
   );
 }

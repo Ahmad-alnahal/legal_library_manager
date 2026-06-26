@@ -12,9 +12,10 @@ import 'windows_path_policy.dart';
 /// Filesystem-backed [PdfScanner].
 ///
 /// Walks the source folder with an explicit stack (so protected roots can be
-/// skipped), lists regular files only, matches `.pdf` case-insensitively, never
-/// follows links, continues past per-entry failures, and returns candidates in
-/// deterministic (case-insensitive path) order. Read-only throughout.
+/// skipped), lists regular files only, matches supported import source
+/// extensions case-insensitively, never follows links, continues past per-entry
+/// failures, and returns candidates in deterministic (case-insensitive path)
+/// order. Read-only throughout.
 class FileSystemPdfScanner implements PdfScanner {
   const FileSystemPdfScanner({
     WindowsPathPolicy pathPolicy = const WindowsPathPolicy(),
@@ -22,7 +23,7 @@ class FileSystemPdfScanner implements PdfScanner {
 
   final WindowsPathPolicy _paths;
 
-  static const String _pdfExtension = '.pdf';
+  static const Set<String> _supportedExtensions = {'.pdf', '.doc'};
 
   @override
   Future<PdfScanResult> scan(ImportRequest request) async {
@@ -66,7 +67,7 @@ class FileSystemPdfScanner implements PdfScanner {
 
         final String name = p.basename(entity.path);
         final String ext = p.extension(name).toLowerCase();
-        if (ext != _pdfExtension) continue;
+        if (!_supportedExtensions.contains(ext)) continue;
 
         try {
           final FileStat stat = entity.statSync();
@@ -75,7 +76,7 @@ class FileSystemPdfScanner implements PdfScanner {
             PdfCandidate(
               absolutePath: _paths.canonicalize(entity.path),
               fileName: name,
-              extension: _pdfExtension,
+              extension: ext,
               sizeBytes: stat.size < 0 ? 0 : stat.size,
             ),
           );

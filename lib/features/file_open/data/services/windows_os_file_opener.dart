@@ -40,7 +40,7 @@ class WindowsOsFileOpener implements OsFileOpener {
   @override
   Future<OsOpenResult> openFile(String absolutePath) async {
     try {
-      return using<OsOpenResult>((arena) {
+      final result = using<OsOpenResult>((arena) {
         final sei = arena<SHELLEXECUTEINFO>();
         sei.ref.cbSize = sizeOf<SHELLEXECUTEINFO>();
         sei.ref.fMask = _seeMaskFlagNoUi;
@@ -56,6 +56,7 @@ class WindowsOsFileOpener implements OsFileOpener {
         }
         return const OsOpenSuccess();
       });
+      return result;
     } catch (_) {
       return const OsOpenFailed(
         code: FileOpenError.osLaunchFailed,
@@ -97,12 +98,13 @@ class WindowsOsFileOpener implements OsFileOpener {
   //    2 = ERROR_FILE_NOT_FOUND
   //    3 = ERROR_PATH_NOT_FOUND
   //    5 = ERROR_ACCESS_DENIED
+  //   31 = SE_ERR_NOASSOC
   // 1155 = ERROR_NO_ASSOCIATION (SE_ERR_NOASSOC)
   FileOpenError _classifyShellError(int errorCode) {
     return switch (errorCode) {
       2 || 3 => FileOpenError.pathNotFound,
       5 => FileOpenError.permissionDenied,
-      1155 => FileOpenError.noAssociatedApplication,
+      31 || 1155 => FileOpenError.noAssociatedApplication,
       _ => FileOpenError.osLaunchFailed,
     };
   }

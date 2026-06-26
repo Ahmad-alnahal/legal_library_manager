@@ -164,11 +164,14 @@ void main() {
       expect((bloc.state as AuditLogLoaded).hasMore, isFalse);
     });
 
-    test('AuditLogLoadMoreRequested ignored when not in Loaded state', () async {
-      bloc.add(const AuditLogLoadMoreRequested());
-      await _settle(bloc);
-      expect(bloc.state, isA<AuditLogInitial>());
-    });
+    test(
+      'AuditLogLoadMoreRequested ignored when not in Loaded state',
+      () async {
+        bloc.add(const AuditLogLoadMoreRequested());
+        await _settle(bloc);
+        expect(bloc.state, isA<AuditLogInitial>());
+      },
+    );
 
     test('empty repository emits Loaded with empty list', () async {
       bloc.add(const AuditLogLoadRequested());

@@ -311,5 +311,83 @@ void main() {
         throwsArgumentError,
       );
     });
+
+    group('document_code consistency between PDF and DOC imports', () {
+      test('imported PDF has null document_code in review queue', () async {
+        // A plain PDF import never calls allocateDocumentCode, so
+        // document_code must remain null during the review stage.
+        final id = await addDocument(status: 'imported');
+
+        final page = await repository.getQueue(const ReviewQueueQuery());
+
+        expect(page.items.single.id, id);
+        expect(
+          page.items.single.documentCode,
+          equals(null),
+          reason: 'document_code must be null before the managed-copy step',
+        );
+      });
+
+      test(
+        'Word-imported document has null document_code in review queue (no premature allocation)',
+        () async {
+          // After import+conversion, document_code must still be null:
+          // ConvertStagedWordSource no longer calls allocateDocumentCode.
+          // Simulate by inserting a document with no code.
+          final id = await db
+              .into(db.documents)
+              .insert(
+                DocumentsCompanion.insert(
+                  workflowStatusKey: const Value('imported'),
+                  createdAt: now,
+                  updatedAt: now,
+                  // documentCode is left unset (null) — no premature allocation.
+                ),
+              );
+          await db
+              .into(db.documentFiles)
+              .insert(
+                DocumentFilesCompanion.insert(
+                  documentId: id,
+                  fileRoleKey: 'source_original',
+                  fileName: 'contract.doc',
+                  absolutePath: r'C:\src\contract.doc',
+                  extension: '.doc',
+                  fileSizeBytes: 2048,
+                  fileHealthKey: const Value('healthy'),
+                  createdAt: now,
+                  updatedAt: now,
+                ),
+              );
+
+          final page = await repository.getQueue(const ReviewQueueQuery());
+
+          expect(page.items.single.id, id);
+          expect(
+            page.items.single.documentCode,
+            equals(null),
+            reason:
+                'document_code must remain null during review for Word-imported documents',
+          );
+        },
+      );
+
+      test(
+        'review queue projects sourceFileName so the UI can display it when document_code is null',
+        () async {
+          final id = await addDocument(status: 'needs_review');
+
+          final page = await repository.getQueue(const ReviewQueueQuery());
+
+          expect(page.items.single.id, id);
+          expect(
+            page.items.single.sourceFileName,
+            isNot(equals(null)),
+            reason:
+                'sourceFileName must be projected so the UI can fall back to it when document_code is null',
+          );
+        },
+      );
+    });
   });
 }

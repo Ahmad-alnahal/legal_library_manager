@@ -16,7 +16,7 @@ const String _navDuplicates = 'إدارة التكرارات';
 const String _navSettings = 'الإعدادات';
 
 const String _dashboardTitle = 'ملخص العمليات';
-const String _importTitle = 'استيراد ملفات PDF';
+const String _importTitle = 'استيراد ملفات PDF وWord';
 const String _settingsTitle = 'إعدادات النظام';
 const String _documentsTitle = 'المستندات المؤرشفة';
 const String _duplicatesTitle = 'إدارة التكرارات';

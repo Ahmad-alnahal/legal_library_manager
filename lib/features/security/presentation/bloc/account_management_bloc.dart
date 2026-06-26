@@ -28,6 +28,7 @@ class AccountManagementBloc
     on<AccountManagementReactivate>(_onReactivate);
     on<AccountManagementIssueTempPassword>(_onIssueTempPassword);
     on<AccountManagementErrorDismissed>(_onErrorDismissed);
+    on<AccountManagementLogoutRequested>(_onLogoutRequested);
   }
 
   final AccountRepository _accounts;
@@ -236,6 +237,13 @@ class AccountManagementBloc
         ),
       );
     }
+  }
+
+  void _onLogoutRequested(
+    AccountManagementLogoutRequested event,
+    Emitter<AccountManagementState> emit,
+  ) {
+    _sessionManager.logout();
   }
 
   void _onErrorDismissed(

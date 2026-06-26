@@ -53,3 +53,9 @@ final class AccountManagementErrorDismissed extends AccountManagementEvent {
   @override
   List<Object?> get props => [];
 }
+
+final class AccountManagementLogoutRequested extends AccountManagementEvent {
+  const AccountManagementLogoutRequested();
+  @override
+  List<Object?> get props => [];
+}

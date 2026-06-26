@@ -12,8 +12,7 @@ void main() {
     });
 
     test('hash encodes memory, iteration, and lane parameters', () async {
-      const h = Argon2idPasswordHasher(
-          memoryKib: 512, iterations: 2, lanes: 1);
+      const h = Argon2idPasswordHasher(memoryKib: 512, iterations: 2, lanes: 1);
       final result = await h.hash('pw');
       expect(result, contains('m=512,t=2,p=1'));
     });
@@ -34,33 +33,37 @@ void main() {
       expect(await _hasher.verify('wrong', stored), isFalse);
     });
 
-    test('verify returns false for an empty password against a real hash',
-        () async {
-      final stored = await _hasher.hash('not-empty');
-      expect(await _hasher.verify('', stored), isFalse);
-    });
+    test(
+      'verify returns false for an empty password against a real hash',
+      () async {
+        final stored = await _hasher.hash('not-empty');
+        expect(await _hasher.verify('', stored), isFalse);
+      },
+    );
 
-    test('verify returns false for the sentinel hash regardless of password',
-        () async {
-      const sentinel = r'$sentinel$v=0$not-a-real-hash$';
-      expect(await _hasher.verify('anything', sentinel), isFalse);
-      expect(await _hasher.verify('', sentinel), isFalse);
-    });
+    test(
+      'verify returns false for the sentinel hash regardless of password',
+      () async {
+        const sentinel = r'$sentinel$v=0$not-a-real-hash$';
+        expect(await _hasher.verify('anything', sentinel), isFalse);
+        expect(await _hasher.verify('', sentinel), isFalse);
+      },
+    );
 
-    test('verify returns false for a completely malformed stored hash',
-        () async {
-      expect(await _hasher.verify('pw', 'garbage'), isFalse);
-      expect(await _hasher.verify('pw', ''), isFalse);
-      expect(await _hasher.verify('pw', r'$'), isFalse);
-    });
+    test(
+      'verify returns false for a completely malformed stored hash',
+      () async {
+        expect(await _hasher.verify('pw', 'garbage'), isFalse);
+        expect(await _hasher.verify('pw', ''), isFalse);
+        expect(await _hasher.verify('pw', r'$'), isFalse);
+      },
+    );
 
     test('verify uses parameters embedded in the stored hash', () async {
       // Hash with low params; verify with a hasher configured at higher params.
       // Verification must still pass because it reads params from the string.
-      const lowHasher =
-          Argon2idPasswordHasher(memoryKib: 128, iterations: 1);
-      const highHasher =
-          Argon2idPasswordHasher(memoryKib: 256, iterations: 1);
+      const lowHasher = Argon2idPasswordHasher(memoryKib: 128, iterations: 1);
+      const highHasher = Argon2idPasswordHasher(memoryKib: 256, iterations: 1);
       final stored = await lowHasher.hash('cross-param');
       expect(await highHasher.verify('cross-param', stored), isTrue);
     });

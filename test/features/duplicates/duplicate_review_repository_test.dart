@@ -411,6 +411,121 @@ void main() {
       },
     );
 
+    test(
+      'setPreferredMember syncs document_files.is_preferred for healthy source PDF',
+      () async {
+        final doc = await addDocument();
+        final fPref = await addFile(
+          doc,
+          path: '/sync-a.pdf',
+          name: 'sync-a.pdf',
+        );
+        final fOther = await addFile(
+          doc,
+          path: '/sync-b.pdf',
+          name: 'sync-b.pdf',
+        );
+        final groupId = await addGroup(hash: 'sync-is-preferred');
+        await addMember(groupId, fPref);
+        await addMember(groupId, fOther);
+
+        await repository.setPreferredMember(groupId: groupId, fileId: fPref);
+
+        final synced = await (db.select(
+          db.documentFiles,
+        )..where((f) => f.id.equals(fPref))).getSingle();
+        expect(synced.isPreferred, isTrue);
+
+        final other = await (db.select(
+          db.documentFiles,
+        )..where((f) => f.id.equals(fOther))).getSingle();
+        expect(other.isPreferred, isFalse);
+      },
+    );
+
+    test(
+      'setPreferredMember does not sync is_preferred for a corrupted file',
+      () async {
+        final doc = await addDocument();
+        final fCorrupted = await addFile(
+          doc,
+          path: '/corrupted.pdf',
+          name: 'corrupted.pdf',
+          health: 'corrupted',
+        );
+        final fHealthy = await addFile(
+          doc,
+          path: '/healthy.pdf',
+          name: 'healthy.pdf',
+          isPreferred: true,
+        );
+        final groupId = await addGroup(hash: 'no-sync-corrupted');
+        await addMember(groupId, fCorrupted);
+        await addMember(groupId, fHealthy);
+
+        // Prefer the corrupted file at the group level.
+        await repository.setPreferredMember(
+          groupId: groupId,
+          fileId: fCorrupted,
+        );
+
+        // preferred_file_id is recorded.
+        final details = await repository.getGroupDetails(groupId);
+        expect(details.summary.preferredFileId, fCorrupted);
+
+        // But is_preferred is NOT touched — the corrupted file stays false and
+        // the previously-preferred healthy file stays true.
+        final corrupted = await (db.select(
+          db.documentFiles,
+        )..where((f) => f.id.equals(fCorrupted))).getSingle();
+        expect(corrupted.isPreferred, isFalse);
+
+        final healthy = await (db.select(
+          db.documentFiles,
+        )..where((f) => f.id.equals(fHealthy))).getSingle();
+        expect(healthy.isPreferred, isTrue);
+      },
+    );
+
+    test('setPreferredMember un-hides a previously hidden member', () async {
+      final doc = await addDocument();
+      final fWasHidden = await addFile(
+        doc,
+        path: '/was-hidden.pdf',
+        name: 'was-hidden.pdf',
+      );
+      final fVisible = await addFile(
+        doc,
+        path: '/visible-uh.pdf',
+        name: 'visible-uh.pdf',
+      );
+      final groupId = await addGroup(hash: 'unhide-on-prefer');
+
+      // Insert fWasHidden as hidden from the start.
+      await db
+          .into(db.duplicateGroupMembers)
+          .insert(
+            DuplicateGroupMembersCompanion.insert(
+              duplicateGroupId: groupId,
+              fileId: fWasHidden,
+              isHiddenFromSearch: const Value(true),
+              addedAt: now,
+            ),
+          );
+      await addMember(groupId, fVisible);
+
+      await repository.setPreferredMember(groupId: groupId, fileId: fWasHidden);
+
+      final details = await repository.getGroupDetails(groupId);
+      expect(
+        details.members
+            .firstWhere((m) => m.fileId == fWasHidden)
+            .isHiddenFromSearch,
+        isFalse,
+        reason: 'setting preferred must un-hide the chosen member',
+      );
+    });
+
     test('updateReview validates status and trims notes', () async {
       final doc = await addDocument();
       final f1 = await addFile(doc, path: '/review-a.pdf');

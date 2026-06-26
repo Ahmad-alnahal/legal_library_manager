@@ -19,7 +19,14 @@ enum ImportFileOutcome {
   /// The file is structurally corrupted (e.g. zero-byte, missing `%PDF-`
   /// header). Stored as `result_key = 'corrupted'` in import_batch_files.
   /// Never hashed or added to a duplicate group.
-  corrupted('corrupted');
+  corrupted('corrupted'),
+
+  /// A `.doc` source file that was detected as a paired counterpart to an
+  /// existing `.pdf` with the same normalized basename in the same folder.
+  /// The file is hashed, stored as a `source_original` row on the **same
+  /// document** as the PDF, and its presence is recorded as a
+  /// `paired_source_detected` audit event. No Word conversion task is created.
+  pairedWordSource('paired_word_source');
 
   const ImportFileOutcome(this.key);
 

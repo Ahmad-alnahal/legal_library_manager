@@ -34,10 +34,24 @@ SELECT
   d.document_code,
   d.title,
   (
-    SELECT df.file_name
-    FROM document_files df
-    WHERE df.document_id = d.id AND df.file_role_key = 'source_original'
-    ORDER BY df.is_preferred DESC, df.id ASC
+    SELECT src.file_name
+    FROM document_files src
+    WHERE src.document_id = d.id
+      AND src.file_role_key = 'source_original'
+      AND NOT EXISTS (
+        SELECT 1 FROM duplicate_group_members h
+        WHERE h.file_id = src.id AND h.is_hidden_from_search = 1
+      )
+    ORDER BY src.is_preferred DESC,
+      CASE WHEN EXISTS (
+        SELECT 1
+        FROM duplicate_groups grp
+        JOIN duplicate_group_members mem
+          ON mem.duplicate_group_id = grp.id
+        WHERE mem.file_id = src.id
+          AND grp.preferred_file_id = src.id
+      ) THEN 0 ELSE 1 END ASC,
+      src.id ASC
     LIMIT 1
   ) AS source_file_name,
   d.document_type_id,
@@ -89,6 +103,7 @@ LIMIT ? OFFSET ?
             _db.mainCategories,
             _db.subCategories,
             _db.documentFiles,
+            _db.duplicateGroups,
             _db.duplicateGroupMembers,
           },
         )
@@ -125,10 +140,23 @@ WHERE df.document_id = ?
     WHERE dgm.file_id = df.id
       AND dgm.is_hidden_from_search = 1
   )
-ORDER BY df.is_preferred DESC, df.file_name ASC, df.id ASC
+ORDER BY df.is_preferred DESC,
+  CASE WHEN EXISTS (
+    SELECT 1
+    FROM duplicate_groups dg
+    JOIN duplicate_group_members dgm2
+      ON dgm2.duplicate_group_id = dg.id
+    WHERE dgm2.file_id = df.id
+      AND dg.preferred_file_id = df.id
+  ) THEN 0 ELSE 1 END ASC,
+  df.file_name ASC, df.id ASC
 ''',
           variables: [Variable<int>(documentId)],
-          readsFrom: {_db.documentFiles, _db.duplicateGroupMembers},
+          readsFrom: {
+            _db.documentFiles,
+            _db.duplicateGroups,
+            _db.duplicateGroupMembers,
+          },
         )
         .get();
     return rows

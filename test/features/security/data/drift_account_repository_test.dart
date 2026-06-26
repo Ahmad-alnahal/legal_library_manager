@@ -12,18 +12,17 @@ Account _makeAccount({
   AccountRole role = AccountRole.admin,
   AccountStatus status = AccountStatus.active,
   bool mustChange = true,
-}) =>
-    Account(
-      internalId: id,
-      username: username,
-      displayName: 'Display',
-      role: role,
-      status: status,
-      mustChangePassword: mustChange,
-      passwordHash: r'$sentinel$v=0$hash$',
-      createdAt: DateTime.utc(2026, 6, 23, 10),
-      updatedAt: DateTime.utc(2026, 6, 23, 10),
-    );
+}) => Account(
+  internalId: id,
+  username: username,
+  displayName: 'Display',
+  role: role,
+  status: status,
+  mustChangePassword: mustChange,
+  passwordHash: r'$sentinel$v=0$hash$',
+  createdAt: DateTime.utc(2026, 6, 23, 10),
+  updatedAt: DateTime.utc(2026, 6, 23, 10),
+);
 
 void main() {
   late AppDatabase db;
@@ -182,39 +181,50 @@ void main() {
 
     // ── role / status round-trip ───────────────────────────────────────────
 
-    test('all AccountRole values survive a round-trip through the DB',
-        () async {
-      for (final role in AccountRole.values) {
-        final id = 'acc_${role.name}';
-        await repo.insertAccount(_makeAccount(id: id, role: role,
-            username: '${role.name}@test'));
-        final found = await repo.findById(id);
-        expect(found?.role, role, reason: 'role ${role.name} round-trip');
-      }
-    });
+    test(
+      'all AccountRole values survive a round-trip through the DB',
+      () async {
+        for (final role in AccountRole.values) {
+          final id = 'acc_${role.name}';
+          await repo.insertAccount(
+            _makeAccount(id: id, role: role, username: '${role.name}@test'),
+          );
+          final found = await repo.findById(id);
+          expect(found?.role, role, reason: 'role ${role.name} round-trip');
+        }
+      },
+    );
 
-    test('all AccountStatus values survive a round-trip through the DB',
-        () async {
-      final accounts = [
-        _makeAccount(
+    test(
+      'all AccountStatus values survive a round-trip through the DB',
+      () async {
+        final accounts = [
+          _makeAccount(
             id: 'a1',
             username: 'u1@t',
-            status: AccountStatus.active),
-        _makeAccount(
+            status: AccountStatus.active,
+          ),
+          _makeAccount(
             id: 'a2',
             username: 'u2@t',
-            status: AccountStatus.suspended),
-        _makeAccount(
+            status: AccountStatus.suspended,
+          ),
+          _makeAccount(
             id: 'a3',
             username: 'u3@t',
-            status: AccountStatus.disabled),
-      ];
-      for (final acc in accounts) {
-        await repo.insertAccount(acc);
-        final found = await repo.findById(acc.internalId);
-        expect(found?.status, acc.status,
-            reason: 'status ${acc.status.name} round-trip');
-      }
-    });
+            status: AccountStatus.disabled,
+          ),
+        ];
+        for (final acc in accounts) {
+          await repo.insertAccount(acc);
+          final found = await repo.findById(acc.internalId);
+          expect(
+            found?.status,
+            acc.status,
+            reason: 'status ${acc.status.name} round-trip',
+          );
+        }
+      },
+    );
   });
 }

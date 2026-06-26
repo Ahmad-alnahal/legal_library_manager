@@ -137,6 +137,40 @@ void main() {
     expect(report.failedCount, 1);
   });
 
+  test(
+    'Word .doc source import persists a source row without PDF inspection or conversion',
+    () async {
+      final scanner = FakePdfScanner(
+        PdfScanResult(
+          candidates: [
+            candidate(r'C:\src\brief.doc', extension: '.doc', size: 321),
+          ],
+        ),
+      );
+      final inspector = FakePdfHealthInspector();
+
+      final report = await build(
+        scanner: scanner,
+        hasher: FakeFileHasher(hashes: {r'C:\src\brief.doc': hex('e')}),
+        inspector: inspector,
+      ).run(request, cancellation: MutableHashCancellation());
+
+      expect(report.status, ImportBatchStatus.completed);
+      expect(report.files.single.status, ImportFileStatus.importedNew);
+      expect(inspector.calls, 0, reason: 'Word sources are not PDF-inspected');
+
+      final file = await (db.select(
+        db.documentFiles,
+      )..where((f) => f.absolutePath.equals(r'C:\src\brief.doc'))).getSingle();
+      expect(file.extension, '.doc');
+      expect(file.fileRoleKey, 'source_original');
+      expect(file.mimeType, 'application/msword');
+      expect(file.isReadOnlySource, isTrue);
+      // No conversion is launched at import time: conversion happens inside
+      // managed-copy when the user clicks "نسخ إلى المكتبة المدارة".
+    },
+  );
+
   test('cancellation produces a cancelled batch and partial report', () async {
     final cancel = MutableHashCancellation();
     final scanner = FakePdfScanner(
@@ -557,7 +591,7 @@ void main() {
           repository: repository,
         ).run(request, cancellation: MutableHashCancellation());
 
-        // completeBatch threw, so the run failed safely — but the file processed
+        // completeBatch threw, so the run failed safely â€” but the file processed
         // before finalization is preserved (not an empty report).
         expect(report.status, ImportBatchStatus.failed);
         expect(report.files.single.status, ImportFileStatus.importedNew);
@@ -585,7 +619,8 @@ void main() {
 
         expect(report.status, ImportBatchStatus.completed);
         expect(report.files.map((f) => f.status).toList(), [
-          ImportFileStatus.unreadable, // bad.pdf: _serviceException → persisted
+          ImportFileStatus
+              .unreadable, // bad.pdf: _serviceException â†’ persisted
           ImportFileStatus.importedNew,
         ]);
         expect(report.failedCount, 1);
@@ -611,7 +646,8 @@ void main() {
 
         expect(report.status, ImportBatchStatus.completed);
         expect(report.files.map((f) => f.status).toList(), [
-          ImportFileStatus.hashFailed, // bad.pdf: _serviceException → persisted
+          ImportFileStatus
+              .hashFailed, // bad.pdf: _serviceException â†’ persisted
           ImportFileStatus.importedNew,
         ]);
         expect(report.failedCount, 1);
@@ -899,6 +935,286 @@ void main() {
         expect(report.files.single.status, ImportFileStatus.alreadyImported);
         expect(report.files.single.error, isNull);
         expect(report.failedCount, 0);
+      },
+    );
+  });
+
+  // ---------------------------------------------------------------------------
+  // Paired-source detection
+  // ---------------------------------------------------------------------------
+
+  group('paired-source detection', () {
+    test(
+      'same-folder same-basename .doc+.pdf: PDF imported normally, .doc paired',
+      () async {
+        final report = await build(
+          scanner: FakePdfScanner(
+            PdfScanResult(
+              candidates: [
+                candidate(r'C:\src\brief.doc', extension: '.doc'),
+                candidate(r'C:\src\brief.pdf'),
+              ],
+            ),
+          ),
+          hasher: FakeFileHasher(
+            hashes: {
+              r'C:\src\brief.doc': hex('d'),
+              r'C:\src\brief.pdf': hex('f'),
+            },
+          ),
+        ).run(request, cancellation: MutableHashCancellation());
+
+        expect(report.status, ImportBatchStatus.completed);
+
+        final pdfReport = report.files.firstWhere(
+          (f) => f.path.endsWith('.pdf'),
+        );
+        final docReport = report.files.firstWhere(
+          (f) => f.path.endsWith('.doc'),
+        );
+
+        expect(pdfReport.status, ImportFileStatus.importedNew);
+        expect(docReport.status, ImportFileStatus.pairedWordSource);
+      },
+    );
+
+    test('paired .doc and .pdf share the same document ID', () async {
+      final report = await build(
+        scanner: FakePdfScanner(
+          PdfScanResult(
+            candidates: [
+              candidate(r'C:\src\brief.doc', extension: '.doc'),
+              candidate(r'C:\src\brief.pdf'),
+            ],
+          ),
+        ),
+        hasher: FakeFileHasher(
+          hashes: {
+            r'C:\src\brief.doc': hex('d'),
+            r'C:\src\brief.pdf': hex('f'),
+          },
+        ),
+      ).run(request, cancellation: MutableHashCancellation());
+
+      final pdfReport = report.files.firstWhere((f) => f.path.endsWith('.pdf'));
+      final docReport = report.files.firstWhere((f) => f.path.endsWith('.doc'));
+
+      expect(docReport.documentId, isNotNull);
+      expect(docReport.documentId, pdfReport.documentId);
+
+      // DB: only one document row created for the pair.
+      final docs = await db.select(db.documents).get();
+      expect(docs.length, 1);
+    });
+
+    test('pairedWordSourceCount equals 1, counts in importedCount', () async {
+      final report = await build(
+        scanner: FakePdfScanner(
+          PdfScanResult(
+            candidates: [
+              candidate(r'C:\src\brief.doc', extension: '.doc'),
+              candidate(r'C:\src\brief.pdf'),
+            ],
+          ),
+        ),
+        hasher: FakeFileHasher(
+          hashes: {
+            r'C:\src\brief.doc': hex('d'),
+            r'C:\src\brief.pdf': hex('f'),
+          },
+        ),
+      ).run(request, cancellation: MutableHashCancellation());
+
+      expect(report.pairedWordSourceCount, 1);
+      expect(report.importedNewCount, 1);
+      expect(report.importedCount, 2); // PDF (new) + .doc (paired)
+    });
+
+    test(
+      'paired_source_detected audit event is recorded for the .doc',
+      () async {
+        await build(
+          scanner: FakePdfScanner(
+            PdfScanResult(
+              candidates: [
+                candidate(r'C:\src\brief.doc', extension: '.doc'),
+                candidate(r'C:\src\brief.pdf'),
+              ],
+            ),
+          ),
+          hasher: FakeFileHasher(
+            hashes: {
+              r'C:\src\brief.doc': hex('d'),
+              r'C:\src\brief.pdf': hex('f'),
+            },
+          ),
+        ).run(request, cancellation: MutableHashCancellation());
+
+        final events = await db.select(db.fileEvents).get();
+        expect(
+          events.any((e) => e.eventTypeKey == 'paired_source_detected'),
+          isTrue,
+        );
+      },
+    );
+
+    test('different basenames in the same folder are not paired', () async {
+      final report = await build(
+        scanner: FakePdfScanner(
+          PdfScanResult(
+            candidates: [
+              candidate(r'C:\src\brief.doc', extension: '.doc'),
+              candidate(r'C:\src\contract.pdf'),
+            ],
+          ),
+        ),
+        hasher: FakeFileHasher(
+          hashes: {
+            r'C:\src\brief.doc': hex('d'),
+            r'C:\src\contract.pdf': hex('f'),
+          },
+        ),
+      ).run(request, cancellation: MutableHashCancellation());
+
+      // Unpaired .doc is imported as source_original; conversion happens later in managed-copy.
+      final docReport = report.files.firstWhere((f) => f.path.endsWith('.doc'));
+      expect(docReport.status, ImportFileStatus.importedNew);
+
+      // Both files have distinct documents.
+      final docs = await db.select(db.documents).get();
+      expect(docs.length, 2);
+    });
+
+    test(
+      '.doc in a different subfolder is not paired with .pdf in parent',
+      () async {
+        final report = await build(
+          scanner: FakePdfScanner(
+            PdfScanResult(
+              candidates: [
+                candidate(r'C:\src\sub\brief.doc', extension: '.doc'),
+                candidate(r'C:\src\brief.pdf'),
+              ],
+            ),
+          ),
+          hasher: FakeFileHasher(
+            hashes: {
+              r'C:\src\sub\brief.doc': hex('d'),
+              r'C:\src\brief.pdf': hex('f'),
+            },
+          ),
+        ).run(request, cancellation: MutableHashCancellation());
+
+        final docReport = report.files.firstWhere(
+          (f) => f.path.endsWith('.doc'),
+        );
+        expect(docReport.status, ImportFileStatus.importedNew);
+      },
+    );
+
+    test('.doc without paired PDF is imported as source_original', () async {
+      final report = await build(
+        scanner: FakePdfScanner(
+          PdfScanResult(
+            candidates: [candidate(r'C:\src\brief.doc', extension: '.doc')],
+          ),
+        ),
+        hasher: FakeFileHasher(hashes: {r'C:\src\brief.doc': hex('d')}),
+      ).run(request, cancellation: MutableHashCancellation());
+
+      expect(report.files.single.status, ImportFileStatus.importedNew);
+      // Conversion is deferred to managed-copy, not triggered at import time.
+    });
+
+    test('pairing is case-insensitive on basename and extension', () async {
+      final report = await build(
+        scanner: FakePdfScanner(
+          PdfScanResult(
+            candidates: [
+              // Mixed-case name and extension
+              candidate(
+                r'C:\src\Brief.DOC',
+                name: 'Brief.DOC',
+                extension: '.DOC',
+              ),
+              candidate(r'C:\src\brief.pdf'),
+            ],
+          ),
+        ),
+        hasher: FakeFileHasher(
+          hashes: {
+            r'C:\src\Brief.DOC': hex('d'),
+            r'C:\src\brief.pdf': hex('f'),
+          },
+        ),
+      ).run(request, cancellation: MutableHashCancellation());
+
+      final docReport = report.files.firstWhere((f) => f.path.endsWith('.DOC'));
+      expect(docReport.status, ImportFileStatus.pairedWordSource);
+    });
+
+    test(
+      'if PDF import fails, paired .doc falls back to standalone import',
+      () async {
+        // PDF health inspector marks the PDF as unreadable (import fails).
+        final report = await build(
+          scanner: FakePdfScanner(
+            PdfScanResult(
+              candidates: [
+                candidate(r'C:\src\brief.doc', extension: '.doc'),
+                candidate(r'C:\src\brief.pdf'),
+              ],
+            ),
+          ),
+          hasher: FakeFileHasher(hashes: {r'C:\src\brief.doc': hex('d')}),
+          inspector: FakePdfHealthInspector(
+            byPath: {
+              r'C:\src\brief.pdf': const PdfHealthResult(
+                status: PdfHealthStatus.unreadable,
+                sizeBytes: 0,
+              ),
+            },
+          ),
+        ).run(request, cancellation: MutableHashCancellation());
+
+        final pdfReport = report.files.firstWhere(
+          (f) => f.path.endsWith('.pdf'),
+        );
+        final docReport = report.files.firstWhere(
+          (f) => f.path.endsWith('.doc'),
+        );
+
+        expect(pdfReport.status, ImportFileStatus.unreadable);
+        // .doc falls back to standalone source_original import; conversion deferred to managed-copy.
+        expect(docReport.status, ImportFileStatus.importedNew);
+      },
+    );
+
+    test(
+      '.doc-before-.pdf scan order still works: ordering ensures PDF is processed first',
+      () async {
+        // Scanner returns .doc before .pdf — coordinator must reorder.
+        final report = await build(
+          scanner: FakePdfScanner(
+            PdfScanResult(
+              candidates: [
+                candidate(r'C:\src\brief.doc', extension: '.doc'),
+                candidate(r'C:\src\brief.pdf'),
+              ],
+            ),
+          ),
+          hasher: FakeFileHasher(
+            hashes: {
+              r'C:\src\brief.doc': hex('d'),
+              r'C:\src\brief.pdf': hex('f'),
+            },
+          ),
+        ).run(request, cancellation: MutableHashCancellation());
+
+        final docReport = report.files.firstWhere(
+          (f) => f.path.endsWith('.doc'),
+        );
+        expect(docReport.status, ImportFileStatus.pairedWordSource);
       },
     );
   });

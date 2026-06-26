@@ -47,7 +47,7 @@
   "progressCopiedToLibrary": "النسخ إلى المكتبة المدارة",
   "progressReadyForExport": "جاهزية التصدير المحلي",
 
-  "importTitle": "استيراد ملفات PDF",
+  "importTitle": "استيراد ملفات PDF وWord",
   "importSubtitle": "افحص واستورد مراجع المستندات القانونية من المجلدات المحلية.",
   "sourceSafetyBannerTitle": "أمان الملفات الأصلية",
   "sourceSafetyBannerBody": "يقرأ النظام الملفات الأصلية فقط. لا ينقلها ولا يعيد تسميتها ولا يحذفها. يتم إنشاء نسخة داخل المكتبة المدارة بعد اعتماد التصنيف.",
@@ -150,9 +150,10 @@
   "importSummaryNew": "مستندات جديدة",
   "importSummaryDuplicates": "نسخ مكررة",
   "importSummaryAlreadyImported": "مستوردة مسبقًا",
+  "importSummaryPairedWordSource": "مصادر Word مقترنة",
   "importSummaryFailed": "ملفات متعذّرة",
   "importResultsTitle": "نتائج الملفات",
-  "importResultsEmpty": "لم يتم اكتشاف ملفات PDF في هذا المجلد.",
+  "importResultsEmpty": "لم يتم اكتشاف ملفات PDF أو Word في هذا المجلد.",
 
   "importCompletedTitle": "اكتمل الاستيراد",
   "importCancelledTitle": "تم إلغاء الاستيراد",
@@ -169,6 +170,7 @@
   "importStatusScanFailed": "تعذّر الفحص",
   "importStatusPersistenceFailed": "تعذّر حفظ السجل",
   "importStatusCorrupted": "ملف تالف",
+  "importStatusPairedWordSource": "مصدر Word مقترن بـ PDF",
 
   "importValidationDoesNotExist": "المجلد غير موجود.",
   "importValidationNotADirectory": "المسار المحدد ليس مجلدًا.",
@@ -408,6 +410,11 @@
   "accountManagementCancelButton": "إلغاء",
   "accountManagementCreateConfirmButton": "إنشاء",
   "accountManagementConfirmButton": "تأكيد",
+  "accountManagementLogoutButton": "تسجيل الخروج",
+  "accountManagementLogoutDialogTitle": "تسجيل الخروج",
+  "accountManagementLogoutDialogBody": "هل تريد تسجيل الخروج من الحساب الحالي؟",
+  "accountManagementLogoutDialogConfirm": "تسجيل الخروج",
+
   "accountManagementErrorDuplicateUsername": "اسم المستخدم هذا مستخدم بالفعل.",
   "accountManagementErrorUnauthorized": "غير مصرح بهذه العملية. يُرجى إعادة تسجيل الدخول.",
   "accountStatusActive": "نشط",
@@ -451,5 +458,70 @@
   "stepUpCancelButton": "إلغاء",
   "stepUpErrorWrongPassword": "كلمة المرور غير صحيحة. حاول مرة أخرى.",
   "stepUpErrorUnexpected": "حدث خطأ غير متوقع. حاول مرة أخرى.",
-  "settingsSnackStepUpRequired": "يجب التحقق من هوية المدير أولاً قبل تنفيذ هذه العملية."
+  "settingsSnackStepUpRequired": "يجب التحقق من هوية المدير أولاً قبل تنفيذ هذه العملية.",
+
+  "navWordConversionReview": "مراجعة التحويل",
+  "navTooltipWordConversionReview": "مراجعة جودة ملفات PDF المحوّلة من Word",
+
+  "conversionReviewTitle": "مراجعة جودة التحويل",
+  "conversionReviewSubtitle": "مراجعة واعتماد أو رفض ملفات PDF المحوّلة من مستندات Word.",
+  "conversionReviewEmptyTitle": "لا توجد تحويلات بانتظار المراجعة",
+  "conversionReviewEmptyBody": "ستظهر هنا ملفات PDF المحوّلة التي تحتاج إلى مراجعة الجودة.",
+  "conversionReviewLoadError": "تعذّر تحميل قائمة التحويلات.",
+  "conversionReviewRetry": "إعادة المحاولة",
+  "conversionReviewRefreshTooltip": "تحديث القائمة",
+
+  "conversionReviewSourceLabel": "المصدر",
+  "conversionReviewOutputLabel": "PDF المحوّل",
+  "conversionReviewCompletedLabel": "تاريخ التحويل",
+
+  "conversionReviewOpenPdf": "فتح PDF",
+  "conversionReviewApprove": "اعتماد",
+  "conversionReviewReject": "رفض",
+  "conversionReviewCancel": "إلغاء",
+
+  "conversionReviewApproveDialogTitle": "اعتماد جودة PDF المحوّل",
+  "conversionReviewApproveDialogContent": "سيتم اعتماد هذا الملف المحوّل وسيصبح مؤهلاً للتصنيف والنسخ إلى المكتبة المدارة.\n\nالملفات الأصلية تبقى سليمة دون أي تعديل أو حذف.",
+  "conversionReviewApproveConfirm": "اعتماد",
+
+  "conversionReviewRejectDialogTitle": "رفض جودة PDF المحوّل",
+  "conversionReviewRejectDialogContent": "سيتم رفض هذا الملف المحوّل ولن يكون مؤهلاً للتصنيف. الملفات الأصلية والمحوّلة تبقى محفوظة دون حذف.",
+  "conversionReviewRejectNoteLabel": "ملاحظة الرفض (اختياري)",
+  "conversionReviewRejectConfirm": "رفض",
+
+  "conversionReviewSnackApproved": "تم اعتماد جودة PDF المحوّل بنجاح.",
+  "conversionReviewSnackRejected": "تم رفض جودة PDF المحوّل. الملف محفوظ دون حذف.",
+  "conversionReviewSnackAlreadyDecided": "تم البت في هذا التحويل مسبقاً.",
+  "conversionReviewSnackApproveFailed": "تعذّر اعتماد التحويل. حاول مرة أخرى.",
+  "conversionReviewSnackRejectFailed": "تعذّر رفض التحويل. حاول مرة أخرى.",
+  "conversionReviewSnackGenericFailed": "تعذّر تنفيذ العملية على التحويل.",
+
+  "conversionWorkTitle": "تحويل مستندات Word",
+  "conversionWorkSubtitle": "تظهر هنا ملفات Word التي تنتظر التحويل أو تحتاج إلى إعادة محاولة.",
+  "conversionWorkEmpty": "لا توجد ملفات Word بانتظار التحويل.",
+  "conversionWorkLoadError": "تعذّر تحميل قائمة ملفات Word.",
+  "conversionWorkRun": "تحويل",
+  "conversionWorkRetry": "إعادة محاولة",
+  "conversionWorkStatusPending": "جاهز للتحويل",
+  "conversionWorkStatusConverting": "جارٍ التحويل",
+  "conversionWorkStatusFailed": "فشل التحويل",
+  "conversionWorkStatusUnknown": "حالة غير معروفة",
+  "conversionWorkSnackRunSucceeded": "تم تحويل الملف. راجع جودة PDF المحوّل.",
+  "conversionWorkSnackRunBlocked": "تعذّر بدء التحويل حالياً. تحقق من توفر المحوّل ثم حاول مرة أخرى.",
+  "conversionWorkSnackRunFailed": "فشل التحويل. يمكنك إعادة المحاولة بعد معالجة السبب.",
+
+  "conversionWorkStagePreparing": "جارٍ التحضير",
+  "conversionWorkStageOpeningDocument": "جارٍ فتح مستند Word",
+  "conversionWorkStageExportingPdf": "جارٍ تصدير PDF",
+  "conversionWorkStageValidatingOutput": "جارٍ التحقق من الملف الناتج",
+  "conversionWorkStageSavingResult": "جارٍ حفظ النتيجة",
+  "conversionWorkStageCleaningUp": "جارٍ تنظيف الملفات المؤقتة",
+
+  "conversionWorkQueueProgress": "{completed} من {total} ملفات اكتملت",
+  "@conversionWorkQueueProgress": {
+    "placeholders": {
+      "completed": { "type": "int" },
+      "total": { "type": "int" }
+    }
+  }
 }

@@ -174,7 +174,8 @@ ReconcileManagedCopyIntegrity _build({
 }) {
   final effectiveStepUp = stepUpManager ?? StepUpManager();
   if (grantStepUp) effectiveStepUp.grant();
-  final mgr = sessionManager ??
+  final mgr =
+      sessionManager ??
       (SessionManager(stepUpManager: effectiveStepUp)..login(_adminSession));
   return ReconcileManagedCopyIntegrity(
     repository: repo,
@@ -208,37 +209,43 @@ void main() {
       noSessionManager.dispose();
     });
 
-    test('throws UnauthorizedException when an operator session is active',
-        () async {
-      final opStepUp = StepUpManager();
-      final operatorManager = SessionManager(stepUpManager: opStepUp);
-      operatorManager.login(Session(
-        accountId: 'op1',
-        username: 'op@operator',
-        role: AccountRole.operator,
-        startedAt: DateTime.utc(2026, 6, 24, 9),
-      ));
-      final uc = _build(
-        repo: _StubRepo([]),
-        fs: _StubFs({}),
-        sessionManager: operatorManager,
-        stepUpManager: opStepUp,
-        grantStepUp: false,
-      );
-      await expectLater(uc.call(), throwsA(isA<UnauthorizedException>()));
-      opStepUp.dispose();
-      operatorManager.dispose();
-    });
+    test(
+      'throws UnauthorizedException when an operator session is active',
+      () async {
+        final opStepUp = StepUpManager();
+        final operatorManager = SessionManager(stepUpManager: opStepUp);
+        operatorManager.login(
+          Session(
+            accountId: 'op1',
+            username: 'op@operator',
+            role: AccountRole.operator,
+            startedAt: DateTime.utc(2026, 6, 24, 9),
+          ),
+        );
+        final uc = _build(
+          repo: _StubRepo([]),
+          fs: _StubFs({}),
+          sessionManager: operatorManager,
+          stepUpManager: opStepUp,
+          grantStepUp: false,
+        );
+        await expectLater(uc.call(), throwsA(isA<UnauthorizedException>()));
+        opStepUp.dispose();
+        operatorManager.dispose();
+      },
+    );
 
-    test('throws StepUpRequiredException when admin has no step-up approval',
-        () async {
-      final uc = _build(
-        repo: _StubRepo([]),
-        fs: _StubFs({}),
-        grantStepUp: false,
-      );
-      await expectLater(uc.call(), throwsA(isA<StepUpRequiredException>()));
-    });
+    test(
+      'throws StepUpRequiredException when admin has no step-up approval',
+      () async {
+        final uc = _build(
+          repo: _StubRepo([]),
+          fs: _StubFs({}),
+          grantStepUp: false,
+        );
+        await expectLater(uc.call(), throwsA(isA<StepUpRequiredException>()));
+      },
+    );
 
     // ── Empty / no-op ──────────────────────────────────────────────────────
 

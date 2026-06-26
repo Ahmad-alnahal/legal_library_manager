@@ -106,12 +106,14 @@ void main() {
   test('returns unauthorized when an operator session is active', () async {
     final opStepUp = StepUpManager();
     final operatorManager = SessionManager(stepUpManager: opStepUp);
-    operatorManager.login(Session(
-      accountId: 'op1',
-      username: 'op@operator',
-      role: AccountRole.operator,
-      startedAt: DateTime.utc(2026, 6, 24, 9),
-    ));
+    operatorManager.login(
+      Session(
+        accountId: 'op1',
+        username: 'op@operator',
+        role: AccountRole.operator,
+        startedAt: DateTime.utc(2026, 6, 24, 9),
+      ),
+    );
     final unauthConfigure = ConfigureCopyRoots(
       repo,
       filesystem,

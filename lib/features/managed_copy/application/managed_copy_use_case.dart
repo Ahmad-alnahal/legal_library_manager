@@ -1,4 +1,5 @@
 // lib/features/managed_copy/application/managed_copy_use_case.dart
+// ignore_for_file: prefer_initializing_formals
 
 import '../../../core/time/clock.dart';
 import '../../import/domain/services/file_hasher.dart';
@@ -13,6 +14,7 @@ import '../domain/services/database_backup_service.dart';
 import '../domain/services/managed_library_filesystem.dart';
 import '../domain/services/operation_id_generator.dart';
 import '../domain/services/path_canonicalizer.dart';
+import '../domain/services/word_document_converter.dart';
 
 /// Orchestrates the full managed-copy workflow for a single document.
 ///
@@ -24,14 +26,22 @@ import '../domain/services/path_canonicalizer.dart';
 /// this file or any file in domain/application.
 class ManagedCopyUseCase {
   const ManagedCopyUseCase({
-    required this._repository,
-    required this._filesystem,
-    required this._backupService,
-    required this._hasher,
-    required this._clock,
-    required this._pathCanonicalizer,
-    required this._operationIdGenerator,
-  });
+    required ManagedCopyRepository repository,
+    required ManagedLibraryFilesystem filesystem,
+    required DatabaseBackupService backupService,
+    required FileHasher hasher,
+    required Clock clock,
+    required PathCanonicalizer pathCanonicalizer,
+    required OperationIdGenerator operationIdGenerator,
+    WordDocumentConverter? wordConverter,
+  }) : _repository = repository,
+       _filesystem = filesystem,
+       _backupService = backupService,
+       _hasher = hasher,
+       _clock = clock,
+       _pathCanonicalizer = pathCanonicalizer,
+       _operationIdGenerator = operationIdGenerator,
+       _wordConverter = wordConverter;
 
   final ManagedCopyRepository _repository;
   final ManagedLibraryFilesystem _filesystem;
@@ -40,6 +50,10 @@ class ManagedCopyUseCase {
   final Clock _clock;
   final PathCanonicalizer _pathCanonicalizer;
   final OperationIdGenerator _operationIdGenerator;
+
+  /// Optional Word converter. Required when a `.doc` source is selected.
+  /// When null, `.doc` sources are rejected with [ManagedCopyError.unsupportedSource].
+  final WordDocumentConverter? _wordConverter;
 
   Future<ManagedCopyResult> execute(int documentId) async {
     final DateTime now = _clock.nowUtc();
@@ -272,15 +286,24 @@ class ManagedCopyUseCase {
       );
     }
 
-    // Both the stored extension and the extension derived from the path must
-    // agree as .pdf (case-insensitive).
+    // Determine whether this is a .doc source requiring in-flow Word conversion.
     final String actualSourceExt = _pathExtension(
       source.absolutePath,
     ).toLowerCase();
-    if (actualSourceExt != '.pdf') {
+    final bool isDocSource = actualSourceExt == '.doc';
+
+    if (actualSourceExt != '.pdf' && actualSourceExt != '.doc') {
       return const ManagedCopyBlocked(
         error: ManagedCopyError.unsupportedSource,
-        safeMessage: 'Source file path extension is not .pdf.',
+        safeMessage: 'Source file path extension must be .pdf or .doc.',
+      );
+    }
+
+    if (isDocSource && _wordConverter == null) {
+      return const ManagedCopyBlocked(
+        error: ManagedCopyError.unsupportedSource,
+        safeMessage:
+            'Word document source requires a configured Word converter.',
       );
     }
 
@@ -368,7 +391,18 @@ class ManagedCopyUseCase {
       );
     }
 
-    // ── 6. Mandatory pre-copy SQLite backup ───────────────────────────────────
+    // ── 6. Word conversion (for .doc sources) and trusted hash resolution ───────
+    //
+    // For .doc sources: convert to a temporary PDF before any bytes are written
+    // to the managed library. The temp PDF is the effective copy source; its
+    // hash becomes the trusted reference for integrity verification.
+    //
+    // For .pdf sources: compute (or reuse the stored) SHA-256 of the source
+    // file as before.
+    //
+    // In both cases the temp PDF (if any) is cleaned up in a try/finally block
+    // that wraps the remaining copy flow, guaranteeing no WordTemp file survives
+    // regardless of which code path exits.
 
     final String finalPath = _pathJoin(managedFilesDir, '$docCode.pdf');
     final String tmpPath = _pathJoin(
@@ -376,30 +410,137 @@ class ManagedCopyUseCase {
       '$docCode.pdf.$operationId.copying',
     );
 
-    // Compute the trusted source hash before artifact detection. This lets us
-    // safely recognize a restored final managed file and repair the missing DB
-    // row before the conservative artifact guard stops the copy flow.
+    // wordTempDir / wordTempPdfPath are set only when isDocSource == true.
+    String wordTempDir = '';
+    String wordTempPdfPath = '';
+
+    try {
+      return await _executeAfterTempSetup(
+        documentId: documentId,
+        source: source,
+        isDocSource: isDocSource,
+        operationId: operationId,
+        now: now,
+        managedRoot: managedRoot,
+        managedFilesDir: managedFilesDir,
+        postCreateCanonFiles: postCreateCanonFiles,
+        backupRoot: backupRoot,
+        finalPath: finalPath,
+        tmpPath: tmpPath,
+        docCode: docCode,
+        wordTempDirOut: (dir) => wordTempDir = dir,
+        wordTempPdfPathOut: (path) => wordTempPdfPath = path,
+      );
+    } finally {
+      if (wordTempPdfPath.isNotEmpty && wordTempDir.isNotEmpty) {
+        await _wordConverter?.cleanupSafely(wordTempPdfPath, wordTempDir);
+      }
+    }
+  }
+
+  // Separated so the try/finally above can cleanly capture wordTempDir and
+  // wordTempPdfPath through the out-parameter callbacks.
+  Future<ManagedCopyResult> _executeAfterTempSetup({
+    required int documentId,
+    required SourceFileCandidate source,
+    required bool isDocSource,
+    required String operationId,
+    required DateTime now,
+    required String managedRoot,
+    required String managedFilesDir,
+    required String postCreateCanonFiles,
+    required String backupRoot,
+    required String finalPath,
+    required String tmpPath,
+    required String docCode,
+    required void Function(String) wordTempDirOut,
+    required void Function(String) wordTempPdfPathOut,
+  }) async {
+    // The effective copy source for byte operations.
+    // For .pdf sources this is source.absolutePath.
+    // For .doc sources this is the temp PDF produced by Word conversion.
+    final String copySrcPath;
     final String trustedSourceHash;
-    if (source.sha256Hash != null) {
-      trustedSourceHash = source.sha256Hash!;
-    } else {
-      final sourceHashResult = await _hasher.hashFile(source.absolutePath);
-      if (!sourceHashResult.isSuccess) {
+
+    if (isDocSource) {
+      // ── 6a. Word conversion ─────────────────────────────────────────────────
+      final wordTempDir = _pathJoin(managedRoot, 'WordTemp');
+      wordTempDirOut(wordTempDir);
+
+      final wordTempDirResult = await _filesystem.ensureDirectoryExists(
+        wordTempDir,
+      );
+      if (wordTempDirResult is FilesystemFailure) {
         await _tryAppendEvent(
           documentId: documentId,
           fileId: source.fileId,
           operationId: operationId,
           eventTypeKey: 'copy_failed',
           resultKey: 'failed',
-          errorCode: ManagedCopyError.hashFailed.name,
-          messageSafe: 'Source file hash computation failed.',
+          errorCode: ManagedCopyError.wordConversionFailed.name,
+          messageSafe: 'Word conversion temp directory could not be created.',
         );
         return const ManagedCopyFailed(
-          error: ManagedCopyError.hashFailed,
-          safeMessage: 'Source file hash computation failed.',
+          error: ManagedCopyError.wordConversionFailed,
+          safeMessage: 'Word conversion temp directory could not be created.',
         );
       }
-      trustedSourceHash = sourceHashResult.hash!;
+
+      final convResult = await _wordConverter!.convert(
+        sourceDocPath: source.absolutePath,
+        tempOutputDir: wordTempDir,
+        operationId: operationId,
+      );
+
+      if (convResult is WordDocumentConversionFailed) {
+        await _tryAppendEvent(
+          documentId: documentId,
+          fileId: source.fileId,
+          operationId: operationId,
+          eventTypeKey: 'copy_failed',
+          resultKey: 'failed',
+          sourcePath: source.absolutePath,
+          errorCode: ManagedCopyError.wordConversionFailed.name,
+          messageSafe: convResult.safeMessage,
+        );
+        return ManagedCopyFailed(
+          error: ManagedCopyError.wordConversionFailed,
+          safeMessage:
+              'Word document conversion failed: ${convResult.safeMessage}',
+        );
+      }
+
+      final conv = convResult as WordDocumentConversionSuccess;
+      wordTempPdfPathOut(conv.tempPdfPath);
+      copySrcPath = conv.tempPdfPath;
+      trustedSourceHash = conv.pdfSha256;
+    } else {
+      // ── 6b. PDF source hash ─────────────────────────────────────────────────
+      // Compute the trusted source hash before artifact detection. This lets us
+      // safely recognize a restored final managed file and repair the missing
+      // DB row before the conservative artifact guard stops the copy flow.
+      if (source.sha256Hash != null) {
+        trustedSourceHash = source.sha256Hash!;
+      } else {
+        final sourceHashResult = await _hasher.hashFile(source.absolutePath);
+        if (!sourceHashResult.isSuccess) {
+          await _tryAppendEvent(
+            documentId: documentId,
+            fileId: source.fileId,
+            operationId: operationId,
+            eventTypeKey: 'copy_failed',
+            resultKey: 'failed',
+            errorCode: ManagedCopyError.hashFailed.name,
+            messageSafe: 'Source file hash computation failed.',
+          );
+          return const ManagedCopyFailed(
+            error: ManagedCopyError.hashFailed,
+            safeMessage: 'Source file hash computation failed.',
+          );
+        }
+        trustedSourceHash = sourceHashResult.hash!;
+      }
+      copySrcPath = source.absolutePath;
     }
 
     if (_filesystem.isExistingFile(finalPath)) {
@@ -611,7 +752,7 @@ class ManagedCopyUseCase {
     }
 
     final FilesystemOperationResult copyResult = await _filesystem.copyFile(
-      source.absolutePath,
+      copySrcPath,
       tmpPath,
     );
     if (copyResult is FilesystemFailure) {
@@ -621,7 +762,7 @@ class ManagedCopyUseCase {
         operationId: operationId,
         eventTypeKey: 'copy_failed',
         resultKey: 'failed',
-        sourcePath: source.absolutePath,
+        sourcePath: copySrcPath,
         destinationPath: tmpPath,
         errorCode: ManagedCopyError.copyFailed.name,
         messageSafe: 'Byte copy to temporary target failed.',
@@ -778,12 +919,26 @@ class ManagedCopyUseCase {
 
   // ── Private helpers ────────────────────────────────────────────────────────
 
-  bool _isEligibleCandidate(SourceFileCandidate c) =>
-      c.fileHealthKey == 'healthy' && c.storedExtension.toLowerCase() == '.pdf';
+  bool _isEligibleCandidate(SourceFileCandidate c) {
+    final ext = c.storedExtension.toLowerCase();
+    return c.fileHealthKey == 'healthy' && (ext == '.pdf' || ext == '.doc');
+  }
 
   SourceFileCandidate? _selectSource(List<SourceFileCandidate> eligible) {
     if (eligible.length == 1) return eligible.first;
-    final preferred = eligible.where((c) => c.isPreferred).toList();
+    // Prefer PDF sources over .doc to avoid unnecessary conversion.
+    final pdfSources = eligible
+        .where((c) => c.storedExtension.toLowerCase() == '.pdf')
+        .toList();
+    if (pdfSources.length == 1) return pdfSources.first;
+    if (pdfSources.isEmpty) {
+      // Only .doc sources present.
+      final preferred = eligible.where((c) => c.isPreferred).toList();
+      if (preferred.length == 1) return preferred.first;
+      return null;
+    }
+    // Multiple PDF sources: fall back to isPreferred tie-break.
+    final preferred = pdfSources.where((c) => c.isPreferred).toList();
     if (preferred.length == 1) return preferred.first;
     return null;
   }

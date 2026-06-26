@@ -493,6 +493,12 @@ class _SummaryPanel extends StatelessWidget {
             value: report.alreadyImportedCount,
             status: AppStatusColors.neutral,
           ),
+          if (report.pairedWordSourceCount > 0)
+            _SummaryStat(
+              label: l10n.importSummaryPairedWordSource,
+              value: report.pairedWordSourceCount,
+              status: AppStatusColors.neutral,
+            ),
           _SummaryStat(
             label: l10n.importSummaryFailed,
             value: report.failedCount,
@@ -697,6 +703,7 @@ String _statusLabel(AppLocalizations l10n, ImportFileStatus status) {
     ImportFileStatus.scanFailed => l10n.importStatusScanFailed,
     ImportFileStatus.persistenceFailed => l10n.importStatusPersistenceFailed,
     ImportFileStatus.corrupted => l10n.importStatusCorrupted,
+    ImportFileStatus.pairedWordSource => l10n.importStatusPairedWordSource,
   };
 }
 
@@ -706,6 +713,7 @@ StatusColor _statusColor(ImportFileStatus status) {
     ImportFileStatus.importedDuplicatePath => AppStatusColors.duplicate,
     ImportFileStatus.alreadyImported => AppStatusColors.neutral,
     ImportFileStatus.unsupportedType => AppStatusColors.warning,
+    ImportFileStatus.pairedWordSource => AppStatusColors.neutral,
     ImportFileStatus.unreadable ||
     ImportFileStatus.hashFailed ||
     ImportFileStatus.scanFailed ||

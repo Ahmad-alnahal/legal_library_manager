@@ -77,10 +77,7 @@ void main() {
     test('valid recovery key emits RecoverySuccess with new key', () async {
       expect(
         bloc.stream,
-        emitsInOrder([
-          isA<RecoveryInProgress>(),
-          isA<RecoverySuccess>(),
-        ]),
+        emitsInOrder([isA<RecoveryInProgress>(), isA<RecoverySuccess>()]),
       );
       bloc.add(RecoverySubmitted(recoveryKey));
       await _settle(bloc);
@@ -88,8 +85,7 @@ void main() {
       final state = bloc.state as RecoverySuccess;
       expect(
         state.newRecoveryKey,
-        matches(RegExp(
-            r'^[0-9A-F]{8}-[0-9A-F]{8}-[0-9A-F]{8}-[0-9A-F]{8}$')),
+        matches(RegExp(r'^[0-9A-F]{8}-[0-9A-F]{8}-[0-9A-F]{8}-[0-9A-F]{8}$')),
       );
     });
 
@@ -102,7 +98,9 @@ void main() {
 
     test('throttled attempts emit RecoveryError with throttled', () async {
       for (var i = 0; i < 3; i++) {
-        bloc.add(const RecoverySubmitted('AAAAAAAA-BBBBBBBB-CCCCCCCC-DDDDDDDD'));
+        bloc.add(
+          const RecoverySubmitted('AAAAAAAA-BBBBBBBB-CCCCCCCC-DDDDDDDD'),
+        );
         await _settle(bloc);
       }
       bloc.add(const RecoverySubmitted('AAAAAAAA-BBBBBBBB-CCCCCCCC-DDDDDDDD'));

@@ -264,15 +264,18 @@ class _SuccessView extends StatelessWidget {
                       label: Text(l10n.recoverySuccessCopyButton),
                     ),
                     const SizedBox(height: AppSpacing.xl),
-                    CheckboxListTile(
-                      value: confirmed,
-                      onChanged: onConfirmChanged,
-                      title: Text(
-                        l10n.recoverySuccessConfirmLabel,
-                        style: text.bodyMedium,
+                    Material(
+                      type: MaterialType.transparency,
+                      child: CheckboxListTile(
+                        value: confirmed,
+                        onChanged: onConfirmChanged,
+                        title: Text(
+                          l10n.recoverySuccessConfirmLabel,
+                          style: text.bodyMedium,
+                        ),
+                        controlAffinity: ListTileControlAffinity.leading,
+                        contentPadding: EdgeInsets.zero,
                       ),
-                      controlAffinity: ListTileControlAffinity.leading,
-                      contentPadding: EdgeInsets.zero,
                     ),
                     const SizedBox(height: AppSpacing.lg),
                     FilledButton(

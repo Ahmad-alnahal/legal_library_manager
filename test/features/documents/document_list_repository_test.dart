@@ -387,6 +387,173 @@ void main() {
       },
     );
 
+    test(
+      'getSourceFiles orders duplicate-group preferred member first',
+      () async {
+        final documentId = await addDocument(title: 'مرجع', updatedAt: now);
+        // Insert second before first by alpha name — without any preference,
+        // file_name ordering would put 'a.pdf' first.
+        final fileA = await addFile(
+          documentId,
+          name: 'a.pdf',
+          health: 'healthy',
+          path: r'C:\src\pref-a.pdf',
+        );
+        final fileB = await addFile(
+          documentId,
+          name: 'b.pdf',
+          health: 'healthy',
+          path: r'C:\src\pref-b.pdf',
+        );
+
+        // Mark fileB as the duplicate-group preferred member (simulates
+        // what setPreferredMember does after Fix 1 syncs is_preferred).
+        await (db.update(db.documentFiles)..where((f) => f.id.equals(fileB)))
+            .write(const DocumentFilesCompanion(isPreferred: Value(true)));
+
+        final groupId = await db
+            .into(db.duplicateGroups)
+            .insert(
+              DuplicateGroupsCompanion.insert(
+                groupCode: 'GRP-ORD',
+                sha256Hash: 'hash-ord',
+                preferredFileId: Value(fileB),
+                createdAt: now,
+                updatedAt: now,
+              ),
+            );
+        await db
+            .into(db.duplicateGroupMembers)
+            .insert(
+              DuplicateGroupMembersCompanion.insert(
+                duplicateGroupId: groupId,
+                fileId: fileA,
+                addedAt: now,
+              ),
+            );
+        await db
+            .into(db.duplicateGroupMembers)
+            .insert(
+              DuplicateGroupMembersCompanion.insert(
+                duplicateGroupId: groupId,
+                fileId: fileB,
+                addedAt: now,
+              ),
+            );
+
+        final files = await repository.getSourceFiles(documentId);
+        expect(files.first.id, fileB);
+        expect(files.first.isPreferred, isTrue);
+        expect(files[1].id, fileA);
+      },
+    );
+
+    test(
+      'getSourceFiles falls back to group preferred_file_id when is_preferred not set',
+      () async {
+        // Tests the defensive fallback: preferred_file_id is set on the group
+        // but document_files.is_preferred was never synced (legacy data).
+        final documentId = await addDocument(title: 'legacy', updatedAt: now);
+        final fileA = await addFile(
+          documentId,
+          name: 'a.pdf',
+          health: 'healthy',
+          path: r'C:\src\legacy-a.pdf',
+        );
+        final fileB = await addFile(
+          documentId,
+          name: 'b.pdf',
+          health: 'healthy',
+          path: r'C:\src\legacy-b.pdf',
+        );
+
+        // No is_preferred set on either file — group level only.
+        final groupId = await db
+            .into(db.duplicateGroups)
+            .insert(
+              DuplicateGroupsCompanion.insert(
+                groupCode: 'GRP-LEG',
+                sha256Hash: 'hash-leg',
+                preferredFileId: Value(fileB),
+                createdAt: now,
+                updatedAt: now,
+              ),
+            );
+        await db
+            .into(db.duplicateGroupMembers)
+            .insert(
+              DuplicateGroupMembersCompanion.insert(
+                duplicateGroupId: groupId,
+                fileId: fileA,
+                addedAt: now,
+              ),
+            );
+        await db
+            .into(db.duplicateGroupMembers)
+            .insert(
+              DuplicateGroupMembersCompanion.insert(
+                duplicateGroupId: groupId,
+                fileId: fileB,
+                addedAt: now,
+              ),
+            );
+
+        final files = await repository.getSourceFiles(documentId);
+        expect(files.first.id, fileB);
+      },
+    );
+
+    test(
+      'source_file_name in list excludes hidden duplicate members',
+      () async {
+        final documentId = await addDocument(updatedAt: now);
+        // hidden has the lower ID (alphabetically first name) — without
+        // exclusion it would be selected as source_file_name.
+        final hidden = await addFile(
+          documentId,
+          name: 'aaa-hidden.pdf',
+          health: 'healthy',
+          path: r'C:\src\aaa-hidden.pdf',
+        );
+        await addFile(
+          documentId,
+          name: 'zzz-visible.pdf',
+          health: 'healthy',
+          path: r'C:\src\zzz-visible.pdf',
+        );
+        await markDuplicate(hidden, hiddenFromSearch: true);
+
+        final page = await repository.getDocuments(const DocumentListQuery());
+        expect(page.items.single.sourceFileName, 'zzz-visible.pdf');
+      },
+    );
+
+    test(
+      'source_file_name in list respects duplicate-group preferred_file_id',
+      () async {
+        final documentId = await addDocument(updatedAt: now);
+        await addFile(
+          documentId,
+          name: 'a.pdf',
+          health: 'healthy',
+          path: r'C:\src\list-a.pdf',
+        );
+        final fileB = await addFile(
+          documentId,
+          name: 'b.pdf',
+          health: 'healthy',
+          path: r'C:\src\list-b.pdf',
+        );
+
+        // Simulates setPreferredMember syncing is_preferred.
+        await (db.update(db.documentFiles)..where((f) => f.id.equals(fileB)))
+            .write(const DocumentFilesCompanion(isPreferred: Value(true)));
+
+        final page = await repository.getDocuments(const DocumentListQuery());
+        expect(page.items.single.sourceFileName, 'b.pdf');
+      },
+    );
+
     test('invalid pagination is rejected at runtime', () async {
       await expectLater(
         repository.getDocuments(const DocumentListQuery(limit: 201)),

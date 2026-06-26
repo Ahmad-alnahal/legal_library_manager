@@ -139,7 +139,7 @@ class AppLocalizationsAr extends AppLocalizations {
   String get progressReadyForExport => 'جاهزية التصدير المحلي';
 
   @override
-  String get importTitle => 'استيراد ملفات PDF';
+  String get importTitle => 'استيراد ملفات PDF وWord';
 
   @override
   String get importSubtitle =>
@@ -419,13 +419,17 @@ class AppLocalizationsAr extends AppLocalizations {
   String get importSummaryAlreadyImported => 'مستوردة مسبقًا';
 
   @override
+  String get importSummaryPairedWordSource => 'مصادر Word مقترنة';
+
+  @override
   String get importSummaryFailed => 'ملفات متعذّرة';
 
   @override
   String get importResultsTitle => 'نتائج الملفات';
 
   @override
-  String get importResultsEmpty => 'لم يتم اكتشاف ملفات PDF في هذا المجلد.';
+  String get importResultsEmpty =>
+      'لم يتم اكتشاف ملفات PDF أو Word في هذا المجلد.';
 
   @override
   String get importCompletedTitle => 'اكتمل الاستيراد';
@@ -470,6 +474,9 @@ class AppLocalizationsAr extends AppLocalizations {
 
   @override
   String get importStatusCorrupted => 'ملف تالف';
+
+  @override
+  String get importStatusPairedWordSource => 'مصدر Word مقترن بـ PDF';
 
   @override
   String get importValidationDoesNotExist => 'المجلد غير موجود.';
@@ -1044,6 +1051,19 @@ class AppLocalizationsAr extends AppLocalizations {
   String get accountManagementConfirmButton => 'تأكيد';
 
   @override
+  String get accountManagementLogoutButton => 'تسجيل الخروج';
+
+  @override
+  String get accountManagementLogoutDialogTitle => 'تسجيل الخروج';
+
+  @override
+  String get accountManagementLogoutDialogBody =>
+      'هل تريد تسجيل الخروج من الحساب الحالي؟';
+
+  @override
+  String get accountManagementLogoutDialogConfirm => 'تسجيل الخروج';
+
+  @override
   String get accountManagementErrorDuplicateUsername =>
       'اسم المستخدم هذا مستخدم بالفعل.';
 
@@ -1165,4 +1185,169 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get settingsSnackStepUpRequired =>
       'يجب التحقق من هوية المدير أولاً قبل تنفيذ هذه العملية.';
+
+  @override
+  String get navWordConversionReview => 'مراجعة التحويل';
+
+  @override
+  String get navTooltipWordConversionReview =>
+      'مراجعة جودة ملفات PDF المحوّلة من Word';
+
+  @override
+  String get conversionReviewTitle => 'مراجعة جودة التحويل';
+
+  @override
+  String get conversionReviewSubtitle =>
+      'مراجعة واعتماد أو رفض ملفات PDF المحوّلة من مستندات Word.';
+
+  @override
+  String get conversionReviewEmptyTitle => 'لا توجد تحويلات بانتظار المراجعة';
+
+  @override
+  String get conversionReviewEmptyBody =>
+      'ستظهر هنا ملفات PDF المحوّلة التي تحتاج إلى مراجعة الجودة.';
+
+  @override
+  String get conversionReviewLoadError => 'تعذّر تحميل قائمة التحويلات.';
+
+  @override
+  String get conversionReviewRetry => 'إعادة المحاولة';
+
+  @override
+  String get conversionReviewRefreshTooltip => 'تحديث القائمة';
+
+  @override
+  String get conversionReviewSourceLabel => 'المصدر';
+
+  @override
+  String get conversionReviewOutputLabel => 'PDF المحوّل';
+
+  @override
+  String get conversionReviewCompletedLabel => 'تاريخ التحويل';
+
+  @override
+  String get conversionReviewOpenPdf => 'فتح PDF';
+
+  @override
+  String get conversionReviewApprove => 'اعتماد';
+
+  @override
+  String get conversionReviewReject => 'رفض';
+
+  @override
+  String get conversionReviewCancel => 'إلغاء';
+
+  @override
+  String get conversionReviewApproveDialogTitle => 'اعتماد جودة PDF المحوّل';
+
+  @override
+  String get conversionReviewApproveDialogContent =>
+      'سيتم اعتماد هذا الملف المحوّل وسيصبح مؤهلاً للتصنيف والنسخ إلى المكتبة المدارة.\n\nالملفات الأصلية تبقى سليمة دون أي تعديل أو حذف.';
+
+  @override
+  String get conversionReviewApproveConfirm => 'اعتماد';
+
+  @override
+  String get conversionReviewRejectDialogTitle => 'رفض جودة PDF المحوّل';
+
+  @override
+  String get conversionReviewRejectDialogContent =>
+      'سيتم رفض هذا الملف المحوّل ولن يكون مؤهلاً للتصنيف. الملفات الأصلية والمحوّلة تبقى محفوظة دون حذف.';
+
+  @override
+  String get conversionReviewRejectNoteLabel => 'ملاحظة الرفض (اختياري)';
+
+  @override
+  String get conversionReviewRejectConfirm => 'رفض';
+
+  @override
+  String get conversionReviewSnackApproved =>
+      'تم اعتماد جودة PDF المحوّل بنجاح.';
+
+  @override
+  String get conversionReviewSnackRejected =>
+      'تم رفض جودة PDF المحوّل. الملف محفوظ دون حذف.';
+
+  @override
+  String get conversionReviewSnackAlreadyDecided =>
+      'تم البت في هذا التحويل مسبقاً.';
+
+  @override
+  String get conversionReviewSnackApproveFailed =>
+      'تعذّر اعتماد التحويل. حاول مرة أخرى.';
+
+  @override
+  String get conversionReviewSnackRejectFailed =>
+      'تعذّر رفض التحويل. حاول مرة أخرى.';
+
+  @override
+  String get conversionReviewSnackGenericFailed =>
+      'تعذّر تنفيذ العملية على التحويل.';
+
+  @override
+  String get conversionWorkTitle => 'تحويل مستندات Word';
+
+  @override
+  String get conversionWorkSubtitle =>
+      'تظهر هنا ملفات Word التي تنتظر التحويل أو تحتاج إلى إعادة محاولة.';
+
+  @override
+  String get conversionWorkEmpty => 'لا توجد ملفات Word بانتظار التحويل.';
+
+  @override
+  String get conversionWorkLoadError => 'تعذّر تحميل قائمة ملفات Word.';
+
+  @override
+  String get conversionWorkRun => 'تحويل';
+
+  @override
+  String get conversionWorkRetry => 'إعادة محاولة';
+
+  @override
+  String get conversionWorkStatusPending => 'جاهز للتحويل';
+
+  @override
+  String get conversionWorkStatusConverting => 'جارٍ التحويل';
+
+  @override
+  String get conversionWorkStatusFailed => 'فشل التحويل';
+
+  @override
+  String get conversionWorkStatusUnknown => 'حالة غير معروفة';
+
+  @override
+  String get conversionWorkSnackRunSucceeded =>
+      'تم تحويل الملف. راجع جودة PDF المحوّل.';
+
+  @override
+  String get conversionWorkSnackRunBlocked =>
+      'تعذّر بدء التحويل حالياً. تحقق من توفر المحوّل ثم حاول مرة أخرى.';
+
+  @override
+  String get conversionWorkSnackRunFailed =>
+      'فشل التحويل. يمكنك إعادة المحاولة بعد معالجة السبب.';
+
+  @override
+  String get conversionWorkStagePreparing => 'جارٍ التحضير';
+
+  @override
+  String get conversionWorkStageOpeningDocument => 'جارٍ فتح مستند Word';
+
+  @override
+  String get conversionWorkStageExportingPdf => 'جارٍ تصدير PDF';
+
+  @override
+  String get conversionWorkStageValidatingOutput =>
+      'جارٍ التحقق من الملف الناتج';
+
+  @override
+  String get conversionWorkStageSavingResult => 'جارٍ حفظ النتيجة';
+
+  @override
+  String get conversionWorkStageCleaningUp => 'جارٍ تنظيف الملفات المؤقتة';
+
+  @override
+  String conversionWorkQueueProgress(int completed, int total) {
+    return '$completed من $total ملفات اكتملت';
+  }
 }

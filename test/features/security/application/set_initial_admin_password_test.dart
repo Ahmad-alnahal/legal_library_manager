@@ -22,8 +22,7 @@ void main() {
   late PasswordHasher hasher;
   late SetInitialAdminPassword useCase;
 
-  const minimalHasher =
-      Argon2idPasswordHasher(memoryKib: 256, iterations: 1);
+  const minimalHasher = Argon2idPasswordHasher(memoryKib: 256, iterations: 1);
   final clock = _FixedClock(DateTime.utc(2026, 6, 23, 10));
 
   setUp(() async {
@@ -90,9 +89,14 @@ void main() {
     test('recovery key has expected dashed hex format', () async {
       final key = await useCase.call('SecurePass1');
       // Format: XXXXXXXX-XXXXXXXX-XXXXXXXX-XXXXXXXX (4 groups of 8 hex chars)
-      final pattern = RegExp(r'^[0-9A-F]{8}-[0-9A-F]{8}-[0-9A-F]{8}-[0-9A-F]{8}$');
-      expect(pattern.hasMatch(key), isTrue,
-          reason: 'Key "$key" does not match expected format');
+      final pattern = RegExp(
+        r'^[0-9A-F]{8}-[0-9A-F]{8}-[0-9A-F]{8}-[0-9A-F]{8}$',
+      );
+      expect(
+        pattern.hasMatch(key),
+        isTrue,
+        reason: 'Key "$key" does not match expected format',
+      );
     });
 
     test('recovery key is not stored as-is in the DB', () async {
@@ -102,21 +106,20 @@ void main() {
       expect(admin!.passwordHash, isNot(contains(key)));
     });
 
-    test('throws WeakPasswordException for passwords shorter than 8 chars',
-        () async {
-      expect(
-        () => useCase.call('Short'),
-        throwsA(isA<WeakPasswordException>()),
-      );
-    });
+    test(
+      'throws WeakPasswordException for passwords shorter than 8 chars',
+      () async {
+        expect(
+          () => useCase.call('Short'),
+          throwsA(isA<WeakPasswordException>()),
+        );
+      },
+    );
 
     test('records a password_changed audit event', () async {
       await useCase.call('SecurePass1');
       final events = await auditRepo.loadEvents(limit: 10, offset: 0);
-      expect(
-        events.any((e) => e.eventTypeKey == 'password_changed'),
-        isTrue,
-      );
+      expect(events.any((e) => e.eventTypeKey == 'password_changed'), isTrue);
     });
 
     test('calling twice generates a new recovery key each time', () async {

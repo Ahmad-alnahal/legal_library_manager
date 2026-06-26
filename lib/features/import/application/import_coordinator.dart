@@ -31,6 +31,7 @@ typedef IsolateRunner = Future<T> Function<T>(FutureOr<T> Function() body);
 Future<T> isolateRunner<T>(FutureOr<T> Function() body) => Isolate.run(body);
 
 const String _pdfMimeType = 'application/pdf';
+const String _docMimeType = 'application/msword';
 
 /// Application-layer orchestrator for the safe PDF import workflow.
 ///
@@ -127,7 +128,19 @@ class ImportCoordinator {
       }
 
       if (!cancelled) {
-        for (final PdfCandidate candidate in scan.candidates) {
+        // Detect same-folder same-basename .doc+.pdf pairs. Paired .docs are
+        // moved to the end of the processing order so their PDF has already been
+        // imported (and its documentId is available) by the time the .doc runs.
+        final Set<String> pairedKeys = _detectPairedKeys(scan.candidates);
+        final List<PdfCandidate> ordered = _orderWithPairedDocsLast(
+          scan.candidates,
+          pairedKeys,
+        );
+        // Maps a pair key to the document ID of the successfully imported PDF,
+        // so the paired .doc can attach itself to the same document.
+        final Map<String, int> pairedPdfDocIds = {};
+
+        for (final PdfCandidate candidate in ordered) {
           if (cancellation.isCancelled) {
             cancelled = true;
             break;
@@ -140,12 +153,48 @@ class ImportCoordinator {
               currentFileName: candidate.fileName,
             ),
           );
-          final _FileOutcome outcome = await _processCandidate(
-            candidate,
-            batchId: batch.id,
-            cancellation: cancellation,
-            operationId: _operationId(batch, processed),
-          );
+
+          final String pKey = _pairKey(candidate);
+          late final _FileOutcome outcome;
+
+          if (_isWordSource(candidate.extension) && pairedKeys.contains(pKey)) {
+            final int? pairedDocId = pairedPdfDocIds[pKey];
+            if (pairedDocId != null) {
+              // PDF imported successfully — attach .doc to the same document.
+              outcome = await _processPairedWordCandidate(
+                candidate,
+                existingDocumentId: pairedDocId,
+                batchId: batch.id,
+                cancellation: cancellation,
+                operationId: _operationId(batch, processed),
+              );
+            } else {
+              // PDF failed to import — fall back to the regular word flow.
+              outcome = await _processWordCandidate(
+                candidate,
+                batchId: batch.id,
+                cancellation: cancellation,
+                operationId: _operationId(batch, processed),
+              );
+            }
+          } else {
+            outcome = await _processCandidate(
+              candidate,
+              batchId: batch.id,
+              cancellation: cancellation,
+              operationId: _operationId(batch, processed),
+            );
+            // Track the document ID only when the PDF imported successfully.
+            if (!_isWordSource(candidate.extension) &&
+                pairedKeys.contains(pKey)) {
+              final ImportFileStatus? status = outcome.report?.status;
+              if (status != null && !status.isFailure) {
+                final int? docId = outcome.report?.documentId;
+                if (docId != null) pairedPdfDocIds[pKey] = docId;
+              }
+            }
+          }
+
           if (outcome.cancelled) {
             cancelled = true;
             break;
@@ -282,6 +331,15 @@ class ImportCoordinator {
     required HashCancellation cancellation,
     required String operationId,
   }) async {
+    if (_isWordSource(candidate.extension)) {
+      return _processWordCandidate(
+        candidate,
+        batchId: batchId,
+        cancellation: cancellation,
+        operationId: operationId,
+      );
+    }
+
     // Bind to locals so the isolate closure captures only the (sendable) const
     // inspector and path string — never `this` (which holds the database).
     final PdfHealthInspector inspectorService = inspector;
@@ -488,6 +546,103 @@ class ImportCoordinator {
     }
   }
 
+  Future<_FileOutcome> _processWordCandidate(
+    PdfCandidate candidate, {
+    required int batchId,
+    required HashCancellation cancellation,
+    required String operationId,
+  }) async {
+    Sha256Result hash;
+    try {
+      hash = await hasher.hashFile(
+        candidate.absolutePath,
+        cancellation: cancellation,
+      );
+    } catch (_) {
+      return await _serviceException(
+        candidate,
+        operationId,
+        batchId,
+        outcome: ImportFileOutcome.hashFailed,
+        errorCode: 'hash_failed',
+        safeMessage: 'file hashing failed unexpectedly',
+        errorCodeEnum: ImportErrorCode.hashFailed,
+      );
+    }
+
+    if (!hash.isSuccess) {
+      final ImportError error = hash.error!;
+      if (error.code == ImportErrorCode.hashCancelled) {
+        return const _FileOutcome.cancelled();
+      }
+      final bool unreadable = error.code == ImportErrorCode.unreadable;
+      final ImportFileOutcome outcome = unreadable
+          ? ImportFileOutcome.unreadable
+          : ImportFileOutcome.hashFailed;
+      try {
+        final result = await repository.persistFailedFile(
+          FailedSourceFile(
+            canonicalPath: candidate.absolutePath,
+            displayName: candidate.fileName,
+            extension: candidate.extension,
+            sizeBytes: candidate.sizeBytes,
+            health: PdfHealthStatus.unreadable,
+            mimeType: _mimeTypeFor(candidate.extension),
+            errorCode: unreadable ? 'unreadable' : 'hash_failed',
+            safeMessage: error.message,
+          ),
+          outcome: outcome,
+          operationId: operationId,
+          now: clock.nowUtc(),
+          batchId: batchId,
+        );
+        final ImportFileStatus reportStatus = ImportFileStatus.fromOutcome(
+          result.outcome,
+        );
+        return _FileOutcome(
+          _reportFor(
+            candidate,
+            reportStatus,
+            result,
+            error: reportStatus.isFailure
+                ? ImportError(code: error.code, message: error.message)
+                : null,
+          ),
+        );
+      } catch (_) {
+        return await _persistenceFailure(candidate, operationId);
+      }
+    }
+
+    try {
+      final result = await repository.persistHashedFile(
+        PreparedSourceFile(
+          canonicalPath: candidate.absolutePath,
+          displayName: candidate.fileName,
+          extension: candidate.extension,
+          sizeBytes: candidate.sizeBytes,
+          sha256: hash.hash!,
+          health: PdfHealthStatus.healthy,
+          mimeType: _mimeTypeFor(candidate.extension),
+        ),
+        operationId: operationId,
+        now: clock.nowUtc(),
+        batchId: batchId,
+      );
+
+      return _FileOutcome(
+        _reportFor(
+          candidate,
+          ImportFileStatus.fromOutcome(result.outcome),
+          result,
+          error: result.error,
+        ),
+      );
+    } catch (_) {
+      return await _persistenceFailure(candidate, operationId);
+    }
+  }
+
   /// Records a safe scan-failure event for a file-less directory-enumeration
   /// failure. If even recording the event fails, the entry degrades to an
   /// application-only persistenceFailed report (and the secondary logging
@@ -596,7 +751,7 @@ class ImportCoordinator {
           extension: candidate.extension,
           sizeBytes: candidate.sizeBytes,
           health: PdfHealthStatus.unreadable,
-          mimeType: _pdfMimeType,
+          mimeType: _mimeTypeFor(candidate.extension),
           errorCode: errorCode,
           safeMessage: safeMessage,
         ),
@@ -696,6 +851,159 @@ class ImportCoordinator {
   String _baseName(String path) {
     final int slash = path.lastIndexOf(RegExp(r'[\\/]'));
     return slash < 0 ? path : path.substring(slash + 1);
+  }
+
+  bool _isWordSource(String extension) => extension.toLowerCase() == '.doc';
+
+  String _mimeTypeFor(String extension) {
+    return extension.toLowerCase() == '.doc' ? _docMimeType : _pdfMimeType;
+  }
+
+  /// Processes a `.doc` that has been paired with an already-imported `.pdf`.
+  /// Hashes the source (for audit), attaches it to [existingDocumentId], and
+  /// skips the word-conversion launcher entirely.
+  Future<_FileOutcome> _processPairedWordCandidate(
+    PdfCandidate candidate, {
+    required int existingDocumentId,
+    required int batchId,
+    required HashCancellation cancellation,
+    required String operationId,
+  }) async {
+    Sha256Result hash;
+    try {
+      hash = await hasher.hashFile(
+        candidate.absolutePath,
+        cancellation: cancellation,
+      );
+    } catch (_) {
+      return await _serviceException(
+        candidate,
+        operationId,
+        batchId,
+        outcome: ImportFileOutcome.hashFailed,
+        errorCode: 'hash_failed',
+        safeMessage: 'file hashing failed unexpectedly',
+        errorCodeEnum: ImportErrorCode.hashFailed,
+      );
+    }
+
+    if (!hash.isSuccess) {
+      final ImportError error = hash.error!;
+      if (error.code == ImportErrorCode.hashCancelled) {
+        return const _FileOutcome.cancelled();
+      }
+      final bool unreadable = error.code == ImportErrorCode.unreadable;
+      final ImportFileOutcome outcome = unreadable
+          ? ImportFileOutcome.unreadable
+          : ImportFileOutcome.hashFailed;
+      try {
+        final result = await repository.persistFailedFile(
+          FailedSourceFile(
+            canonicalPath: candidate.absolutePath,
+            displayName: candidate.fileName,
+            extension: candidate.extension,
+            sizeBytes: candidate.sizeBytes,
+            health: PdfHealthStatus.unreadable,
+            mimeType: _mimeTypeFor(candidate.extension),
+            errorCode: unreadable ? 'unreadable' : 'hash_failed',
+            safeMessage: error.message,
+          ),
+          outcome: outcome,
+          operationId: operationId,
+          now: clock.nowUtc(),
+          batchId: batchId,
+        );
+        final ImportFileStatus reportStatus = ImportFileStatus.fromOutcome(
+          result.outcome,
+        );
+        return _FileOutcome(
+          _reportFor(
+            candidate,
+            reportStatus,
+            result,
+            error: reportStatus.isFailure
+                ? ImportError(code: error.code, message: error.message)
+                : null,
+          ),
+        );
+      } catch (_) {
+        return await _persistenceFailure(candidate, operationId);
+      }
+    }
+
+    try {
+      final result = await repository.persistPairedWordSource(
+        PreparedSourceFile(
+          canonicalPath: candidate.absolutePath,
+          displayName: candidate.fileName,
+          extension: candidate.extension,
+          sizeBytes: candidate.sizeBytes,
+          sha256: hash.hash!,
+          health: PdfHealthStatus.healthy,
+          mimeType: _mimeTypeFor(candidate.extension),
+        ),
+        existingDocumentId: existingDocumentId,
+        operationId: operationId,
+        now: clock.nowUtc(),
+        batchId: batchId,
+      );
+      return _FileOutcome(
+        _reportFor(
+          candidate,
+          ImportFileStatus.fromOutcome(result.outcome),
+          result,
+          error: result.error,
+        ),
+      );
+    } catch (_) {
+      return await _persistenceFailure(candidate, operationId);
+    }
+  }
+
+  /// Returns the set of pair keys for which both a `.pdf` and a `.doc`
+  /// candidate exist (same folder, same normalized basename).
+  static Set<String> _detectPairedKeys(List<PdfCandidate> candidates) {
+    final Map<String, Set<String>> byKey = {};
+    for (final c in candidates) {
+      (byKey[_pairKey(c)] ??= {}).add(c.extension.toLowerCase());
+    }
+    return {
+      for (final e in byKey.entries)
+        if (e.value.contains('.pdf') && e.value.contains('.doc')) e.key,
+    };
+  }
+
+  /// Pair key: normalized directory (including trailing separator) + TAB +
+  /// normalized basename (filename without extension). Case-insensitive.
+  static String _pairKey(PdfCandidate c) {
+    final String path = c.absolutePath.toLowerCase();
+    final String name = c.fileName.toLowerCase();
+    final int dirLen = path.length - name.length;
+    final String dir = dirLen > 0 ? path.substring(0, dirLen) : '';
+    final String ext = c.extension.toLowerCase();
+    final String base = name.substring(0, name.length - ext.length);
+    return '$dir\t$base';
+  }
+
+  /// Re-orders [candidates] so that paired `.doc` files come after all other
+  /// candidates (ensuring their paired PDF is imported first). Relative order
+  /// within each group is preserved.
+  static List<PdfCandidate> _orderWithPairedDocsLast(
+    List<PdfCandidate> candidates,
+    Set<String> pairedKeys,
+  ) {
+    if (pairedKeys.isEmpty) return candidates;
+    final List<PdfCandidate> before = [];
+    final List<PdfCandidate> pairedDocs = [];
+    for (final c in candidates) {
+      if (c.extension.toLowerCase() == '.doc' &&
+          pairedKeys.contains(_pairKey(c))) {
+        pairedDocs.add(c);
+      } else {
+        before.add(c);
+      }
+    }
+    return [...before, ...pairedDocs];
   }
 }
 
