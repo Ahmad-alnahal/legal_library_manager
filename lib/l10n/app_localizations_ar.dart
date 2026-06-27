@@ -482,6 +482,35 @@ class AppLocalizationsAr extends AppLocalizations {
   String get importStatusInterrupted => 'مقاطع (أُعيد تشغيل التطبيق)';
 
   @override
+  String get importBannerRunning => 'جارٍ الاستيراد';
+
+  @override
+  String get importBannerCancelling => 'جارٍ الإلغاء...';
+
+  @override
+  String get importBannerCompleted => 'اكتمل الاستيراد';
+
+  @override
+  String get importBannerCancelled => 'تم إلغاء الاستيراد';
+
+  @override
+  String get importBannerFailed => 'فشل الاستيراد';
+
+  @override
+  String importBannerProgress(int processed, int discovered) {
+    return '$processed من $discovered';
+  }
+
+  @override
+  String get importBannerGoToImport => 'انتقل إلى الاستيراد';
+
+  @override
+  String get importBannerCancel => 'إلغاء الاستيراد';
+
+  @override
+  String get importBannerDismiss => 'إغلاق';
+
+  @override
   String get importValidationDoesNotExist => 'المجلد غير موجود.';
 
   @override

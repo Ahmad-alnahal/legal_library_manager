@@ -976,6 +976,60 @@ abstract class AppLocalizations {
   /// **'مقاطع (أُعيد تشغيل التطبيق)'**
   String get importStatusInterrupted;
 
+  /// No description provided for @importBannerRunning.
+  ///
+  /// In ar, this message translates to:
+  /// **'جارٍ الاستيراد'**
+  String get importBannerRunning;
+
+  /// No description provided for @importBannerCancelling.
+  ///
+  /// In ar, this message translates to:
+  /// **'جارٍ الإلغاء...'**
+  String get importBannerCancelling;
+
+  /// No description provided for @importBannerCompleted.
+  ///
+  /// In ar, this message translates to:
+  /// **'اكتمل الاستيراد'**
+  String get importBannerCompleted;
+
+  /// No description provided for @importBannerCancelled.
+  ///
+  /// In ar, this message translates to:
+  /// **'تم إلغاء الاستيراد'**
+  String get importBannerCancelled;
+
+  /// No description provided for @importBannerFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'فشل الاستيراد'**
+  String get importBannerFailed;
+
+  /// No description provided for @importBannerProgress.
+  ///
+  /// In ar, this message translates to:
+  /// **'{processed} من {discovered}'**
+  String importBannerProgress(int processed, int discovered);
+
+  /// No description provided for @importBannerGoToImport.
+  ///
+  /// In ar, this message translates to:
+  /// **'انتقل إلى الاستيراد'**
+  String get importBannerGoToImport;
+
+  /// No description provided for @importBannerCancel.
+  ///
+  /// In ar, this message translates to:
+  /// **'إلغاء الاستيراد'**
+  String get importBannerCancel;
+
+  /// No description provided for @importBannerDismiss.
+  ///
+  /// In ar, this message translates to:
+  /// **'إغلاق'**
+  String get importBannerDismiss;
+
   /// No description provided for @importValidationDoesNotExist.
   ///
   /// In ar, this message translates to:

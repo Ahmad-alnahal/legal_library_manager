@@ -26,6 +26,7 @@ import '../../features/import/domain/services/folder_validator.dart';
 import '../../features/import/domain/services/pdf_health_inspector.dart';
 import '../../features/import/domain/services/pdf_scanner.dart';
 import '../../features/import/presentation/bloc/import_bloc.dart';
+import '../../features/import/presentation/bloc/import_status_bloc.dart';
 import '../../features/documents/data/repositories/drift_document_list_repository.dart';
 import '../../features/documents/data/repositories/drift_document_metadata_repository.dart';
 import '../../features/documents/data/repositories/drift_review_queue_repository.dart';
@@ -182,6 +183,9 @@ void configureDependencies() {
     )
     ..registerFactory<ImportBloc>(
       () => ImportBloc(jobService: getIt<ImportJobService>()),
+    )
+    ..registerFactory<ImportStatusBloc>(
+      () => ImportStatusBloc(jobService: getIt<ImportJobService>()),
     )
     ..registerLazySingleton<DocumentListRepository>(
       () => DriftDocumentListRepository(getIt<AppDatabase>()),

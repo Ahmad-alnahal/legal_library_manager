@@ -173,6 +173,22 @@
   "importStatusPairedWordSource": "مصدر Word مقترن بـ PDF",
   "importStatusInterrupted": "مقاطع (أُعيد تشغيل التطبيق)",
 
+  "importBannerRunning": "جارٍ الاستيراد",
+  "importBannerCancelling": "جارٍ الإلغاء...",
+  "importBannerCompleted": "اكتمل الاستيراد",
+  "importBannerCancelled": "تم إلغاء الاستيراد",
+  "importBannerFailed": "فشل الاستيراد",
+  "importBannerProgress": "{processed} من {discovered}",
+  "@importBannerProgress": {
+    "placeholders": {
+      "processed": { "type": "int" },
+      "discovered": { "type": "int" }
+    }
+  },
+  "importBannerGoToImport": "انتقل إلى الاستيراد",
+  "importBannerCancel": "إلغاء الاستيراد",
+  "importBannerDismiss": "إغلاق",
+
   "importValidationDoesNotExist": "المجلد غير موجود.",
   "importValidationNotADirectory": "المسار المحدد ليس مجلدًا.",
   "importValidationNotReadable": "تعذّرت قراءة المجلد.",

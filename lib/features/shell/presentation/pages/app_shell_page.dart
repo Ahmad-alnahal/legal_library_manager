@@ -8,6 +8,7 @@ import '../../../documents/presentation/pages/document_review_page.dart';
 import '../../../documents/presentation/pages/documents_page.dart';
 import '../../../duplicates/presentation/pages/duplicate_review_page.dart';
 import '../../../import/presentation/pages/import_page.dart';
+import '../../../import/presentation/widgets/import_status_banner.dart';
 import '../../../security/application/session_manager.dart';
 import '../../../security/domain/entities/account_role.dart';
 import '../../../security/presentation/pages/administration_page.dart';
@@ -46,18 +47,27 @@ class AppShellPage extends StatelessWidget {
                     final bool isAdmin =
                         sessionManager.currentSession?.role ==
                         AccountRole.admin;
-                    return Row(
+                    return Column(
                       children: [
-                        // First child renders on the right under RTL.
-                        SideNavigation(
-                          selected: state.section,
-                          extended: extended,
-                          showAdministration: isAdmin,
-                          onSelected: (section) => context
-                              .read<NavigationBloc>()
-                              .add(NavigationSectionSelected(section)),
+                        Expanded(
+                          child: Row(
+                            children: [
+                              // First child renders on the right under RTL.
+                              SideNavigation(
+                                selected: state.section,
+                                extended: extended,
+                                showAdministration: isAdmin,
+                                onSelected: (section) => context
+                                    .read<NavigationBloc>()
+                                    .add(NavigationSectionSelected(section)),
+                              ),
+                              Expanded(
+                                child: _SectionView(section: state.section),
+                              ),
+                            ],
+                          ),
                         ),
-                        Expanded(child: _SectionView(section: state.section)),
+                        const ImportStatusBanner(),
                       ],
                     );
                   },
