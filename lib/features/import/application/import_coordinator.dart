@@ -830,6 +830,7 @@ class ImportCoordinator {
         importedCount: report.importedCount,
         duplicateCount: report.duplicateCount,
         failedCount: report.failedCount,
+        pairedCount: report.pairedWordSourceCount,
       );
       await repository.cancelBatch(batch.id, now: now);
     } else {
@@ -839,6 +840,7 @@ class ImportCoordinator {
         importedCount: report.importedCount,
         duplicateCount: report.duplicateCount,
         failedCount: report.failedCount,
+        pairedCount: report.pairedWordSourceCount,
         now: now,
       );
     }

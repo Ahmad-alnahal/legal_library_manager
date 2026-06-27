@@ -218,6 +218,7 @@ class FakeImportRepository implements ImportRepository {
 
   ImportBatchStatus? lastStatus;
   bool clearedCompletedAt = false;
+  int markInterruptedCalls = 0;
 
   /// The most recent [FailedSourceFile] passed to [persistFailedFile]. Useful
   /// for asserting that health statuses and error codes are preserved exactly.
@@ -240,6 +241,7 @@ class FakeImportRepository implements ImportRepository {
     int? importedCount,
     int? duplicateCount,
     int? failedCount,
+    int? pairedCount,
     ImportBatchStatus? status,
     bool clearCompletedAt = false,
   }) async {
@@ -254,10 +256,16 @@ class FakeImportRepository implements ImportRepository {
     required int importedCount,
     required int duplicateCount,
     required int failedCount,
+    required int pairedCount,
     required DateTime now,
   }) async {
     if (failOnComplete) throw StateError('complete failed (test)');
     lastStatus = ImportBatchStatus.completed;
+  }
+
+  @override
+  Future<void> markInterruptedBatches({required DateTime now}) async {
+    markInterruptedCalls++;
   }
 
   @override

@@ -258,7 +258,7 @@ void main() {
         final int version =
             (await migratedDb.customSelect('PRAGMA user_version;').getSingle())
                 .read<int>('user_version');
-        expect(version, 3, reason: 'schema version must be bumped to 3');
+        expect(version, 4, reason: 'schema version must be bumped to 4');
 
         final Set<String> tables =
             (await migratedDb
@@ -281,12 +281,12 @@ void main() {
       },
     );
 
-    test('a fresh database is created directly at version 3', () async {
+    test('a fresh database is created directly at version 4', () async {
       final int version =
           (await db.customSelect('PRAGMA user_version;').getSingle()).read<int>(
             'user_version',
           );
-      expect(version, 3);
+      expect(version, 4);
     });
   });
 }

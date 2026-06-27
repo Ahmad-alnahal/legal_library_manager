@@ -171,6 +171,7 @@
   "importStatusPersistenceFailed": "تعذّر حفظ السجل",
   "importStatusCorrupted": "ملف تالف",
   "importStatusPairedWordSource": "مصدر Word مقترن بـ PDF",
+  "importStatusInterrupted": "مقاطع (أُعيد تشغيل التطبيق)",
 
   "importValidationDoesNotExist": "المجلد غير موجود.",
   "importValidationNotADirectory": "المسار المحدد ليس مجلدًا.",

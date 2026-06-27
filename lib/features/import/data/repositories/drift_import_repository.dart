@@ -66,6 +66,7 @@ class DriftImportRepository implements ImportRepository {
     int? importedCount,
     int? duplicateCount,
     int? failedCount,
+    int? pairedCount,
     ImportBatchStatus? status,
     bool clearCompletedAt = false,
   }) {
@@ -77,6 +78,7 @@ class DriftImportRepository implements ImportRepository {
         importedCount: _intOrAbsent(importedCount),
         duplicateCount: _intOrAbsent(duplicateCount),
         failedCount: _intOrAbsent(failedCount),
+        pairedCount: _intOrAbsent(pairedCount),
         statusKey: status == null ? const Value.absent() : Value(status.key),
         completedAt: clearCompletedAt
             ? const Value(null)
@@ -92,6 +94,7 @@ class DriftImportRepository implements ImportRepository {
     required int importedCount,
     required int duplicateCount,
     required int failedCount,
+    required int pairedCount,
     required DateTime now,
   }) {
     return (_db.update(
@@ -103,6 +106,7 @@ class DriftImportRepository implements ImportRepository {
         importedCount: Value(importedCount),
         duplicateCount: Value(duplicateCount),
         failedCount: Value(failedCount),
+        pairedCount: Value(pairedCount),
         completedAt: Value(now.toUtc().toIso8601String()),
       ),
     );
@@ -115,6 +119,18 @@ class DriftImportRepository implements ImportRepository {
   @override
   Future<void> cancelBatch(int batchId, {required DateTime now}) =>
       _finishBatch(batchId, ImportBatchStatus.cancelled, now);
+
+  @override
+  Future<void> markInterruptedBatches({required DateTime now}) {
+    return (_db.update(
+      _db.importBatches,
+    )..where((b) => b.statusKey.equals(ImportBatchStatus.running.key))).write(
+      ImportBatchesCompanion(
+        statusKey: Value(ImportBatchStatus.interrupted.key),
+        completedAt: Value(now.toUtc().toIso8601String()),
+      ),
+    );
+  }
 
   Future<void> _finishBatch(
     int batchId,

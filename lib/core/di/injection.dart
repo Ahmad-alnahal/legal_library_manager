@@ -11,6 +11,7 @@ import '../../features/duplicates/domain/repositories/duplicate_review_repositor
 import '../../features/duplicates/presentation/bloc/duplicate_review_bloc.dart';
 import '../../features/import/application/folder_picker.dart';
 import '../../features/import/application/import_coordinator.dart';
+import '../../features/import/application/import_job_service.dart';
 import '../../features/import/application/protected_roots_provider.dart';
 import '../../features/import/data/repositories/drift_import_repository.dart';
 import '../../features/import/data/services/conservative_pdf_health_inspector.dart';
@@ -170,11 +171,17 @@ void configureDependencies() {
         clock: getIt<Clock>(),
       ),
     )
-    ..registerFactory<ImportBloc>(
-      () => ImportBloc(
+    ..registerLazySingleton<ImportJobService>(
+      () => ImportJobService(
         coordinator: getIt<ImportCoordinator>(),
         protectedRootsProvider: getIt<ProtectedRootsProvider>(),
+        repository: getIt<ImportRepository>(),
+        clock: getIt<Clock>(),
       ),
+      dispose: (s) => s.dispose(),
+    )
+    ..registerFactory<ImportBloc>(
+      () => ImportBloc(jobService: getIt<ImportJobService>()),
     )
     ..registerLazySingleton<DocumentListRepository>(
       () => DriftDocumentListRepository(getIt<AppDatabase>()),

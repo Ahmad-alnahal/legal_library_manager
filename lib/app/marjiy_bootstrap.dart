@@ -8,6 +8,7 @@ import '../core/theme/app_colors.dart';
 import '../core/theme/app_radii.dart';
 import '../core/theme/app_spacing.dart';
 import '../core/widgets/app_panel.dart';
+import '../features/import/application/import_job_service.dart';
 import '../features/managed_copy/application/initialize_copy_roots.dart';
 import '../features/managed_copy/application/inspect_startup_recovery.dart';
 import '../features/security/application/bootstrap_admin_account.dart';
@@ -27,6 +28,9 @@ Future<void> initializeApplication() async {
   // M8.4: configure default copy roots under <Documents>\MARJIY. Never
   // throws; failures surface as a requires-attention state in Settings and
   // keep managed-copy actions blocked without blocking the rest of the app.
+  // P2.1: mark any import batch left in `running` state (from a crash or
+  // forced close) as `interrupted` before the user can start a new import.
+  await getIt<ImportJobService>().initialize();
   await getIt<InitializeCopyRoots>()();
   // M11.2: record a safe status for interrupted app-owned managed-copy
   // artifacts. This never repairs or deletes files.

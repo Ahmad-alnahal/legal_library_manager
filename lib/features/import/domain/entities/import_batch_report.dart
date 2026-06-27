@@ -23,7 +23,12 @@ enum ImportBatchStatus {
   running('running'),
   completed('completed'),
   failed('failed'),
-  cancelled('cancelled');
+  cancelled('cancelled'),
+
+  /// The app was terminated while this batch was running. Set at the next
+  /// startup by [ImportRepository.markInterruptedBatches] for any batch
+  /// still in `running` state. Full resume UI is deferred to P2.3.
+  interrupted('interrupted');
 
   const ImportBatchStatus(this.key);
 

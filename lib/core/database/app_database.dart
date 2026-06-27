@@ -94,14 +94,16 @@ class AppDatabase extends _$AppDatabase {
   factory AppDatabase.inMemory() =>
       AppDatabase.forExecutor(NativeDatabase.memory());
 
-  /// Schema version 3 adds the four security tables (accounts,
-  /// account_security_state, recovery_credentials, security_audit_log) for
-  /// M14 local security and administration.
+  /// Schema version 4 adds `paired_count` to `import_batches` (P2.1) to track
+  /// paired `.doc`+`.pdf` sources as a distinct counter alongside the existing
+  /// imported/duplicate/failed counts.
   ///
-  /// Version 2 added normalized category-name columns and unique indexes
-  /// (M6.4). Version 1 databases are migrated through both steps in sequence.
+  /// Version 3 added the four security tables (accounts,
+  /// account_security_state, recovery_credentials, security_audit_log) for
+  /// M14. Version 2 added normalized category-name columns and unique indexes
+  /// (M6.4). Version 1 databases are migrated through all steps in sequence.
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => 4;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -118,6 +120,9 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from < 3) {
         await _migrateV2ToV3(m);
+      }
+      if (from < 4) {
+        await _migrateV3ToV4();
       }
     },
     beforeOpen: (OpeningDetails details) async {
@@ -169,6 +174,26 @@ class AppDatabase extends _$AppDatabase {
     await customStatement(
       'CREATE UNIQUE INDEX ux_sub_categories_main_normalized_name_en '
       'ON sub_categories (main_category_id, normalized_name_en)',
+    );
+  }
+
+  /// Adds `paired_count` column to `import_batches` (P2.1).
+  ///
+  /// The column cannot be NOT NULL without a DEFAULT in SQLite — using
+  /// `DEFAULT 0` satisfies the constraint and back-fills all existing rows
+  /// automatically. The migration is skipped when `import_batches` does not
+  /// exist (possible only in minimal test proxy databases that simulate a
+  /// version number without the full schema; real installations always have the
+  /// table from initial setup).
+  Future<void> _migrateV3ToV4() async {
+    final List<QueryRow> tables = await customSelect(
+      "SELECT name FROM sqlite_master "
+      "WHERE type='table' AND name='import_batches';",
+    ).get();
+    if (tables.isEmpty) return;
+    await customStatement(
+      'ALTER TABLE import_batches '
+      'ADD COLUMN paired_count INTEGER NOT NULL DEFAULT 0',
     );
   }
 

@@ -970,6 +970,12 @@ abstract class AppLocalizations {
   /// **'مصدر Word مقترن بـ PDF'**
   String get importStatusPairedWordSource;
 
+  /// No description provided for @importStatusInterrupted.
+  ///
+  /// In ar, this message translates to:
+  /// **'مقاطع (أُعيد تشغيل التطبيق)'**
+  String get importStatusInterrupted;
+
   /// No description provided for @importValidationDoesNotExist.
   ///
   /// In ar, this message translates to:

@@ -137,12 +137,12 @@ void main() {
       }
     });
 
-    test('schema is created at version 3', () async {
-      expect(db.schemaVersion, 3);
+    test('schema is created at version 4', () async {
+      expect(db.schemaVersion, 4);
       final QueryRow row = await db
           .customSelect('PRAGMA user_version;')
           .getSingle();
-      expect(row.read<int>('user_version'), 3);
+      expect(row.read<int>("user_version"), 4);
     });
 
     test('category tables carry the normalized-name columns', () async {

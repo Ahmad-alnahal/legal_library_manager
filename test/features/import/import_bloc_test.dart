@@ -7,6 +7,7 @@ import 'package:legal_library_manager/core/database/app_database.dart';
 import 'package:legal_library_manager/core/database/seeding/reference_seeder.dart';
 import 'package:legal_library_manager/core/time/clock.dart';
 import 'package:legal_library_manager/features/import/application/import_coordinator.dart';
+import 'package:legal_library_manager/features/import/application/import_job_service.dart';
 import 'package:legal_library_manager/features/import/data/repositories/drift_import_repository.dart';
 import 'package:legal_library_manager/features/import/domain/entities/folder_validation.dart';
 import 'package:legal_library_manager/features/import/domain/entities/import_batch_report.dart';
@@ -39,19 +40,23 @@ void main() {
     required FakeFileHasher hasher,
     ImportRepository? repository,
   }) {
+    final ImportRepository r = repository ?? repo;
     final coordinator = ImportCoordinator(
       validator: FakeFolderValidator(valid),
       scanner: scanner,
       hasher: hasher,
       inspector: FakePdfHealthInspector(),
-      repository: repository ?? repo,
+      repository: r,
       clock: const SystemClock(),
       runner: syncRunner,
     );
-    return ImportBloc(
+    final service = ImportJobService(
       coordinator: coordinator,
       protectedRootsProvider: provider,
+      repository: r,
+      clock: const SystemClock(),
     );
+    return ImportBloc(jobService: service);
   }
 
   test('start runs to completed with a report', () async {
@@ -155,8 +160,6 @@ void main() {
     expect(updated.recursive, isFalse);
   });
 
-  // --- BLoC active-future lifecycle ---
-
   test('closing while idle completes immediately without error', () async {
     final bloc = buildBloc(
       scanner: FakePdfScanner(const PdfScanResult(candidates: [])),
@@ -167,31 +170,46 @@ void main() {
   });
 
   test(
-    'closing during an active run cancels and settles the active future',
+    'closing BLoC while active cancels subscription but job continues in service',
     () async {
       final gate = Completer<void>();
       final fakeRepo = FakeImportRepository();
-      final bloc = buildBloc(
+      final coordinator = ImportCoordinator(
+        validator: FakeFolderValidator(valid),
         scanner: FakePdfScanner(
           PdfScanResult(candidates: [candidate(r'C:\src\a.pdf')]),
         ),
         hasher: FakeFileHasher(gate: gate),
+        inspector: FakePdfHealthInspector(),
         repository: fakeRepo,
+        clock: const SystemClock(),
+        runner: syncRunner,
       );
+      final service = ImportJobService(
+        coordinator: coordinator,
+        protectedRootsProvider: provider,
+        repository: fakeRepo,
+        clock: const SystemClock(),
+      );
+      final bloc = ImportBloc(jobService: service);
 
       bloc.add(const ImportFolderSelected(r'C:\src'));
       bloc.add(const ImportStartRequested());
       await bloc.stream.firstWhere((s) => s.isActive);
 
-      // Close (cancels token) then unblock the hasher. close() waits for the
-      // active future to settle before resolving.
-      final closeFuture = bloc.close();
-      gate.complete();
-      await closeFuture;
-
+      // Close the BLoC — this cancels the subscription, not the job.
+      await bloc.close();
       expect(bloc.isClosed, isTrue);
-      // The run was cancelled (not completed or left stuck in running).
-      expect(fakeRepo.lastStatus, ImportBatchStatus.cancelled);
+
+      // Unblock the hasher and wait for the service's own terminal snapshot
+      // BEFORE disposing, so the job completes rather than being cancelled by
+      // service.dispose().
+      gate.complete();
+      await service.snapshots.firstWhere((s) => s.isTerminal);
+
+      // Job completed (not cancelled) because BLoC disposal didn't stop it.
+      expect(fakeRepo.lastStatus, ImportBatchStatus.completed);
+      await service.dispose();
     },
   );
 
@@ -209,12 +227,9 @@ void main() {
     bloc.add(const ImportStartRequested());
     await bloc.stream.firstWhere((s) => s.isTerminal);
 
-    // Import is done; record the last known repository state.
     expect(fakeRepo.lastStatus, ImportBatchStatus.completed);
     await bloc.close();
 
-    // Status must not have changed: close() must not trigger any further
-    // repository operations on an already-settled import.
     expect(fakeRepo.lastStatus, ImportBatchStatus.completed);
     expect(bloc.isClosed, isTrue);
   });

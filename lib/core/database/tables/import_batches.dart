@@ -31,6 +31,9 @@ class ImportBatches extends Table {
   IntColumn get failedCount => integer()
       .withDefault(const Constant(0))
       .check(failedCount.isBiggerOrEqualValue(0))();
+  IntColumn get pairedCount => integer()
+      .withDefault(const Constant(0))
+      .check(pairedCount.isBiggerOrEqualValue(0))();
   TextColumn get startedAt => text()();
   TextColumn get completedAt => text().nullable()();
 }

@@ -31,6 +31,7 @@ abstract class ImportRepository {
     int? importedCount,
     int? duplicateCount,
     int? failedCount,
+    int? pairedCount,
     ImportBatchStatus? status,
     bool clearCompletedAt = false,
   });
@@ -42,8 +43,16 @@ abstract class ImportRepository {
     required int importedCount,
     required int duplicateCount,
     required int failedCount,
+    required int pairedCount,
     required DateTime now,
   });
+
+  /// Marks every batch currently in `running` state as `interrupted`.
+  ///
+  /// Called once at application startup to clean up any batch that was active
+  /// when the process was killed or crashed. Full resume behaviour is deferred
+  /// to P2.3; for now this ensures no batch is permanently stuck in `running`.
+  Future<void> markInterruptedBatches({required DateTime now});
 
   /// Marks a batch `failed` with a completion timestamp.
   Future<void> failBatch(int batchId, {required DateTime now});

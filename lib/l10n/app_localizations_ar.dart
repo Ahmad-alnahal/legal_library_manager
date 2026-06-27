@@ -479,6 +479,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get importStatusPairedWordSource => 'مصدر Word مقترن بـ PDF';
 
   @override
+  String get importStatusInterrupted => 'مقاطع (أُعيد تشغيل التطبيق)';
+
+  @override
   String get importValidationDoesNotExist => 'المجلد غير موجود.';
 
   @override

@@ -1,49 +1,42 @@
 // lib/features/import/presentation/bloc/import_bloc.dart
 
+import 'dart:async';
+
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../application/import_coordinator.dart';
+import '../../application/import_job_service.dart';
+import '../../application/import_job_snapshot.dart';
 import '../../application/import_progress.dart';
 import '../../application/import_run_report.dart';
-import '../../application/protected_roots_provider.dart';
-import '../../domain/entities/import_batch_report.dart';
-import '../../domain/entities/import_request.dart';
-import '../../domain/services/file_hasher.dart';
 
 part 'import_event.dart';
 part 'import_state.dart';
 
-/// Drives the import workflow UI: folder selection, start, live progress,
-/// cooperative cancellation, terminal report, and retry/reset.
+/// Drives the import workflow UI by subscribing to [ImportJobService].
 ///
-/// The long-running import runs as a detached future that feeds back through
-/// private progress/finished events, so the BLoC keeps processing user events
-/// (notably cancel) while an import is active. A second start is rejected while
-/// one is active, and [close] cancels any in-flight run so nothing hangs.
+/// User events (folder selection, start, cancel, retry, reset) are forwarded to
+/// the service. State updates arrive through the service's broadcast stream,
+/// translated into BLoC states. The job survives BLoC disposal — closing this
+/// BLoC cancels the subscription but never stops the running import.
 class ImportBloc extends Bloc<ImportEvent, ImportState> {
-  ImportBloc({required this.coordinator, required this.protectedRootsProvider})
-    : super(const ImportState()) {
+  ImportBloc({required this.jobService})
+    : super(_stateFromSnapshot(jobService.current)) {
     on<ImportFolderSelected>(_onFolderSelected);
     on<ImportRecursiveToggled>(_onRecursiveToggled);
     on<ImportStartRequested>(_onStartRequested);
     on<ImportCancelRequested>(_onCancelRequested);
     on<ImportRetryRequested>(_onRetryRequested);
     on<ImportResetRequested>(_onResetRequested);
-    on<ImportProgressed>(_onProgressed);
-    on<ImportFinished>(_onFinished);
-    on<ImportFailedInternally>(_onFailedInternally);
+    on<ImportJobSnapshotReceived>(_onSnapshotReceived);
+
+    _sub = jobService.snapshots.listen((ImportJobSnapshot snap) {
+      if (!isClosed) add(ImportJobSnapshotReceived(snap));
+    });
   }
 
-  final ImportCoordinator coordinator;
-  final ProtectedRootsProvider protectedRootsProvider;
-
-  MutableHashCancellation? _cancellation;
-
-  /// The currently running import or retry future. Tracked so [close] can
-  /// await its settlement, ensuring no detached repository work survives after
-  /// the BLoC is disposed.
-  Future<void>? _activeFuture;
+  final ImportJobService jobService;
+  StreamSubscription<ImportJobSnapshot>? _sub;
 
   void _onFolderSelected(
     ImportFolderSelected event,
@@ -75,9 +68,8 @@ class ImportBloc extends Bloc<ImportEvent, ImportState> {
     if (state.isActive) return;
     final String? folder = state.selectedFolder;
     if (folder == null || folder.trim().isEmpty) return;
-
-    final MutableHashCancellation cancellation = MutableHashCancellation();
-    _cancellation = cancellation;
+    // Emit validating immediately so the UI responds before the first snapshot
+    // arrives from the service's async stream delivery.
     emit(
       state.copyWith(
         status: ImportStatus.validating,
@@ -85,26 +77,7 @@ class ImportBloc extends Bloc<ImportEvent, ImportState> {
         clearReport: true,
       ),
     );
-    _activeFuture = _runImport(folder, state.recursive, cancellation)
-        .whenComplete(() {
-          _activeFuture = null;
-        });
-  }
-
-  void _onRetryRequested(
-    ImportRetryRequested event,
-    Emitter<ImportState> emit,
-  ) {
-    if (state.isActive) return;
-    final ImportRunReport? previous = state.report;
-    if (previous == null || !previous.hasRetryableFailures) return;
-
-    final MutableHashCancellation cancellation = MutableHashCancellation();
-    _cancellation = cancellation;
-    emit(state.copyWith(status: ImportStatus.importing));
-    _activeFuture = _runRetry(previous, cancellation).whenComplete(() {
-      _activeFuture = null;
-    });
+    jobService.start(folder: folder, recursive: state.recursive);
   }
 
   void _onCancelRequested(
@@ -112,8 +85,19 @@ class ImportBloc extends Bloc<ImportEvent, ImportState> {
     Emitter<ImportState> emit,
   ) {
     if (!state.isActive) return;
-    _cancellation?.cancel();
+    jobService.cancel();
     emit(state.copyWith(status: ImportStatus.cancelling));
+  }
+
+  void _onRetryRequested(
+    ImportRetryRequested event,
+    Emitter<ImportState> emit,
+  ) {
+    if (state.isActive) return;
+    final ImportRunReport? report = state.report;
+    if (report == null || !report.hasRetryableFailures) return;
+    emit(state.copyWith(status: ImportStatus.importing));
+    jobService.retry(report);
   }
 
   void _onResetRequested(
@@ -121,6 +105,7 @@ class ImportBloc extends Bloc<ImportEvent, ImportState> {
     Emitter<ImportState> emit,
   ) {
     if (state.isActive) return;
+    jobService.reset();
     emit(
       ImportState(
         selectedFolder: state.selectedFolder,
@@ -129,106 +114,73 @@ class ImportBloc extends Bloc<ImportEvent, ImportState> {
     );
   }
 
-  void _onProgressed(ImportProgressed event, Emitter<ImportState> emit) {
-    if (!state.isActive) return;
-    // While cancelling, keep the cancelling status but reflect latest progress.
-    if (state.status == ImportStatus.cancelling) {
-      emit(state.copyWith(progress: event.progress));
+  void _onSnapshotReceived(
+    ImportJobSnapshotReceived event,
+    Emitter<ImportState> emit,
+  ) {
+    final ImportJobSnapshot snap = event.snapshot;
+    if (snap.status == ImportJobStatus.idle) {
+      emit(
+        state.copyWith(
+          status: ImportStatus.idle,
+          clearProgress: true,
+          clearReport: true,
+        ),
+      );
       return;
     }
+    if (snap.isActive) {
+      emit(
+        state.copyWith(
+          status: _importStatusFrom(snap),
+          progress: snap.progress,
+        ),
+      );
+      return;
+    }
+    // Terminal snapshot.
     emit(
       state.copyWith(
-        status: _statusForPhase(event.progress.phase),
-        progress: event.progress,
+        status: _importStatusFrom(snap),
+        report: snap.report,
+        clearProgress: true,
       ),
     );
   }
 
-  void _onFinished(ImportFinished event, Emitter<ImportState> emit) {
-    _cancellation = null;
-    final ImportRunReport report = event.report;
-    final ImportStatus status = switch (report.status) {
-      ImportBatchStatus.completed => ImportStatus.completed,
-      ImportBatchStatus.cancelled => ImportStatus.cancelled,
-      ImportBatchStatus.failed => ImportStatus.failed,
-      // A terminal report should never still be "running"; treat it as a safe
-      // failure rather than silently reporting success.
-      ImportBatchStatus.running => ImportStatus.failed,
+  static ImportStatus _importStatusFrom(ImportJobSnapshot snap) {
+    return switch (snap.status) {
+      ImportJobStatus.idle => ImportStatus.idle,
+      ImportJobStatus.running => _phaseToStatus(snap.progress?.phase),
+      ImportJobStatus.cancelling => ImportStatus.cancelling,
+      ImportJobStatus.completed => ImportStatus.completed,
+      ImportJobStatus.cancelled => ImportStatus.cancelled,
+      ImportJobStatus.failed => ImportStatus.failed,
     };
-    emit(state.copyWith(status: status, report: report, clearProgress: true));
   }
 
-  void _onFailedInternally(
-    ImportFailedInternally event,
-    Emitter<ImportState> emit,
-  ) {
-    _cancellation = null;
-    emit(state.copyWith(status: ImportStatus.failed, clearProgress: true));
-  }
-
-  Future<void> _runImport(
-    String folder,
-    bool recursive,
-    MutableHashCancellation cancellation,
-  ) async {
-    try {
-      final ImportRequest request = ImportRequest(
-        sourceFolder: folder,
-        recursive: recursive,
-        protectedRoots: await protectedRootsProvider.load(),
-      );
-      final ImportRunReport report = await coordinator.run(
-        request,
-        cancellation: cancellation,
-        onProgress: _emitProgress,
-      );
-      if (!isClosed) add(ImportFinished(report));
-    } catch (_) {
-      if (!isClosed) add(const ImportFailedInternally());
-    }
-  }
-
-  Future<void> _runRetry(
-    ImportRunReport previous,
-    MutableHashCancellation cancellation,
-  ) async {
-    try {
-      final ImportRunReport report = await coordinator.retry(
-        previous,
-        cancellation: cancellation,
-        onProgress: _emitProgress,
-      );
-      if (!isClosed) add(ImportFinished(report));
-    } catch (_) {
-      if (!isClosed) add(const ImportFailedInternally());
-    }
-  }
-
-  void _emitProgress(ImportProgress progress) {
-    if (!isClosed) add(ImportProgressed(progress));
-  }
-
-  static ImportStatus _statusForPhase(ImportPhase phase) {
+  static ImportStatus _phaseToStatus(ImportPhase? phase) {
     return switch (phase) {
       ImportPhase.validating => ImportStatus.validating,
       ImportPhase.scanning => ImportStatus.scanning,
       ImportPhase.importing => ImportStatus.importing,
       ImportPhase.finalizing => ImportStatus.importing,
+      null => ImportStatus.importing,
     };
+  }
+
+  static ImportState _stateFromSnapshot(ImportJobSnapshot snap) {
+    return ImportState(
+      status: _importStatusFrom(snap),
+      progress: snap.progress,
+      report: snap.report,
+    );
   }
 
   @override
   Future<void> close() {
-    _cancellation?.cancel();
-    _cancellation = null;
-    final superFuture = super.close();
-    final active = _activeFuture;
-    _activeFuture = null;
-    if (active == null) return superFuture;
-    // Wait for both the BLoC event stream to close AND the active run to
-    // settle. After super.close(), isClosed is true, so the run's final
-    // add(ImportFinished) is already guarded and will not execute.
-    // active errors are swallowed: they are internal, already-handled failures.
-    return Future.wait([superFuture, active.then((_) {}, onError: (_) {})]);
+    _sub?.cancel();
+    _sub = null;
+    return super.close();
   }
 }

@@ -50,28 +50,15 @@ class ImportResetRequested extends ImportEvent {
   const ImportResetRequested();
 }
 
-/// Internal: a progress update emitted by the coordinator.
-class ImportProgressed extends ImportEvent {
-  const ImportProgressed(this.progress);
+/// Internal: the [ImportJobService] emitted a new snapshot.
+///
+/// Replaces the old per-phase Progressed / Finished / FailedInternally events.
+/// The BLoC's stream subscription delivers these; they are never added by UI code.
+class ImportJobSnapshotReceived extends ImportEvent {
+  const ImportJobSnapshotReceived(this.snapshot);
 
-  final ImportProgress progress;
-
-  @override
-  List<Object?> get props => [progress];
-}
-
-/// Internal: the run/retry finished with a terminal report.
-class ImportFinished extends ImportEvent {
-  const ImportFinished(this.report);
-
-  final ImportRunReport report;
+  final ImportJobSnapshot snapshot;
 
   @override
-  List<Object?> get props => [report];
-}
-
-/// Internal: an unexpected error occurred outside the coordinator's own safe
-/// handling (e.g. loading protected roots failed).
-class ImportFailedInternally extends ImportEvent {
-  const ImportFailedInternally();
+  List<Object?> get props => [snapshot];
 }

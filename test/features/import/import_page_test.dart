@@ -11,6 +11,7 @@ import 'package:legal_library_manager/core/time/clock.dart';
 import 'package:legal_library_manager/core/widgets/status_chip.dart';
 import 'package:legal_library_manager/features/import/application/folder_picker.dart';
 import 'package:legal_library_manager/features/import/application/import_coordinator.dart';
+import 'package:legal_library_manager/features/import/application/import_job_service.dart';
 import 'package:legal_library_manager/features/import/data/repositories/drift_import_repository.dart';
 import 'package:legal_library_manager/features/import/domain/entities/folder_validation.dart';
 import 'package:legal_library_manager/features/import/domain/entities/pdf_candidate.dart';
@@ -57,18 +58,22 @@ void main() {
     FakePdfHealthInspector? inspector,
     ImportRepository? repository,
   }) {
-    return ImportBloc(
+    final ImportRepository r = repository ?? repo;
+    final service = ImportJobService(
       coordinator: ImportCoordinator(
         validator: validator ?? FakeFolderValidator(valid),
         scanner: scanner,
         hasher: hasher,
         inspector: inspector ?? FakePdfHealthInspector(),
-        repository: repository ?? repo,
+        repository: r,
         clock: const SystemClock(),
         runner: syncRunner,
       ),
       protectedRootsProvider: provider,
+      repository: r,
+      clock: const SystemClock(),
     );
+    return ImportBloc(jobService: service);
   }
 
   Future<void> pumpView(

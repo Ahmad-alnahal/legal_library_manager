@@ -13342,6 +13342,19 @@ class $ImportBatchesTable extends ImportBatches
     requiredDuringInsert: false,
     defaultValue: const Constant(0),
   );
+  static const VerificationMeta _pairedCountMeta = const VerificationMeta(
+    'pairedCount',
+  );
+  @override
+  late final GeneratedColumn<int> pairedCount = GeneratedColumn<int>(
+    'paired_count',
+    aliasedName,
+    false,
+    check: () => ComparableExpr(pairedCount).isBiggerOrEqualValue(0),
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(0),
+  );
   static const VerificationMeta _startedAtMeta = const VerificationMeta(
     'startedAt',
   );
@@ -13375,6 +13388,7 @@ class $ImportBatchesTable extends ImportBatches
     importedCount,
     duplicateCount,
     failedCount,
+    pairedCount,
     startedAt,
     completedAt,
   ];
@@ -13467,6 +13481,15 @@ class $ImportBatchesTable extends ImportBatches
         ),
       );
     }
+    if (data.containsKey('paired_count')) {
+      context.handle(
+        _pairedCountMeta,
+        pairedCount.isAcceptableOrUnknown(
+          data['paired_count']!,
+          _pairedCountMeta,
+        ),
+      );
+    }
     if (data.containsKey('started_at')) {
       context.handle(
         _startedAtMeta,
@@ -13529,6 +13552,10 @@ class $ImportBatchesTable extends ImportBatches
         DriftSqlType.int,
         data['${effectivePrefix}failed_count'],
       )!,
+      pairedCount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}paired_count'],
+      )!,
       startedAt: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}started_at'],
@@ -13556,6 +13583,7 @@ class ImportBatch extends DataClass implements Insertable<ImportBatch> {
   final int importedCount;
   final int duplicateCount;
   final int failedCount;
+  final int pairedCount;
   final String startedAt;
   final String? completedAt;
   const ImportBatch({
@@ -13568,6 +13596,7 @@ class ImportBatch extends DataClass implements Insertable<ImportBatch> {
     required this.importedCount,
     required this.duplicateCount,
     required this.failedCount,
+    required this.pairedCount,
     required this.startedAt,
     this.completedAt,
   });
@@ -13583,6 +13612,7 @@ class ImportBatch extends DataClass implements Insertable<ImportBatch> {
     map['imported_count'] = Variable<int>(importedCount);
     map['duplicate_count'] = Variable<int>(duplicateCount);
     map['failed_count'] = Variable<int>(failedCount);
+    map['paired_count'] = Variable<int>(pairedCount);
     map['started_at'] = Variable<String>(startedAt);
     if (!nullToAbsent || completedAt != null) {
       map['completed_at'] = Variable<String>(completedAt);
@@ -13601,6 +13631,7 @@ class ImportBatch extends DataClass implements Insertable<ImportBatch> {
       importedCount: Value(importedCount),
       duplicateCount: Value(duplicateCount),
       failedCount: Value(failedCount),
+      pairedCount: Value(pairedCount),
       startedAt: Value(startedAt),
       completedAt: completedAt == null && nullToAbsent
           ? const Value.absent()
@@ -13623,6 +13654,7 @@ class ImportBatch extends DataClass implements Insertable<ImportBatch> {
       importedCount: serializer.fromJson<int>(json['importedCount']),
       duplicateCount: serializer.fromJson<int>(json['duplicateCount']),
       failedCount: serializer.fromJson<int>(json['failedCount']),
+      pairedCount: serializer.fromJson<int>(json['pairedCount']),
       startedAt: serializer.fromJson<String>(json['startedAt']),
       completedAt: serializer.fromJson<String?>(json['completedAt']),
     );
@@ -13640,6 +13672,7 @@ class ImportBatch extends DataClass implements Insertable<ImportBatch> {
       'importedCount': serializer.toJson<int>(importedCount),
       'duplicateCount': serializer.toJson<int>(duplicateCount),
       'failedCount': serializer.toJson<int>(failedCount),
+      'pairedCount': serializer.toJson<int>(pairedCount),
       'startedAt': serializer.toJson<String>(startedAt),
       'completedAt': serializer.toJson<String?>(completedAt),
     };
@@ -13655,6 +13688,7 @@ class ImportBatch extends DataClass implements Insertable<ImportBatch> {
     int? importedCount,
     int? duplicateCount,
     int? failedCount,
+    int? pairedCount,
     String? startedAt,
     Value<String?> completedAt = const Value.absent(),
   }) => ImportBatch(
@@ -13667,6 +13701,7 @@ class ImportBatch extends DataClass implements Insertable<ImportBatch> {
     importedCount: importedCount ?? this.importedCount,
     duplicateCount: duplicateCount ?? this.duplicateCount,
     failedCount: failedCount ?? this.failedCount,
+    pairedCount: pairedCount ?? this.pairedCount,
     startedAt: startedAt ?? this.startedAt,
     completedAt: completedAt.present ? completedAt.value : this.completedAt,
   );
@@ -13693,6 +13728,9 @@ class ImportBatch extends DataClass implements Insertable<ImportBatch> {
       failedCount: data.failedCount.present
           ? data.failedCount.value
           : this.failedCount,
+      pairedCount: data.pairedCount.present
+          ? data.pairedCount.value
+          : this.pairedCount,
       startedAt: data.startedAt.present ? data.startedAt.value : this.startedAt,
       completedAt: data.completedAt.present
           ? data.completedAt.value
@@ -13712,6 +13750,7 @@ class ImportBatch extends DataClass implements Insertable<ImportBatch> {
           ..write('importedCount: $importedCount, ')
           ..write('duplicateCount: $duplicateCount, ')
           ..write('failedCount: $failedCount, ')
+          ..write('pairedCount: $pairedCount, ')
           ..write('startedAt: $startedAt, ')
           ..write('completedAt: $completedAt')
           ..write(')'))
@@ -13729,6 +13768,7 @@ class ImportBatch extends DataClass implements Insertable<ImportBatch> {
     importedCount,
     duplicateCount,
     failedCount,
+    pairedCount,
     startedAt,
     completedAt,
   );
@@ -13745,6 +13785,7 @@ class ImportBatch extends DataClass implements Insertable<ImportBatch> {
           other.importedCount == this.importedCount &&
           other.duplicateCount == this.duplicateCount &&
           other.failedCount == this.failedCount &&
+          other.pairedCount == this.pairedCount &&
           other.startedAt == this.startedAt &&
           other.completedAt == this.completedAt);
 }
@@ -13759,6 +13800,7 @@ class ImportBatchesCompanion extends UpdateCompanion<ImportBatch> {
   final Value<int> importedCount;
   final Value<int> duplicateCount;
   final Value<int> failedCount;
+  final Value<int> pairedCount;
   final Value<String> startedAt;
   final Value<String?> completedAt;
   const ImportBatchesCompanion({
@@ -13771,6 +13813,7 @@ class ImportBatchesCompanion extends UpdateCompanion<ImportBatch> {
     this.importedCount = const Value.absent(),
     this.duplicateCount = const Value.absent(),
     this.failedCount = const Value.absent(),
+    this.pairedCount = const Value.absent(),
     this.startedAt = const Value.absent(),
     this.completedAt = const Value.absent(),
   });
@@ -13784,6 +13827,7 @@ class ImportBatchesCompanion extends UpdateCompanion<ImportBatch> {
     this.importedCount = const Value.absent(),
     this.duplicateCount = const Value.absent(),
     this.failedCount = const Value.absent(),
+    this.pairedCount = const Value.absent(),
     required String startedAt,
     this.completedAt = const Value.absent(),
   }) : batchCode = Value(batchCode),
@@ -13801,6 +13845,7 @@ class ImportBatchesCompanion extends UpdateCompanion<ImportBatch> {
     Expression<int>? importedCount,
     Expression<int>? duplicateCount,
     Expression<int>? failedCount,
+    Expression<int>? pairedCount,
     Expression<String>? startedAt,
     Expression<String>? completedAt,
   }) {
@@ -13814,6 +13859,7 @@ class ImportBatchesCompanion extends UpdateCompanion<ImportBatch> {
       if (importedCount != null) 'imported_count': importedCount,
       if (duplicateCount != null) 'duplicate_count': duplicateCount,
       if (failedCount != null) 'failed_count': failedCount,
+      if (pairedCount != null) 'paired_count': pairedCount,
       if (startedAt != null) 'started_at': startedAt,
       if (completedAt != null) 'completed_at': completedAt,
     });
@@ -13829,6 +13875,7 @@ class ImportBatchesCompanion extends UpdateCompanion<ImportBatch> {
     Value<int>? importedCount,
     Value<int>? duplicateCount,
     Value<int>? failedCount,
+    Value<int>? pairedCount,
     Value<String>? startedAt,
     Value<String?>? completedAt,
   }) {
@@ -13842,6 +13889,7 @@ class ImportBatchesCompanion extends UpdateCompanion<ImportBatch> {
       importedCount: importedCount ?? this.importedCount,
       duplicateCount: duplicateCount ?? this.duplicateCount,
       failedCount: failedCount ?? this.failedCount,
+      pairedCount: pairedCount ?? this.pairedCount,
       startedAt: startedAt ?? this.startedAt,
       completedAt: completedAt ?? this.completedAt,
     );
@@ -13877,6 +13925,9 @@ class ImportBatchesCompanion extends UpdateCompanion<ImportBatch> {
     if (failedCount.present) {
       map['failed_count'] = Variable<int>(failedCount.value);
     }
+    if (pairedCount.present) {
+      map['paired_count'] = Variable<int>(pairedCount.value);
+    }
     if (startedAt.present) {
       map['started_at'] = Variable<String>(startedAt.value);
     }
@@ -13898,6 +13949,7 @@ class ImportBatchesCompanion extends UpdateCompanion<ImportBatch> {
           ..write('importedCount: $importedCount, ')
           ..write('duplicateCount: $duplicateCount, ')
           ..write('failedCount: $failedCount, ')
+          ..write('pairedCount: $pairedCount, ')
           ..write('startedAt: $startedAt, ')
           ..write('completedAt: $completedAt')
           ..write(')'))
@@ -31939,6 +31991,7 @@ typedef $$ImportBatchesTableCreateCompanionBuilder =
       Value<int> importedCount,
       Value<int> duplicateCount,
       Value<int> failedCount,
+      Value<int> pairedCount,
       required String startedAt,
       Value<String?> completedAt,
     });
@@ -31953,6 +32006,7 @@ typedef $$ImportBatchesTableUpdateCompanionBuilder =
       Value<int> importedCount,
       Value<int> duplicateCount,
       Value<int> failedCount,
+      Value<int> pairedCount,
       Value<String> startedAt,
       Value<String?> completedAt,
     });
@@ -32040,6 +32094,11 @@ class $$ImportBatchesTableFilterComposer
 
   ColumnFilters<int> get failedCount => $composableBuilder(
     column: $table.failedCount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get pairedCount => $composableBuilder(
+    column: $table.pairedCount,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -32133,6 +32192,11 @@ class $$ImportBatchesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get pairedCount => $composableBuilder(
+    column: $table.pairedCount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get startedAt => $composableBuilder(
     column: $table.startedAt,
     builder: (column) => ColumnOrderings(column),
@@ -32189,6 +32253,11 @@ class $$ImportBatchesTableAnnotationComposer
 
   GeneratedColumn<int> get failedCount => $composableBuilder(
     column: $table.failedCount,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get pairedCount => $composableBuilder(
+    column: $table.pairedCount,
     builder: (column) => column,
   );
 
@@ -32263,6 +32332,7 @@ class $$ImportBatchesTableTableManager
                 Value<int> importedCount = const Value.absent(),
                 Value<int> duplicateCount = const Value.absent(),
                 Value<int> failedCount = const Value.absent(),
+                Value<int> pairedCount = const Value.absent(),
                 Value<String> startedAt = const Value.absent(),
                 Value<String?> completedAt = const Value.absent(),
               }) => ImportBatchesCompanion(
@@ -32275,6 +32345,7 @@ class $$ImportBatchesTableTableManager
                 importedCount: importedCount,
                 duplicateCount: duplicateCount,
                 failedCount: failedCount,
+                pairedCount: pairedCount,
                 startedAt: startedAt,
                 completedAt: completedAt,
               ),
@@ -32289,6 +32360,7 @@ class $$ImportBatchesTableTableManager
                 Value<int> importedCount = const Value.absent(),
                 Value<int> duplicateCount = const Value.absent(),
                 Value<int> failedCount = const Value.absent(),
+                Value<int> pairedCount = const Value.absent(),
                 required String startedAt,
                 Value<String?> completedAt = const Value.absent(),
               }) => ImportBatchesCompanion.insert(
@@ -32301,6 +32373,7 @@ class $$ImportBatchesTableTableManager
                 importedCount: importedCount,
                 duplicateCount: duplicateCount,
                 failedCount: failedCount,
+                pairedCount: pairedCount,
                 startedAt: startedAt,
                 completedAt: completedAt,
               ),

@@ -335,6 +335,7 @@ void main() {
         importedCount: 1,
         duplicateCount: 0,
         failedCount: 0,
+        pairedCount: 0,
         now: now,
       );
       final row = await (db.select(
