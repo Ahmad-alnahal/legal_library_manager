@@ -159,8 +159,9 @@ class DriftImportRepository implements ImportRepository {
       failedCount: row.failedCount,
       pairedCount: row.pairedCount,
       startedAt: DateTime.parse(row.startedAt),
-      completedAt:
-          row.completedAt != null ? DateTime.parse(row.completedAt!) : null,
+      completedAt: row.completedAt != null
+          ? DateTime.parse(row.completedAt!)
+          : null,
     );
   }
 

@@ -78,7 +78,7 @@ void main() {
     return ImportBloc(jobService: service);
   }
 
-  ImportHistoryBloc _buildHistoryBloc() {
+  ImportHistoryBloc buildHistoryBloc() {
     return ImportHistoryBloc(
       getRecentBatches: GetRecentImportBatchesUseCase(
         FakeImportRepository(recentBatches: const []),
@@ -100,7 +100,7 @@ void main() {
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
-    final hBloc = historyBloc ?? _buildHistoryBloc();
+    final hBloc = historyBloc ?? buildHistoryBloc();
     addTearDown(hBloc.close);
 
     await tester.pumpWidget(

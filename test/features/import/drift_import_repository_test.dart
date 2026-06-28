@@ -1,7 +1,6 @@
 // test/features/import/drift_import_repository_test.dart
 
 import 'package:drift/drift.dart' show Value;
-import 'package:legal_library_manager/features/import/domain/entities/import_batch_record.dart';
 import 'package:legal_library_manager/features/import/domain/entities/import_batch_report.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:legal_library_manager/core/database/app_database.dart';
@@ -870,8 +869,7 @@ void main() {
       if (status != ImportBatchStatus.running) {
         await repo.updateBatchProgress(ref.id, status: status);
         if (completedAt != null) {
-          await (db.update(db.importBatches)
-                ..where((b) => b.id.equals(ref.id)))
+          await (db.update(db.importBatches)..where((b) => b.id.equals(ref.id)))
               .write(ImportBatchesCompanion(completedAt: Value(completedAt)));
         }
       }

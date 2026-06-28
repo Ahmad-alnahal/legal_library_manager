@@ -17062,6 +17062,527 @@ class RecoveryCredentialsCompanion extends UpdateCompanion<RecoveryCredential> {
   }
 }
 
+class $RelatedFileCandidatesTable extends RelatedFileCandidates
+    with TableInfo<$RelatedFileCandidatesTable, RelatedFileCandidateRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $RelatedFileCandidatesTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _fileAIdMeta = const VerificationMeta(
+    'fileAId',
+  );
+  @override
+  late final GeneratedColumn<int> fileAId = GeneratedColumn<int>(
+    'file_a_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES document_files (id) ON DELETE RESTRICT',
+    ),
+  );
+  static const VerificationMeta _fileBIdMeta = const VerificationMeta(
+    'fileBId',
+  );
+  @override
+  late final GeneratedColumn<int> fileBId = GeneratedColumn<int>(
+    'file_b_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES document_files (id) ON DELETE RESTRICT',
+    ),
+  );
+  static const VerificationMeta _reasonKeyMeta = const VerificationMeta(
+    'reasonKey',
+  );
+  @override
+  late final GeneratedColumn<String> reasonKey = GeneratedColumn<String>(
+    'reason_key',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _confidenceMeta = const VerificationMeta(
+    'confidence',
+  );
+  @override
+  late final GeneratedColumn<double> confidence = GeneratedColumn<double>(
+    'confidence',
+    aliasedName,
+    false,
+    type: DriftSqlType.double,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _statusKeyMeta = const VerificationMeta(
+    'statusKey',
+  );
+  @override
+  late final GeneratedColumn<String> statusKey = GeneratedColumn<String>(
+    'status_key',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('pending'),
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<String> createdAt = GeneratedColumn<String>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<String> updatedAt = GeneratedColumn<String>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    fileAId,
+    fileBId,
+    reasonKey,
+    confidence,
+    statusKey,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'related_file_candidates';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<RelatedFileCandidateRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('file_a_id')) {
+      context.handle(
+        _fileAIdMeta,
+        fileAId.isAcceptableOrUnknown(data['file_a_id']!, _fileAIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_fileAIdMeta);
+    }
+    if (data.containsKey('file_b_id')) {
+      context.handle(
+        _fileBIdMeta,
+        fileBId.isAcceptableOrUnknown(data['file_b_id']!, _fileBIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_fileBIdMeta);
+    }
+    if (data.containsKey('reason_key')) {
+      context.handle(
+        _reasonKeyMeta,
+        reasonKey.isAcceptableOrUnknown(data['reason_key']!, _reasonKeyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_reasonKeyMeta);
+    }
+    if (data.containsKey('confidence')) {
+      context.handle(
+        _confidenceMeta,
+        confidence.isAcceptableOrUnknown(data['confidence']!, _confidenceMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_confidenceMeta);
+    }
+    if (data.containsKey('status_key')) {
+      context.handle(
+        _statusKeyMeta,
+        statusKey.isAcceptableOrUnknown(data['status_key']!, _statusKeyMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  RelatedFileCandidateRow map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return RelatedFileCandidateRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      fileAId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}file_a_id'],
+      )!,
+      fileBId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}file_b_id'],
+      )!,
+      reasonKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}reason_key'],
+      )!,
+      confidence: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}confidence'],
+      )!,
+      statusKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}status_key'],
+      )!,
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $RelatedFileCandidatesTable createAlias(String alias) {
+    return $RelatedFileCandidatesTable(attachedDatabase, alias);
+  }
+}
+
+class RelatedFileCandidateRow extends DataClass
+    implements Insertable<RelatedFileCandidateRow> {
+  final int id;
+  final int fileAId;
+  final int fileBId;
+
+  /// See `CandidateReason.key`.
+  final String reasonKey;
+
+  /// Computed confidence score, [0.0, 1.0].
+  final double confidence;
+
+  /// See `CandidateStatus.key`. Defaults to `'pending'`.
+  final String statusKey;
+  final String createdAt;
+  final String updatedAt;
+  const RelatedFileCandidateRow({
+    required this.id,
+    required this.fileAId,
+    required this.fileBId,
+    required this.reasonKey,
+    required this.confidence,
+    required this.statusKey,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['file_a_id'] = Variable<int>(fileAId);
+    map['file_b_id'] = Variable<int>(fileBId);
+    map['reason_key'] = Variable<String>(reasonKey);
+    map['confidence'] = Variable<double>(confidence);
+    map['status_key'] = Variable<String>(statusKey);
+    map['created_at'] = Variable<String>(createdAt);
+    map['updated_at'] = Variable<String>(updatedAt);
+    return map;
+  }
+
+  RelatedFileCandidatesCompanion toCompanion(bool nullToAbsent) {
+    return RelatedFileCandidatesCompanion(
+      id: Value(id),
+      fileAId: Value(fileAId),
+      fileBId: Value(fileBId),
+      reasonKey: Value(reasonKey),
+      confidence: Value(confidence),
+      statusKey: Value(statusKey),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory RelatedFileCandidateRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return RelatedFileCandidateRow(
+      id: serializer.fromJson<int>(json['id']),
+      fileAId: serializer.fromJson<int>(json['fileAId']),
+      fileBId: serializer.fromJson<int>(json['fileBId']),
+      reasonKey: serializer.fromJson<String>(json['reasonKey']),
+      confidence: serializer.fromJson<double>(json['confidence']),
+      statusKey: serializer.fromJson<String>(json['statusKey']),
+      createdAt: serializer.fromJson<String>(json['createdAt']),
+      updatedAt: serializer.fromJson<String>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'fileAId': serializer.toJson<int>(fileAId),
+      'fileBId': serializer.toJson<int>(fileBId),
+      'reasonKey': serializer.toJson<String>(reasonKey),
+      'confidence': serializer.toJson<double>(confidence),
+      'statusKey': serializer.toJson<String>(statusKey),
+      'createdAt': serializer.toJson<String>(createdAt),
+      'updatedAt': serializer.toJson<String>(updatedAt),
+    };
+  }
+
+  RelatedFileCandidateRow copyWith({
+    int? id,
+    int? fileAId,
+    int? fileBId,
+    String? reasonKey,
+    double? confidence,
+    String? statusKey,
+    String? createdAt,
+    String? updatedAt,
+  }) => RelatedFileCandidateRow(
+    id: id ?? this.id,
+    fileAId: fileAId ?? this.fileAId,
+    fileBId: fileBId ?? this.fileBId,
+    reasonKey: reasonKey ?? this.reasonKey,
+    confidence: confidence ?? this.confidence,
+    statusKey: statusKey ?? this.statusKey,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  RelatedFileCandidateRow copyWithCompanion(
+    RelatedFileCandidatesCompanion data,
+  ) {
+    return RelatedFileCandidateRow(
+      id: data.id.present ? data.id.value : this.id,
+      fileAId: data.fileAId.present ? data.fileAId.value : this.fileAId,
+      fileBId: data.fileBId.present ? data.fileBId.value : this.fileBId,
+      reasonKey: data.reasonKey.present ? data.reasonKey.value : this.reasonKey,
+      confidence: data.confidence.present
+          ? data.confidence.value
+          : this.confidence,
+      statusKey: data.statusKey.present ? data.statusKey.value : this.statusKey,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RelatedFileCandidateRow(')
+          ..write('id: $id, ')
+          ..write('fileAId: $fileAId, ')
+          ..write('fileBId: $fileBId, ')
+          ..write('reasonKey: $reasonKey, ')
+          ..write('confidence: $confidence, ')
+          ..write('statusKey: $statusKey, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    fileAId,
+    fileBId,
+    reasonKey,
+    confidence,
+    statusKey,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is RelatedFileCandidateRow &&
+          other.id == this.id &&
+          other.fileAId == this.fileAId &&
+          other.fileBId == this.fileBId &&
+          other.reasonKey == this.reasonKey &&
+          other.confidence == this.confidence &&
+          other.statusKey == this.statusKey &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class RelatedFileCandidatesCompanion
+    extends UpdateCompanion<RelatedFileCandidateRow> {
+  final Value<int> id;
+  final Value<int> fileAId;
+  final Value<int> fileBId;
+  final Value<String> reasonKey;
+  final Value<double> confidence;
+  final Value<String> statusKey;
+  final Value<String> createdAt;
+  final Value<String> updatedAt;
+  const RelatedFileCandidatesCompanion({
+    this.id = const Value.absent(),
+    this.fileAId = const Value.absent(),
+    this.fileBId = const Value.absent(),
+    this.reasonKey = const Value.absent(),
+    this.confidence = const Value.absent(),
+    this.statusKey = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  RelatedFileCandidatesCompanion.insert({
+    this.id = const Value.absent(),
+    required int fileAId,
+    required int fileBId,
+    required String reasonKey,
+    required double confidence,
+    this.statusKey = const Value.absent(),
+    required String createdAt,
+    required String updatedAt,
+  }) : fileAId = Value(fileAId),
+       fileBId = Value(fileBId),
+       reasonKey = Value(reasonKey),
+       confidence = Value(confidence),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<RelatedFileCandidateRow> custom({
+    Expression<int>? id,
+    Expression<int>? fileAId,
+    Expression<int>? fileBId,
+    Expression<String>? reasonKey,
+    Expression<double>? confidence,
+    Expression<String>? statusKey,
+    Expression<String>? createdAt,
+    Expression<String>? updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (fileAId != null) 'file_a_id': fileAId,
+      if (fileBId != null) 'file_b_id': fileBId,
+      if (reasonKey != null) 'reason_key': reasonKey,
+      if (confidence != null) 'confidence': confidence,
+      if (statusKey != null) 'status_key': statusKey,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
+  RelatedFileCandidatesCompanion copyWith({
+    Value<int>? id,
+    Value<int>? fileAId,
+    Value<int>? fileBId,
+    Value<String>? reasonKey,
+    Value<double>? confidence,
+    Value<String>? statusKey,
+    Value<String>? createdAt,
+    Value<String>? updatedAt,
+  }) {
+    return RelatedFileCandidatesCompanion(
+      id: id ?? this.id,
+      fileAId: fileAId ?? this.fileAId,
+      fileBId: fileBId ?? this.fileBId,
+      reasonKey: reasonKey ?? this.reasonKey,
+      confidence: confidence ?? this.confidence,
+      statusKey: statusKey ?? this.statusKey,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (fileAId.present) {
+      map['file_a_id'] = Variable<int>(fileAId.value);
+    }
+    if (fileBId.present) {
+      map['file_b_id'] = Variable<int>(fileBId.value);
+    }
+    if (reasonKey.present) {
+      map['reason_key'] = Variable<String>(reasonKey.value);
+    }
+    if (confidence.present) {
+      map['confidence'] = Variable<double>(confidence.value);
+    }
+    if (statusKey.present) {
+      map['status_key'] = Variable<String>(statusKey.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<String>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<String>(updatedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('RelatedFileCandidatesCompanion(')
+          ..write('id: $id, ')
+          ..write('fileAId: $fileAId, ')
+          ..write('fileBId: $fileBId, ')
+          ..write('reasonKey: $reasonKey, ')
+          ..write('confidence: $confidence, ')
+          ..write('statusKey: $statusKey, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class $SecurityAuditLogTable extends SecurityAuditLog
     with TableInfo<$SecurityAuditLogTable, SecurityAuditLogRow> {
   @override
@@ -17564,6 +18085,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
       $AccountSecurityStatesTable(this);
   late final $RecoveryCredentialsTable recoveryCredentials =
       $RecoveryCredentialsTable(this);
+  late final $RelatedFileCandidatesTable relatedFileCandidates =
+      $RelatedFileCandidatesTable(this);
   late final $SecurityAuditLogTable securityAuditLog = $SecurityAuditLogTable(
     this,
   );
@@ -17691,6 +18214,18 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     'ix_accounts_status_key',
     'CREATE INDEX ix_accounts_status_key ON accounts (status_key)',
   );
+  late final Index ixRfcFileAId = Index(
+    'ix_rfc_file_a_id',
+    'CREATE INDEX ix_rfc_file_a_id ON related_file_candidates (file_a_id)',
+  );
+  late final Index ixRfcFileBId = Index(
+    'ix_rfc_file_b_id',
+    'CREATE INDEX ix_rfc_file_b_id ON related_file_candidates (file_b_id)',
+  );
+  late final Index ixRfcStatusKey = Index(
+    'ix_rfc_status_key',
+    'CREATE INDEX ix_rfc_status_key ON related_file_candidates (status_key)',
+  );
   late final Index ixSecurityAuditLogCreatedAt = Index(
     'ix_security_audit_log_created_at',
     'CREATE INDEX ix_security_audit_log_created_at ON security_audit_log (created_at)',
@@ -17743,6 +18278,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     accounts,
     accountSecurityStates,
     recoveryCredentials,
+    relatedFileCandidates,
     securityAuditLog,
     uxDocumentsDocumentCode,
     ixDocumentsWorkflowStatusKey,
@@ -17775,6 +18311,9 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     uxAccountsUsername,
     ixAccountsRoleKey,
     ixAccountsStatusKey,
+    ixRfcFileAId,
+    ixRfcFileBId,
+    ixRfcStatusKey,
     ixSecurityAuditLogCreatedAt,
     ixSecurityAuditLogEventType,
     ixSecurityAuditLogActor,
@@ -35325,6 +35864,496 @@ typedef $$RecoveryCredentialsTableProcessedTableManager =
       RecoveryCredential,
       PrefetchHooks Function({bool accountId})
     >;
+typedef $$RelatedFileCandidatesTableCreateCompanionBuilder =
+    RelatedFileCandidatesCompanion Function({
+      Value<int> id,
+      required int fileAId,
+      required int fileBId,
+      required String reasonKey,
+      required double confidence,
+      Value<String> statusKey,
+      required String createdAt,
+      required String updatedAt,
+    });
+typedef $$RelatedFileCandidatesTableUpdateCompanionBuilder =
+    RelatedFileCandidatesCompanion Function({
+      Value<int> id,
+      Value<int> fileAId,
+      Value<int> fileBId,
+      Value<String> reasonKey,
+      Value<double> confidence,
+      Value<String> statusKey,
+      Value<String> createdAt,
+      Value<String> updatedAt,
+    });
+
+final class $$RelatedFileCandidatesTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $RelatedFileCandidatesTable,
+          RelatedFileCandidateRow
+        > {
+  $$RelatedFileCandidatesTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $DocumentFilesTable _fileAIdTable(_$AppDatabase db) =>
+      db.documentFiles.createAlias(
+        $_aliasNameGenerator(
+          db.relatedFileCandidates.fileAId,
+          db.documentFiles.id,
+        ),
+      );
+
+  $$DocumentFilesTableProcessedTableManager get fileAId {
+    final $_column = $_itemColumn<int>('file_a_id')!;
+
+    final manager = $$DocumentFilesTableTableManager(
+      $_db,
+      $_db.documentFiles,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_fileAIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $DocumentFilesTable _fileBIdTable(_$AppDatabase db) =>
+      db.documentFiles.createAlias(
+        $_aliasNameGenerator(
+          db.relatedFileCandidates.fileBId,
+          db.documentFiles.id,
+        ),
+      );
+
+  $$DocumentFilesTableProcessedTableManager get fileBId {
+    final $_column = $_itemColumn<int>('file_b_id')!;
+
+    final manager = $$DocumentFilesTableTableManager(
+      $_db,
+      $_db.documentFiles,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_fileBIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$RelatedFileCandidatesTableFilterComposer
+    extends Composer<_$AppDatabase, $RelatedFileCandidatesTable> {
+  $$RelatedFileCandidatesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get reasonKey => $composableBuilder(
+    column: $table.reasonKey,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<double> get confidence => $composableBuilder(
+    column: $table.confidence,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get statusKey => $composableBuilder(
+    column: $table.statusKey,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$DocumentFilesTableFilterComposer get fileAId {
+    final $$DocumentFilesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.fileAId,
+      referencedTable: $db.documentFiles,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DocumentFilesTableFilterComposer(
+            $db: $db,
+            $table: $db.documentFiles,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$DocumentFilesTableFilterComposer get fileBId {
+    final $$DocumentFilesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.fileBId,
+      referencedTable: $db.documentFiles,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DocumentFilesTableFilterComposer(
+            $db: $db,
+            $table: $db.documentFiles,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$RelatedFileCandidatesTableOrderingComposer
+    extends Composer<_$AppDatabase, $RelatedFileCandidatesTable> {
+  $$RelatedFileCandidatesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get reasonKey => $composableBuilder(
+    column: $table.reasonKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<double> get confidence => $composableBuilder(
+    column: $table.confidence,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get statusKey => $composableBuilder(
+    column: $table.statusKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$DocumentFilesTableOrderingComposer get fileAId {
+    final $$DocumentFilesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.fileAId,
+      referencedTable: $db.documentFiles,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DocumentFilesTableOrderingComposer(
+            $db: $db,
+            $table: $db.documentFiles,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$DocumentFilesTableOrderingComposer get fileBId {
+    final $$DocumentFilesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.fileBId,
+      referencedTable: $db.documentFiles,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DocumentFilesTableOrderingComposer(
+            $db: $db,
+            $table: $db.documentFiles,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$RelatedFileCandidatesTableAnnotationComposer
+    extends Composer<_$AppDatabase, $RelatedFileCandidatesTable> {
+  $$RelatedFileCandidatesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get reasonKey =>
+      $composableBuilder(column: $table.reasonKey, builder: (column) => column);
+
+  GeneratedColumn<double> get confidence => $composableBuilder(
+    column: $table.confidence,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get statusKey =>
+      $composableBuilder(column: $table.statusKey, builder: (column) => column);
+
+  GeneratedColumn<String> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<String> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  $$DocumentFilesTableAnnotationComposer get fileAId {
+    final $$DocumentFilesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.fileAId,
+      referencedTable: $db.documentFiles,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DocumentFilesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.documentFiles,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$DocumentFilesTableAnnotationComposer get fileBId {
+    final $$DocumentFilesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.fileBId,
+      referencedTable: $db.documentFiles,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DocumentFilesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.documentFiles,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$RelatedFileCandidatesTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $RelatedFileCandidatesTable,
+          RelatedFileCandidateRow,
+          $$RelatedFileCandidatesTableFilterComposer,
+          $$RelatedFileCandidatesTableOrderingComposer,
+          $$RelatedFileCandidatesTableAnnotationComposer,
+          $$RelatedFileCandidatesTableCreateCompanionBuilder,
+          $$RelatedFileCandidatesTableUpdateCompanionBuilder,
+          (RelatedFileCandidateRow, $$RelatedFileCandidatesTableReferences),
+          RelatedFileCandidateRow,
+          PrefetchHooks Function({bool fileAId, bool fileBId})
+        > {
+  $$RelatedFileCandidatesTableTableManager(
+    _$AppDatabase db,
+    $RelatedFileCandidatesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$RelatedFileCandidatesTableFilterComposer(
+                $db: db,
+                $table: table,
+              ),
+          createOrderingComposer: () =>
+              $$RelatedFileCandidatesTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$RelatedFileCandidatesTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> fileAId = const Value.absent(),
+                Value<int> fileBId = const Value.absent(),
+                Value<String> reasonKey = const Value.absent(),
+                Value<double> confidence = const Value.absent(),
+                Value<String> statusKey = const Value.absent(),
+                Value<String> createdAt = const Value.absent(),
+                Value<String> updatedAt = const Value.absent(),
+              }) => RelatedFileCandidatesCompanion(
+                id: id,
+                fileAId: fileAId,
+                fileBId: fileBId,
+                reasonKey: reasonKey,
+                confidence: confidence,
+                statusKey: statusKey,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required int fileAId,
+                required int fileBId,
+                required String reasonKey,
+                required double confidence,
+                Value<String> statusKey = const Value.absent(),
+                required String createdAt,
+                required String updatedAt,
+              }) => RelatedFileCandidatesCompanion.insert(
+                id: id,
+                fileAId: fileAId,
+                fileBId: fileBId,
+                reasonKey: reasonKey,
+                confidence: confidence,
+                statusKey: statusKey,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$RelatedFileCandidatesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({fileAId = false, fileBId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (fileAId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.fileAId,
+                                referencedTable:
+                                    $$RelatedFileCandidatesTableReferences
+                                        ._fileAIdTable(db),
+                                referencedColumn:
+                                    $$RelatedFileCandidatesTableReferences
+                                        ._fileAIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+                    if (fileBId) {
+                      state =
+                          state.withJoin(
+                                currentTable: table,
+                                currentColumn: table.fileBId,
+                                referencedTable:
+                                    $$RelatedFileCandidatesTableReferences
+                                        ._fileBIdTable(db),
+                                referencedColumn:
+                                    $$RelatedFileCandidatesTableReferences
+                                        ._fileBIdTable(db)
+                                        .id,
+                              )
+                              as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$RelatedFileCandidatesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $RelatedFileCandidatesTable,
+      RelatedFileCandidateRow,
+      $$RelatedFileCandidatesTableFilterComposer,
+      $$RelatedFileCandidatesTableOrderingComposer,
+      $$RelatedFileCandidatesTableAnnotationComposer,
+      $$RelatedFileCandidatesTableCreateCompanionBuilder,
+      $$RelatedFileCandidatesTableUpdateCompanionBuilder,
+      (RelatedFileCandidateRow, $$RelatedFileCandidatesTableReferences),
+      RelatedFileCandidateRow,
+      PrefetchHooks Function({bool fileAId, bool fileBId})
+    >;
 typedef $$SecurityAuditLogTableCreateCompanionBuilder =
     SecurityAuditLogCompanion Function({
       Value<int> id,
@@ -35848,6 +36877,8 @@ class $AppDatabaseManager {
       $$AccountSecurityStatesTableTableManager(_db, _db.accountSecurityStates);
   $$RecoveryCredentialsTableTableManager get recoveryCredentials =>
       $$RecoveryCredentialsTableTableManager(_db, _db.recoveryCredentials);
+  $$RelatedFileCandidatesTableTableManager get relatedFileCandidates =>
+      $$RelatedFileCandidatesTableTableManager(_db, _db.relatedFileCandidates);
   $$SecurityAuditLogTableTableManager get securityAuditLog =>
       $$SecurityAuditLogTableTableManager(_db, _db.securityAuditLog);
 }

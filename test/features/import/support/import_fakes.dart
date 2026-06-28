@@ -287,7 +287,9 @@ class FakeImportRepository implements ImportRepository {
 
   @override
   Future<List<ImportBatchRecord>> getRecentBatches({int limit = 20}) async {
-    if (failGetRecentBatches) throw StateError('getRecentBatches failed (test)');
+    if (failGetRecentBatches) {
+      throw StateError('getRecentBatches failed (test)');
+    }
     return recentBatches.take(limit).toList();
   }
 

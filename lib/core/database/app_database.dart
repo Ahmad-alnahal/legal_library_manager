@@ -25,6 +25,7 @@ import 'tables/keywords.dart';
 import 'tables/legislation_details.dart';
 import 'tables/main_categories.dart';
 import 'tables/recovery_credentials.dart';
+import 'tables/related_file_candidates.dart';
 import 'tables/reference_tables.dart';
 import 'tables/report_details.dart';
 import 'tables/research_details.dart';
@@ -79,6 +80,7 @@ part 'app_database.g.dart';
     Accounts,
     AccountSecurityStates,
     RecoveryCredentials,
+    RelatedFileCandidates,
     SecurityAuditLog,
   ],
 )
@@ -94,16 +96,16 @@ class AppDatabase extends _$AppDatabase {
   factory AppDatabase.inMemory() =>
       AppDatabase.forExecutor(NativeDatabase.memory());
 
-  /// Schema version 4 adds `paired_count` to `import_batches` (P2.1) to track
-  /// paired `.doc`+`.pdf` sources as a distinct counter alongside the existing
-  /// imported/duplicate/failed counts.
+  /// Schema version 5 adds the `related_file_candidates` table (P2.4) for
+  /// candidate pairs of files that may represent the same logical document but
+  /// differ in name, format, or location.
   ///
-  /// Version 3 added the four security tables (accounts,
-  /// account_security_state, recovery_credentials, security_audit_log) for
-  /// M14. Version 2 added normalized category-name columns and unique indexes
-  /// (M6.4). Version 1 databases are migrated through all steps in sequence.
+  /// Version 4 added `paired_count` to `import_batches` (P2.1).
+  /// Version 3 added the four security tables (M14).
+  /// Version 2 added normalized category-name columns (M6.4).
+  /// Version 1 databases are migrated through all steps in sequence.
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -123,6 +125,9 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from < 4) {
         await _migrateV3ToV4();
+      }
+      if (from < 5) {
+        await _migrateV4ToV5(m);
       }
     },
     beforeOpen: (OpeningDetails details) async {
@@ -195,6 +200,14 @@ class AppDatabase extends _$AppDatabase {
       'ALTER TABLE import_batches '
       'ADD COLUMN paired_count INTEGER NOT NULL DEFAULT 0',
     );
+  }
+
+  /// Adds the `related_file_candidates` table (P2.4).
+  ///
+  /// Safe for existing V4 databases: no existing rows are touched. The table is
+  /// created fresh with all columns and constraints.
+  Future<void> _migrateV4ToV5(Migrator m) async {
+    await m.createTable(relatedFileCandidates);
   }
 
   /// Adds the four M14 security tables to a v2 database.

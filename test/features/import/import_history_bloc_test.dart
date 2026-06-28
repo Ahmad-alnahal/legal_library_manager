@@ -45,24 +45,27 @@ void main() {
     expect(bloc.state.batches, isEmpty);
   });
 
-  test('emits loading then loaded with empty list when repo is empty', () async {
-    final bloc = _buildBloc();
-    addTearDown(bloc.close);
+  test(
+    'emits loading then loaded with empty list when repo is empty',
+    () async {
+      final bloc = _buildBloc();
+      addTearDown(bloc.close);
 
-    await expectLater(
-      bloc.stream,
-      emitsInOrder([
-        predicate<ImportHistoryState>(
-          (s) => s.status == ImportHistoryStatus.loading,
-          'loading',
-        ),
-        predicate<ImportHistoryState>(
-          (s) => s.status == ImportHistoryStatus.loaded && s.batches.isEmpty,
-          'loaded with empty list',
-        ),
-      ]),
-    );
-  });
+      await expectLater(
+        bloc.stream,
+        emitsInOrder([
+          predicate<ImportHistoryState>(
+            (s) => s.status == ImportHistoryStatus.loading,
+            'loading',
+          ),
+          predicate<ImportHistoryState>(
+            (s) => s.status == ImportHistoryStatus.loaded && s.batches.isEmpty,
+            'loaded with empty list',
+          ),
+        ]),
+      );
+    },
+  );
 
   test('emits loaded with batches when repo returns records', () async {
     final repo = FakeImportRepository(recentBatches: [_fakeBatch()]);
@@ -80,7 +83,9 @@ void main() {
     final bloc = _buildBloc(repo: repo);
     addTearDown(bloc.close);
 
-    await bloc.stream.firstWhere((s) => s.status == ImportHistoryStatus.failure);
+    await bloc.stream.firstWhere(
+      (s) => s.status == ImportHistoryStatus.failure,
+    );
 
     expect(bloc.state.batches, isEmpty);
   });

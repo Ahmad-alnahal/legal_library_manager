@@ -126,6 +126,9 @@ import '../../features/word_conversion/domain/services/word_converter.dart';
 import '../../features/word_conversion/domain/services/word_output_filesystem.dart';
 import '../database/app_database.dart';
 import '../time/clock.dart';
+import '../../features/related_files/application/generate_related_file_candidates_use_case.dart';
+import '../../features/related_files/data/repositories/drift_related_file_candidate_repository.dart';
+import '../../features/related_files/domain/repositories/related_file_candidate_repository.dart';
 
 /// Global service locator.
 final GetIt getIt = GetIt.instance;
@@ -196,6 +199,15 @@ void configureDependencies() {
       () => ImportHistoryBloc(
         getRecentBatches: getIt<GetRecentImportBatchesUseCase>(),
         jobSnapshots: getIt<ImportJobService>().snapshots,
+      ),
+    )
+    ..registerLazySingleton<RelatedFileCandidateRepository>(
+      () => DriftRelatedFileCandidateRepository(getIt<AppDatabase>()),
+    )
+    ..registerLazySingleton<GenerateRelatedFileCandidatesUseCase>(
+      () => GenerateRelatedFileCandidatesUseCase(
+        candidateRepository: getIt<RelatedFileCandidateRepository>(),
+        clock: getIt<Clock>(),
       ),
     )
     ..registerLazySingleton<DocumentListRepository>(
