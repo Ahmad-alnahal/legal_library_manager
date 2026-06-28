@@ -24,6 +24,8 @@ import '../../domain/entities/import_error.dart';
 import '../bloc/import_bloc.dart';
 import '../bloc/import_history_bloc.dart';
 import '../widgets/import_history_section.dart';
+import '../../../related_files/presentation/bloc/related_review_bloc.dart';
+import '../../../related_files/presentation/widgets/related_review_section.dart';
 
 /// Import screen: provides [ImportBloc] and [ImportHistoryBloc], then
 /// renders the workflow in [ImportView].
@@ -37,6 +39,9 @@ class ImportPage extends StatelessWidget {
         BlocProvider<ImportBloc>(create: (_) => getIt<ImportBloc>()),
         BlocProvider<ImportHistoryBloc>(
           create: (_) => getIt<ImportHistoryBloc>(),
+        ),
+        BlocProvider<RelatedReviewBloc>(
+          create: (_) => getIt<RelatedReviewBloc>(),
         ),
       ],
       child: ImportView(picker: getIt<FolderPicker>()),
@@ -92,6 +97,8 @@ class ImportView extends StatelessWidget {
               onReuseFolder: (folder) =>
                   context.read<ImportBloc>().add(ImportFolderSelected(folder)),
             ),
+            const SizedBox(height: AppSpacing.lg),
+            const RelatedReviewSection(),
           ],
         );
       },

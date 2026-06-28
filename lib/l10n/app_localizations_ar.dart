@@ -1319,4 +1319,58 @@ class AppLocalizationsAr extends AppLocalizations {
   String importHistorySummaryLine(int imported, int failed, int discovered) {
     return '$imported جديد · $failed متعذّر · $discovered مكتشف';
   }
+
+  @override
+  String get relatedReviewTitle => 'ملفات مترابطة مقترحة';
+
+  @override
+  String get relatedReviewEmpty =>
+      'لا توجد ملفات مقترحة للمراجعة في الوقت الحالي.';
+
+  @override
+  String get relatedReviewLoadError => 'تعذّر تحميل الملفات المقترحة.';
+
+  @override
+  String get relatedReviewActionError =>
+      'حدث خطأ أثناء معالجة الإجراء. حاول مرة أخرى.';
+
+  @override
+  String get relatedReviewConfirm => 'تأكيد الترابط';
+
+  @override
+  String get relatedReviewReject => 'رفض';
+
+  @override
+  String get relatedReviewDismiss => 'تجاهل';
+
+  @override
+  String get relatedReviewFileA => 'الملف الأول';
+
+  @override
+  String get relatedReviewFileB => 'الملف الثاني';
+
+  @override
+  String get relatedReviewDocument => 'المستند';
+
+  @override
+  String relatedReviewConfidencePercent(int percent) {
+    return '$percent٪ ثقة';
+  }
+
+  @override
+  String get relatedReviewReasonDocPdf => 'ملف Word ونسخة PDF';
+
+  @override
+  String get relatedReviewReasonNearFolder => 'ملفان في نفس المجلد باسم مشابه';
+
+  @override
+  String get relatedReviewReasonTitleSimilarity => 'تشابه في عنوان المستند';
+
+  @override
+  String get relatedReviewReasonSimilarBasename => 'اسم ملف مشابه';
+
+  @override
+  String relatedReviewCount(int count) {
+    return '$count اقتراح';
+  }
 }

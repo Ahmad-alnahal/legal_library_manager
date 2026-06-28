@@ -2457,6 +2457,102 @@ abstract class AppLocalizations {
   /// In ar, this message translates to:
   /// **'{imported} جديد · {failed} متعذّر · {discovered} مكتشف'**
   String importHistorySummaryLine(int imported, int failed, int discovered);
+
+  /// No description provided for @relatedReviewTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'ملفات مترابطة مقترحة'**
+  String get relatedReviewTitle;
+
+  /// No description provided for @relatedReviewEmpty.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا توجد ملفات مقترحة للمراجعة في الوقت الحالي.'**
+  String get relatedReviewEmpty;
+
+  /// No description provided for @relatedReviewLoadError.
+  ///
+  /// In ar, this message translates to:
+  /// **'تعذّر تحميل الملفات المقترحة.'**
+  String get relatedReviewLoadError;
+
+  /// No description provided for @relatedReviewActionError.
+  ///
+  /// In ar, this message translates to:
+  /// **'حدث خطأ أثناء معالجة الإجراء. حاول مرة أخرى.'**
+  String get relatedReviewActionError;
+
+  /// No description provided for @relatedReviewConfirm.
+  ///
+  /// In ar, this message translates to:
+  /// **'تأكيد الترابط'**
+  String get relatedReviewConfirm;
+
+  /// No description provided for @relatedReviewReject.
+  ///
+  /// In ar, this message translates to:
+  /// **'رفض'**
+  String get relatedReviewReject;
+
+  /// No description provided for @relatedReviewDismiss.
+  ///
+  /// In ar, this message translates to:
+  /// **'تجاهل'**
+  String get relatedReviewDismiss;
+
+  /// No description provided for @relatedReviewFileA.
+  ///
+  /// In ar, this message translates to:
+  /// **'الملف الأول'**
+  String get relatedReviewFileA;
+
+  /// No description provided for @relatedReviewFileB.
+  ///
+  /// In ar, this message translates to:
+  /// **'الملف الثاني'**
+  String get relatedReviewFileB;
+
+  /// No description provided for @relatedReviewDocument.
+  ///
+  /// In ar, this message translates to:
+  /// **'المستند'**
+  String get relatedReviewDocument;
+
+  /// No description provided for @relatedReviewConfidencePercent.
+  ///
+  /// In ar, this message translates to:
+  /// **'{percent}٪ ثقة'**
+  String relatedReviewConfidencePercent(int percent);
+
+  /// No description provided for @relatedReviewReasonDocPdf.
+  ///
+  /// In ar, this message translates to:
+  /// **'ملف Word ونسخة PDF'**
+  String get relatedReviewReasonDocPdf;
+
+  /// No description provided for @relatedReviewReasonNearFolder.
+  ///
+  /// In ar, this message translates to:
+  /// **'ملفان في نفس المجلد باسم مشابه'**
+  String get relatedReviewReasonNearFolder;
+
+  /// No description provided for @relatedReviewReasonTitleSimilarity.
+  ///
+  /// In ar, this message translates to:
+  /// **'تشابه في عنوان المستند'**
+  String get relatedReviewReasonTitleSimilarity;
+
+  /// No description provided for @relatedReviewReasonSimilarBasename.
+  ///
+  /// In ar, this message translates to:
+  /// **'اسم ملف مشابه'**
+  String get relatedReviewReasonSimilarBasename;
+
+  /// No description provided for @relatedReviewCount.
+  ///
+  /// In ar, this message translates to:
+  /// **'{count} اقتراح'**
+  String relatedReviewCount(int count);
 }
 
 class _AppLocalizationsDelegate

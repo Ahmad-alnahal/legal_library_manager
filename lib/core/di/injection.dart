@@ -127,8 +127,11 @@ import '../../features/word_conversion/domain/services/word_output_filesystem.da
 import '../database/app_database.dart';
 import '../time/clock.dart';
 import '../../features/related_files/application/generate_related_file_candidates_use_case.dart';
+import '../../features/related_files/application/load_pending_candidates_use_case.dart';
+import '../../features/related_files/application/update_candidate_status_use_case.dart';
 import '../../features/related_files/data/repositories/drift_related_file_candidate_repository.dart';
 import '../../features/related_files/domain/repositories/related_file_candidate_repository.dart';
+import '../../features/related_files/presentation/bloc/related_review_bloc.dart';
 
 /// Global service locator.
 final GetIt getIt = GetIt.instance;
@@ -208,6 +211,22 @@ void configureDependencies() {
       () => GenerateRelatedFileCandidatesUseCase(
         candidateRepository: getIt<RelatedFileCandidateRepository>(),
         clock: getIt<Clock>(),
+      ),
+    )
+    ..registerLazySingleton<LoadPendingCandidatesUseCase>(
+      () =>
+          LoadPendingCandidatesUseCase(getIt<RelatedFileCandidateRepository>()),
+    )
+    ..registerLazySingleton<UpdateCandidateStatusUseCase>(
+      () => UpdateCandidateStatusUseCase(
+        getIt<RelatedFileCandidateRepository>(),
+        getIt<Clock>(),
+      ),
+    )
+    ..registerFactory<RelatedReviewBloc>(
+      () => RelatedReviewBloc(
+        loadCandidates: getIt<LoadPendingCandidatesUseCase>(),
+        updateStatus: getIt<UpdateCandidateStatusUseCase>(),
       ),
     )
     ..registerLazySingleton<DocumentListRepository>(

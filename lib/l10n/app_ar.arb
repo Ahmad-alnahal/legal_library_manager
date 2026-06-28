@@ -527,5 +527,32 @@
       "failed": { "type": "int" },
       "discovered": { "type": "int" }
     }
+  },
+
+  "relatedReviewTitle": "ملفات مترابطة مقترحة",
+  "relatedReviewEmpty": "لا توجد ملفات مقترحة للمراجعة في الوقت الحالي.",
+  "relatedReviewLoadError": "تعذّر تحميل الملفات المقترحة.",
+  "relatedReviewActionError": "حدث خطأ أثناء معالجة الإجراء. حاول مرة أخرى.",
+  "relatedReviewConfirm": "تأكيد الترابط",
+  "relatedReviewReject": "رفض",
+  "relatedReviewDismiss": "تجاهل",
+  "relatedReviewFileA": "الملف الأول",
+  "relatedReviewFileB": "الملف الثاني",
+  "relatedReviewDocument": "المستند",
+  "relatedReviewConfidencePercent": "{percent}٪ ثقة",
+  "@relatedReviewConfidencePercent": {
+    "placeholders": {
+      "percent": { "type": "int" }
+    }
+  },
+  "relatedReviewReasonDocPdf": "ملف Word ونسخة PDF",
+  "relatedReviewReasonNearFolder": "ملفان في نفس المجلد باسم مشابه",
+  "relatedReviewReasonTitleSimilarity": "تشابه في عنوان المستند",
+  "relatedReviewReasonSimilarBasename": "اسم ملف مشابه",
+  "relatedReviewCount": "{count} اقتراح",
+  "@relatedReviewCount": {
+    "placeholders": {
+      "count": { "type": "int" }
+    }
   }
 }

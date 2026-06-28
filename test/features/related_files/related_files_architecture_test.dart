@@ -4,11 +4,11 @@ import 'dart:io';
 
 import 'package:flutter_test/flutter_test.dart';
 
-/// Guards P2.4 layering:
+/// Guards P2.5 layering:
 /// - domain layer (entities + repository) must not import Drift or Flutter;
 /// - application layer must not import Drift or Flutter;
 /// - data layer must not import Flutter;
-/// - no presentation directory must exist (P2.4 has no UI).
+/// - presentation layer must not import Drift.
 void main() {
   Iterable<File> dartFilesIn(String path) {
     final dir = Directory(path);
@@ -94,16 +94,26 @@ void main() {
     });
   });
 
-  group('P2.4 presentation guard', () {
-    test('no presentation directory exists for related_files in P2.4', () {
+  group('related_files presentation layer', () {
+    test('presentation directory exists (P2.5 added it)', () {
       final dir = Directory('lib/features/related_files/presentation');
       expect(
         dir.existsSync(),
-        isFalse,
-        reason:
-            'lib/features/related_files/presentation/ must not exist in P2.4 '
-            '(review UI is deferred to P2.5)',
+        isTrue,
+        reason: 'lib/features/related_files/presentation/ must exist in P2.5',
       );
+    });
+
+    test('presentation layer does not import Drift', () {
+      for (final file in dartFilesIn(
+        'lib/features/related_files/presentation',
+      )) {
+        expect(
+          containsDrift(file),
+          isFalse,
+          reason: '${file.path} must not import Drift',
+        );
+      }
     });
   });
 }

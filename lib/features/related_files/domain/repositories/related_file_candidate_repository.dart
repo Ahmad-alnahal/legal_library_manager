@@ -3,6 +3,7 @@
 import '../entities/candidate_input.dart';
 import '../entities/candidate_status.dart';
 import '../entities/related_file_candidate.dart';
+import '../entities/related_file_review_row.dart';
 
 /// Persistence contract for related-file candidates.
 ///
@@ -32,4 +33,8 @@ abstract class RelatedFileCandidateRepository {
     CandidateStatus status,
     DateTime now,
   );
+
+  /// Returns enriched pending candidates for the review UI, ordered by
+  /// confidence DESC (highest confidence first), limited to [limit] rows.
+  Future<List<RelatedFileReviewRow>> listPendingForReview({int limit = 50});
 }

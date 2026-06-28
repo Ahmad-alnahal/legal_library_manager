@@ -22,8 +22,12 @@ import 'package:legal_library_manager/features/import/domain/usecases/get_recent
 import 'package:legal_library_manager/features/import/presentation/bloc/import_bloc.dart';
 import 'package:legal_library_manager/features/import/presentation/bloc/import_history_bloc.dart';
 import 'package:legal_library_manager/features/import/presentation/pages/import_page.dart';
+import 'package:legal_library_manager/features/related_files/application/load_pending_candidates_use_case.dart';
+import 'package:legal_library_manager/features/related_files/application/update_candidate_status_use_case.dart';
+import 'package:legal_library_manager/features/related_files/presentation/bloc/related_review_bloc.dart';
 import 'package:legal_library_manager/l10n/app_localizations.dart';
 
+import '../related_files/support/related_file_fakes.dart';
 import 'support/import_fakes.dart';
 
 // Stable Arabic strings (mirror lib/l10n/app_ar.arb).
@@ -87,6 +91,14 @@ void main() {
     );
   }
 
+  RelatedReviewBloc buildReviewBloc() {
+    final fakeRepo = FakeRelatedFileCandidateRepository();
+    return RelatedReviewBloc(
+      loadCandidates: LoadPendingCandidatesUseCase(fakeRepo),
+      updateStatus: UpdateCandidateStatusUseCase(fakeRepo, const SystemClock()),
+    );
+  }
+
   Future<void> pumpView(
     WidgetTester tester,
     ImportBloc bloc, {
@@ -102,6 +114,8 @@ void main() {
 
     final hBloc = historyBloc ?? buildHistoryBloc();
     addTearDown(hBloc.close);
+    final rBloc = buildReviewBloc();
+    addTearDown(rBloc.close);
 
     await tester.pumpWidget(
       MaterialApp(
@@ -113,6 +127,7 @@ void main() {
             providers: [
               BlocProvider<ImportBloc>.value(value: bloc),
               BlocProvider<ImportHistoryBloc>.value(value: hBloc),
+              BlocProvider<RelatedReviewBloc>.value(value: rBloc),
             ],
             child: ImportView(picker: picker ?? FakeFolderPicker(pickerPath)),
           ),
