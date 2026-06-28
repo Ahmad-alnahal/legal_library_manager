@@ -504,5 +504,28 @@
       "completed": { "type": "int" },
       "total": { "type": "int" }
     }
+  },
+
+  "importHistoryTitle": "سجل الاستيراد",
+  "importHistoryEmpty": "لا توجد عمليات استيراد سابقة.",
+  "importHistoryStatusCompleted": "مكتمل",
+  "importHistoryStatusFailed": "فشل",
+  "importHistoryStatusCancelled": "ملغى",
+  "importHistoryStatusInterrupted": "انقطع",
+  "importHistoryInterruptedNote": "توقف الاستيراد بسبب إغلاق التطبيق. الاستئناف التلقائي غير مدعوم حالياً.",
+  "importHistoryReuseFolder": "استيراد جديد من نفس المجلد",
+  "importHistoryStartedAt": "بدأ في {time}",
+  "@importHistoryStartedAt": {
+    "placeholders": {
+      "time": { "type": "String" }
+    }
+  },
+  "importHistorySummaryLine": "{imported} جديد · {failed} متعذّر · {discovered} مكتشف",
+  "@importHistorySummaryLine": {
+    "placeholders": {
+      "imported": { "type": "int" },
+      "failed": { "type": "int" },
+      "discovered": { "type": "int" }
+    }
   }
 }

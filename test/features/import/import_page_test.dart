@@ -18,7 +18,9 @@ import 'package:legal_library_manager/features/import/domain/entities/pdf_candid
 import 'package:legal_library_manager/features/import/domain/entities/pdf_health_result.dart';
 import 'package:legal_library_manager/features/import/domain/entities/protected_roots.dart';
 import 'package:legal_library_manager/features/import/domain/repositories/import_repository.dart';
+import 'package:legal_library_manager/features/import/domain/usecases/get_recent_import_batches_use_case.dart';
 import 'package:legal_library_manager/features/import/presentation/bloc/import_bloc.dart';
+import 'package:legal_library_manager/features/import/presentation/bloc/import_history_bloc.dart';
 import 'package:legal_library_manager/features/import/presentation/pages/import_page.dart';
 import 'package:legal_library_manager/l10n/app_localizations.dart';
 
@@ -76,17 +78,30 @@ void main() {
     return ImportBloc(jobService: service);
   }
 
+  ImportHistoryBloc _buildHistoryBloc() {
+    return ImportHistoryBloc(
+      getRecentBatches: GetRecentImportBatchesUseCase(
+        FakeImportRepository(recentBatches: const []),
+      ),
+      jobSnapshots: const Stream.empty(),
+    );
+  }
+
   Future<void> pumpView(
     WidgetTester tester,
     ImportBloc bloc, {
     Size size = const Size(1280, 800),
     String? pickerPath,
     FolderPicker? picker,
+    ImportHistoryBloc? historyBloc,
   }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = size;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
+
+    final hBloc = historyBloc ?? _buildHistoryBloc();
+    addTearDown(hBloc.close);
 
     await tester.pumpWidget(
       MaterialApp(
@@ -94,8 +109,11 @@ void main() {
         supportedLocales: AppLocalizations.supportedLocales,
         localizationsDelegates: AppLocalizations.localizationsDelegates,
         home: Scaffold(
-          body: BlocProvider<ImportBloc>.value(
-            value: bloc,
+          body: MultiBlocProvider(
+            providers: [
+              BlocProvider<ImportBloc>.value(value: bloc),
+              BlocProvider<ImportHistoryBloc>.value(value: hBloc),
+            ],
             child: ImportView(picker: picker ?? FakeFolderPicker(pickerPath)),
           ),
         ),

@@ -1,6 +1,8 @@
 // test/features/import/drift_import_repository_test.dart
 
 import 'package:drift/drift.dart' show Value;
+import 'package:legal_library_manager/features/import/domain/entities/import_batch_record.dart';
+import 'package:legal_library_manager/features/import/domain/entities/import_batch_report.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:legal_library_manager/core/database/app_database.dart';
 import 'package:legal_library_manager/core/database/seeding/reference_seeder.dart';
@@ -850,6 +852,115 @@ void main() {
           .map((b) => b.batchCode)
           .toList();
       expect(codes, ['IMPORT-0000001']);
+    });
+  });
+
+  group('getRecentBatches', () {
+    Future<ImportBatchRef> insertBatch(
+      String folder,
+      ImportBatchStatus status,
+      String startedAt, {
+      String? completedAt,
+    }) async {
+      final ref = await repo.createBatch(
+        sourceFolder: folder,
+        recursive: false,
+        now: DateTime.parse(startedAt),
+      );
+      if (status != ImportBatchStatus.running) {
+        await repo.updateBatchProgress(ref.id, status: status);
+        if (completedAt != null) {
+          await (db.update(db.importBatches)
+                ..where((b) => b.id.equals(ref.id)))
+              .write(ImportBatchesCompanion(completedAt: Value(completedAt)));
+        }
+      }
+      return ref;
+    }
+
+    test('returns empty list when no batches exist', () async {
+      final result = await repo.getRecentBatches();
+      expect(result, isEmpty);
+    });
+
+    test('returns batches ordered newest-first by startedAt', () async {
+      await insertBatch(
+        r'C:\folderA',
+        ImportBatchStatus.completed,
+        '2026-06-01T10:00:00.000Z',
+        completedAt: '2026-06-01T10:05:00.000Z',
+      );
+      await insertBatch(
+        r'C:\folderB',
+        ImportBatchStatus.failed,
+        '2026-06-02T10:00:00.000Z',
+        completedAt: '2026-06-02T10:01:00.000Z',
+      );
+      await insertBatch(
+        r'C:\folderC',
+        ImportBatchStatus.interrupted,
+        '2026-06-03T10:00:00.000Z',
+      );
+
+      final result = await repo.getRecentBatches();
+
+      expect(result, hasLength(3));
+      expect(result[0].sourceFolder, r'C:\folderC');
+      expect(result[1].sourceFolder, r'C:\folderB');
+      expect(result[2].sourceFolder, r'C:\folderA');
+    });
+
+    test('respects the limit parameter', () async {
+      for (var i = 1; i <= 5; i++) {
+        await insertBatch(
+          r'C:\folder',
+          ImportBatchStatus.completed,
+          '2026-06-0${i}T10:00:00.000Z',
+        );
+      }
+
+      final result = await repo.getRecentBatches(limit: 3);
+
+      expect(result, hasLength(3));
+    });
+
+    test('maps status keys to ImportBatchStatus correctly', () async {
+      await insertBatch(
+        r'C:\src',
+        ImportBatchStatus.cancelled,
+        '2026-06-01T10:00:00.000Z',
+      );
+
+      final result = await repo.getRecentBatches();
+
+      expect(result.single.status, ImportBatchStatus.cancelled);
+    });
+
+    test('maps all count fields from the row', () async {
+      final ref = await repo.createBatch(
+        sourceFolder: r'C:\src',
+        recursive: true,
+        now: DateTime.utc(2026, 6, 1, 10),
+      );
+      await repo.completeBatch(
+        ref.id,
+        discoveredCount: 10,
+        importedCount: 7,
+        duplicateCount: 2,
+        failedCount: 1,
+        pairedCount: 3,
+        now: DateTime.utc(2026, 6, 1, 11),
+      );
+
+      final result = await repo.getRecentBatches();
+      final record = result.single;
+
+      expect(record.discoveredCount, 10);
+      expect(record.importedCount, 7);
+      expect(record.duplicateCount, 2);
+      expect(record.failedCount, 1);
+      expect(record.pairedCount, 3);
+      expect(record.completedAt, isNotNull);
     });
   });
 }

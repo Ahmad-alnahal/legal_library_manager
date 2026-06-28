@@ -25,7 +25,9 @@ import '../../features/import/domain/services/file_hasher.dart';
 import '../../features/import/domain/services/folder_validator.dart';
 import '../../features/import/domain/services/pdf_health_inspector.dart';
 import '../../features/import/domain/services/pdf_scanner.dart';
+import '../../features/import/domain/usecases/get_recent_import_batches_use_case.dart';
 import '../../features/import/presentation/bloc/import_bloc.dart';
+import '../../features/import/presentation/bloc/import_history_bloc.dart';
 import '../../features/import/presentation/bloc/import_status_bloc.dart';
 import '../../features/documents/data/repositories/drift_document_list_repository.dart';
 import '../../features/documents/data/repositories/drift_document_metadata_repository.dart';
@@ -186,6 +188,15 @@ void configureDependencies() {
     )
     ..registerFactory<ImportStatusBloc>(
       () => ImportStatusBloc(jobService: getIt<ImportJobService>()),
+    )
+    ..registerLazySingleton<GetRecentImportBatchesUseCase>(
+      () => GetRecentImportBatchesUseCase(getIt<ImportRepository>()),
+    )
+    ..registerFactory<ImportHistoryBloc>(
+      () => ImportHistoryBloc(
+        getRecentBatches: getIt<GetRecentImportBatchesUseCase>(),
+        jobSnapshots: getIt<ImportJobService>().snapshots,
+      ),
     )
     ..registerLazySingleton<DocumentListRepository>(
       () => DriftDocumentListRepository(getIt<AppDatabase>()),

@@ -1284,4 +1284,39 @@ class AppLocalizationsAr extends AppLocalizations {
   String conversionWorkQueueProgress(int completed, int total) {
     return '$completed من $total ملفات اكتملت';
   }
+
+  @override
+  String get importHistoryTitle => 'سجل الاستيراد';
+
+  @override
+  String get importHistoryEmpty => 'لا توجد عمليات استيراد سابقة.';
+
+  @override
+  String get importHistoryStatusCompleted => 'مكتمل';
+
+  @override
+  String get importHistoryStatusFailed => 'فشل';
+
+  @override
+  String get importHistoryStatusCancelled => 'ملغى';
+
+  @override
+  String get importHistoryStatusInterrupted => 'انقطع';
+
+  @override
+  String get importHistoryInterruptedNote =>
+      'توقف الاستيراد بسبب إغلاق التطبيق. الاستئناف التلقائي غير مدعوم حالياً.';
+
+  @override
+  String get importHistoryReuseFolder => 'استيراد جديد من نفس المجلد';
+
+  @override
+  String importHistoryStartedAt(String time) {
+    return 'بدأ في $time';
+  }
+
+  @override
+  String importHistorySummaryLine(int imported, int failed, int discovered) {
+    return '$imported جديد · $failed متعذّر · $discovered مكتشف';
+  }
 }

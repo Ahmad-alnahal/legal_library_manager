@@ -2397,6 +2397,66 @@ abstract class AppLocalizations {
   /// In ar, this message translates to:
   /// **'{completed} من {total} ملفات اكتملت'**
   String conversionWorkQueueProgress(int completed, int total);
+
+  /// No description provided for @importHistoryTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'سجل الاستيراد'**
+  String get importHistoryTitle;
+
+  /// No description provided for @importHistoryEmpty.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا توجد عمليات استيراد سابقة.'**
+  String get importHistoryEmpty;
+
+  /// No description provided for @importHistoryStatusCompleted.
+  ///
+  /// In ar, this message translates to:
+  /// **'مكتمل'**
+  String get importHistoryStatusCompleted;
+
+  /// No description provided for @importHistoryStatusFailed.
+  ///
+  /// In ar, this message translates to:
+  /// **'فشل'**
+  String get importHistoryStatusFailed;
+
+  /// No description provided for @importHistoryStatusCancelled.
+  ///
+  /// In ar, this message translates to:
+  /// **'ملغى'**
+  String get importHistoryStatusCancelled;
+
+  /// No description provided for @importHistoryStatusInterrupted.
+  ///
+  /// In ar, this message translates to:
+  /// **'انقطع'**
+  String get importHistoryStatusInterrupted;
+
+  /// No description provided for @importHistoryInterruptedNote.
+  ///
+  /// In ar, this message translates to:
+  /// **'توقف الاستيراد بسبب إغلاق التطبيق. الاستئناف التلقائي غير مدعوم حالياً.'**
+  String get importHistoryInterruptedNote;
+
+  /// No description provided for @importHistoryReuseFolder.
+  ///
+  /// In ar, this message translates to:
+  /// **'استيراد جديد من نفس المجلد'**
+  String get importHistoryReuseFolder;
+
+  /// No description provided for @importHistoryStartedAt.
+  ///
+  /// In ar, this message translates to:
+  /// **'بدأ في {time}'**
+  String importHistoryStartedAt(String time);
+
+  /// No description provided for @importHistorySummaryLine.
+  ///
+  /// In ar, this message translates to:
+  /// **'{imported} جديد · {failed} متعذّر · {discovered} مكتشف'**
+  String importHistorySummaryLine(int imported, int failed, int discovered);
 }
 
 class _AppLocalizationsDelegate

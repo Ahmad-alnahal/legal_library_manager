@@ -54,6 +54,37 @@ void main() {
     });
   });
 
+  group('import history purity (P2.3)', () {
+    const List<String> historyPresentationFiles = [
+      'lib/features/import/presentation/bloc/import_history_bloc.dart',
+      'lib/features/import/presentation/widgets/import_history_section.dart',
+    ];
+
+    test('import history presentation layer does not import Drift', () {
+      for (final path in historyPresentationFiles) {
+        final file = File(path);
+        expect(file.existsSync(), isTrue, reason: 'missing $path');
+        expect(
+          file.readAsStringSync().contains('package:drift'),
+          isFalse,
+          reason: '$path must not import Drift',
+        );
+      }
+    });
+
+    test('get_recent_import_batches_use_case does not import Drift', () {
+      const String path =
+          'lib/features/import/domain/usecases/get_recent_import_batches_use_case.dart';
+      final file = File(path);
+      expect(file.existsSync(), isTrue, reason: 'missing $path');
+      expect(
+        file.readAsStringSync().contains('package:drift'),
+        isFalse,
+        reason: '$path must not import Drift',
+      );
+    });
+  });
+
   group('filesystem services never mutate the filesystem', () {
     // The data-layer services that touch the filesystem directly.
     const List<String> serviceFiles = [

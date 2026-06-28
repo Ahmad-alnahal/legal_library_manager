@@ -22,16 +22,23 @@ import '../../application/import_run_report.dart';
 import '../../domain/entities/folder_validation.dart';
 import '../../domain/entities/import_error.dart';
 import '../bloc/import_bloc.dart';
+import '../bloc/import_history_bloc.dart';
+import '../widgets/import_history_section.dart';
 
-/// Import screen: provides the [ImportBloc] and the native folder picker, then
+/// Import screen: provides [ImportBloc] and [ImportHistoryBloc], then
 /// renders the workflow in [ImportView].
 class ImportPage extends StatelessWidget {
   const ImportPage({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return BlocProvider<ImportBloc>(
-      create: (_) => getIt<ImportBloc>(),
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider<ImportBloc>(create: (_) => getIt<ImportBloc>()),
+        BlocProvider<ImportHistoryBloc>(
+          create: (_) => getIt<ImportHistoryBloc>(),
+        ),
+      ],
       child: ImportView(picker: getIt<FolderPicker>()),
     );
   }
@@ -79,6 +86,12 @@ class ImportView extends StatelessWidget {
                 message: l10n.importEmptyBody,
               ),
             ],
+            const SizedBox(height: AppSpacing.lg),
+            ImportHistorySection(
+              isImportActive: state.isActive,
+              onReuseFolder: (folder) =>
+                  context.read<ImportBloc>().add(ImportFolderSelected(folder)),
+            ),
           ],
         );
       },

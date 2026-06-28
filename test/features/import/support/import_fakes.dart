@@ -4,6 +4,7 @@ import 'dart:async';
 
 import 'package:legal_library_manager/features/import/application/folder_picker.dart';
 import 'package:legal_library_manager/features/import/application/protected_roots_provider.dart';
+import 'package:legal_library_manager/features/import/domain/entities/import_batch_record.dart';
 import 'package:legal_library_manager/features/import/domain/entities/folder_validation.dart';
 import 'package:legal_library_manager/features/import/domain/entities/import_batch_report.dart';
 import 'package:legal_library_manager/features/import/domain/entities/import_error.dart';
@@ -195,6 +196,8 @@ class FakeImportRepository implements ImportRepository {
     this.failRecordPaths = const {},
     this.failOnComplete = false,
     this.failFailBatch = false,
+    this.recentBatches = const [],
+    this.failGetRecentBatches = false,
   });
 
   /// Source paths whose hashed/failed persistence should throw.
@@ -211,6 +214,9 @@ class FakeImportRepository implements ImportRepository {
   /// When true, [failBatch] also throws — exercising the [_failBatchSafely]
   /// best-effort path that must still return a safe failed report.
   final bool failFailBatch;
+
+  final List<ImportBatchRecord> recentBatches;
+  final bool failGetRecentBatches;
 
   int _batchSeq = 0;
   int _docSeq = 0;
@@ -277,6 +283,12 @@ class FakeImportRepository implements ImportRepository {
   @override
   Future<void> cancelBatch(int batchId, {required DateTime now}) async {
     lastStatus = ImportBatchStatus.cancelled;
+  }
+
+  @override
+  Future<List<ImportBatchRecord>> getRecentBatches({int limit = 20}) async {
+    if (failGetRecentBatches) throw StateError('getRecentBatches failed (test)');
+    return recentBatches.take(limit).toList();
   }
 
   @override

@@ -1,5 +1,6 @@
 // lib/features/import/domain/repositories/import_repository.dart
 
+import '../entities/import_batch_record.dart';
 import '../entities/import_batch_report.dart';
 import '../entities/import_file_result.dart';
 import '../entities/prepared_source_file.dart';
@@ -59,6 +60,11 @@ abstract class ImportRepository {
 
   /// Marks a batch `cancelled` with a completion timestamp.
   Future<void> cancelBatch(int batchId, {required DateTime now});
+
+  // --- History ---
+
+  /// Returns up to [limit] import batches ordered newest-first (by started_at).
+  Future<List<ImportBatchRecord>> getRecentBatches({int limit = 20});
 
   // --- Identity lookup ---
 

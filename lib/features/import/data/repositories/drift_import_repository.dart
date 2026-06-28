@@ -3,6 +3,7 @@
 import 'package:drift/drift.dart';
 
 import '../../../../core/database/app_database.dart';
+import '../../domain/entities/import_batch_record.dart';
 import '../../domain/entities/import_batch_report.dart';
 import '../../domain/entities/import_error.dart';
 import '../../domain/entities/import_file_result.dart';
@@ -129,6 +130,37 @@ class DriftImportRepository implements ImportRepository {
         statusKey: Value(ImportBatchStatus.interrupted.key),
         completedAt: Value(now.toUtc().toIso8601String()),
       ),
+    );
+  }
+
+  // --- History ---
+
+  @override
+  Future<List<ImportBatchRecord>> getRecentBatches({int limit = 20}) async {
+    final query = _db.select(_db.importBatches)
+      ..orderBy([(t) => OrderingTerm.desc(t.startedAt)])
+      ..limit(limit);
+    final rows = await query.get();
+    return rows.map(_toBatchRecord).toList();
+  }
+
+  ImportBatchRecord _toBatchRecord(ImportBatch row) {
+    return ImportBatchRecord(
+      id: row.id,
+      batchCode: row.batchCode,
+      sourceFolder: row.sourceFolder,
+      status: ImportBatchStatus.values.firstWhere(
+        (s) => s.key == row.statusKey,
+        orElse: () => ImportBatchStatus.failed,
+      ),
+      discoveredCount: row.discoveredCount,
+      importedCount: row.importedCount,
+      duplicateCount: row.duplicateCount,
+      failedCount: row.failedCount,
+      pairedCount: row.pairedCount,
+      startedAt: DateTime.parse(row.startedAt),
+      completedAt:
+          row.completedAt != null ? DateTime.parse(row.completedAt!) : null,
     );
   }
 
