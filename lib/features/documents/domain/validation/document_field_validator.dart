@@ -18,7 +18,13 @@ const Set<String> _legislationTypeKeys = {
   'executive_regulation',
   'other',
 };
-const Set<String> _effectiveStatusKeys = {'active', 'repealed', 'unknown'};
+const Set<String> _effectiveStatusKeys = {
+  'active',
+  'repealed',
+  'amended',
+  'expired',
+  'unknown',
+};
 
 /// Pure, persistence-independent field-level validation for a normalized draft
 /// (workflow_and_validation_spec.md §14). Does not check reference existence or
@@ -96,6 +102,19 @@ class DocumentFieldValidator {
           details.legislationTypeKey,
           _legislationTypeKeys,
         );
+        _name(
+          errors,
+          'legislation.legislationTypeOther',
+          details.legislationTypeOther,
+        );
+        if (details.legislationTypeKey == 'other' &&
+            (details.legislationTypeOther?.trim().isEmpty ?? true)) {
+          errors.add(
+            'legislation.legislationTypeOther',
+            'required',
+            'Other legislation type is required.',
+          );
+        }
         _constrained(
           errors,
           'legislation.effectiveStatusKey',
@@ -107,6 +126,25 @@ class DocumentFieldValidator {
           'legislation.publicationDate',
           details.publicationDate,
         );
+        _name(
+          errors,
+          'legislation.legislationNumber',
+          details.legislationNumber,
+        );
+        if (details.legislationYear != null) {
+          final int maxYear = _clock.currentYear + 1;
+          if (details.legislationYear! < FieldLimits.minPublicationYear ||
+              details.legislationYear! > maxYear) {
+            errors.add(
+              'legislation.legislationYear',
+              'out_of_range',
+              'Legislation year must be between '
+                  '${FieldLimits.minPublicationYear} and $maxYear.',
+            );
+          }
+        }
+        _isoDate(errors, 'legislation.effectiveDate', details.effectiveDate);
+        _isoDate(errors, 'legislation.repealDate', details.repealDate);
       case CourtCaseDetailsData():
         _name(errors, 'courtCase.courtName', details.courtName);
         _name(errors, 'courtCase.caseNumber', details.caseNumber);

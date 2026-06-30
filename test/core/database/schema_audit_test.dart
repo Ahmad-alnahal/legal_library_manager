@@ -52,6 +52,8 @@ void main() {
       'legislation_details',
       'court_case_details',
       'report_details',
+      // Legislation relations (Pre-P3 Slice A, schema v6)
+      'legislation_relations',
       // Duplicates (§7)
       'duplicate_groups',
       'duplicate_group_members',
@@ -119,6 +121,10 @@ void main() {
       'ix_security_audit_log_created_at',
       'ix_security_audit_log_event_type',
       'ix_security_audit_log_actor',
+      // Pre-P3 legislation_relations indexes (schema v6).
+      'idx_lr_source',
+      'idx_lr_target',
+      'idx_lr_type',
     ];
 
     test('all expected tables exist and bootstrap_info does not', () async {
@@ -127,7 +133,7 @@ void main() {
         expect(tables, contains(t), reason: 'missing table $t');
       }
       expect(tables, isNot(contains('bootstrap_info')));
-      expect(expectedTables.length, 36);
+      expect(expectedTables.length, 37);
     });
 
     test('all required named indexes exist', () async {
@@ -137,12 +143,12 @@ void main() {
       }
     });
 
-    test('schema is created at version 5', () async {
-      expect(db.schemaVersion, 5);
+    test('schema is created at version 7', () async {
+      expect(db.schemaVersion, 7);
       final QueryRow row = await db
           .customSelect('PRAGMA user_version;')
           .getSingle();
-      expect(row.read<int>("user_version"), 5);
+      expect(row.read<int>("user_version"), 7);
     });
 
     test('category tables carry the normalized-name columns', () async {

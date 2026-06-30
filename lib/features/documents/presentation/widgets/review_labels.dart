@@ -86,6 +86,14 @@ class ReviewReferences {
     return options;
   }
 
+  /// The document-type id for the 'legislation' type, or `null` if not found.
+  int? get legislationDocumentTypeId {
+    for (final t in documentTypes) {
+      if (t.key == 'legislation') return t.id;
+    }
+    return null;
+  }
+
   /// The stable document-type key for a type id, or `null`.
   String? typeKeyFor(int? documentTypeId) {
     if (documentTypeId == null) return null;
@@ -181,6 +189,8 @@ const Map<String, String> kLegislationTypeLabels = {
 const Map<String, String> kEffectiveStatusLabels = {
   'active': 'ساري',
   'repealed': 'ملغى',
+  'amended': 'معدَّل',
+  'expired': 'منتهي النفاذ',
   'unknown': 'غير معروف',
 };
 
@@ -281,9 +291,14 @@ const Map<String, String> _fieldLabels = {
   'research.issue': 'العدد',
   'research': 'اسم الباحث أو جهة النشر',
   'legislation.legislationTypeKey': 'نوع التشريع',
+  'legislation.legislationTypeOther': 'نوع التشريع الآخر',
   'legislation.effectiveStatusKey': 'حالة النفاذ',
   'legislation.issueNumber': 'رقم العدد',
   'legislation.publicationDate': 'تاريخ النشر',
+  'legislation.legislationNumber': 'رقم التشريع',
+  'legislation.legislationYear': 'سنة التشريع',
+  'legislation.effectiveDate': 'تاريخ النفاذ',
+  'legislation.repealDate': 'تاريخ الإلغاء',
   'legislation': 'سنة النشر أو تاريخ النشر',
   'courtCase.courtName': 'اسم المحكمة',
   'courtCase.caseNumber': 'رقم القضية',

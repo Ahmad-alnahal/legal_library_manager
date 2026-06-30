@@ -87,19 +87,31 @@ class ResearchDetailsData extends DocumentTypeDetails {
   ];
 }
 
-/// Legislation detail metadata (spec §6.4).
+/// Legislation detail metadata (spec §6.4, extended in schema v6).
 class LegislationDetailsData extends DocumentTypeDetails {
   const LegislationDetailsData({
     this.legislationTypeKey,
+    this.legislationTypeOther,
     this.effectiveStatusKey,
     this.issueNumber,
     this.publicationDate,
+    this.legislationNumber,
+    this.legislationYear,
+    this.effectiveDate,
+    this.repealDate,
   });
 
   final String? legislationTypeKey;
+  final String? legislationTypeOther;
   final String? effectiveStatusKey;
   final String? issueNumber;
   final String? publicationDate;
+
+  // v6 additions.
+  final String? legislationNumber;
+  final int? legislationYear;
+  final String? effectiveDate;
+  final String? repealDate;
 
   @override
   String get documentTypeKey => 'legislation';
@@ -107,9 +119,14 @@ class LegislationDetailsData extends DocumentTypeDetails {
   @override
   List<Object?> get props => [
     legislationTypeKey,
+    legislationTypeOther,
     effectiveStatusKey,
     issueNumber,
     publicationDate,
+    legislationNumber,
+    legislationYear,
+    effectiveDate,
+    repealDate,
   ];
 }
 

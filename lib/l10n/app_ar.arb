@@ -554,5 +554,48 @@
     "placeholders": {
       "count": { "type": "int" }
     }
-  }
+  },
+
+  "legislationRelationsSectionTitle": "علاقات التشريع",
+  "legislationRelationAddTooltip": "إضافة علاقة",
+  "legislationRelationsOutgoingHeader": "صادرة (هذا التشريع يؤثر في مستندات أخرى)",
+  "legislationRelationsIncomingHeader": "واردة (مستندات أخرى تؤثر في هذا التشريع)",
+  "legislationRelationsEmpty": "لا توجد علاقات مسجّلة لهذا التشريع.",
+  "legislationRelationDeleteTooltip": "حذف العلاقة",
+  "legislationRelationDeleteTitle": "حذف العلاقة",
+  "legislationRelationDeleteContent": "هل تريد حذف هذه العلاقة؟ لن يُحذف أي مستند.",
+  "legislationRelationCancel": "إلغاء",
+  "legislationRelationDeleteConfirm": "حذف",
+  "legislationRelationAddDialogTitle": "إضافة علاقة تشريعية",
+  "legislationRelationTypeLabel": "نوع العلاقة",
+  "legislationRelationScopeLabel": "نطاق العلاقة",
+  "legislationRelationNoTarget": "لم يُختر مستند",
+  "legislationRelationPickTarget": "اختيار مستند",
+  "legislationRelationEffectiveDateLabel": "تاريخ النفاذ (اختياري)",
+  "legislationRelationEffectiveDateHint": "YYYY-MM-DD",
+  "legislationRelationNotesLabel": "ملاحظات (اختياري)",
+  "legislationRelationAddSubmit": "إضافة",
+  "legislationRelationDocumentFallback": "مستند #{id}",
+  "@legislationRelationDocumentFallback": {
+    "placeholders": {
+      "id": { "type": "int" }
+    }
+  },
+  "legislationPickerTitle": "اختيار التشريع",
+  "legislationPickerSearchLabel": "بحث بالعنوان",
+  "legislationPickerEmpty": "لا توجد نتائج.",
+  "legislationPickerCancel": "إلغاء",
+  "legislationRelTypeSourceRepeals": "يُلغي",
+  "legislationRelTypeSourceAmends": "يُعدّل",
+  "legislationRelTypeSourceImplements": "يُنفّذ",
+  "legislationRelTypeSourceBasedOn": "يستند إلى",
+  "legislationRelTypeSourceSupersedes": "يحلّ محلّ",
+  "legislationRelTypeTargetRepeals": "أُلغي بموجب",
+  "legislationRelTypeTargetAmends": "عُدّل بموجب",
+  "legislationRelTypeTargetImplements": "نُفّذ بموجب",
+  "legislationRelTypeTargetBasedOn": "استُند إليه",
+  "legislationRelTypeTargetSupersedes": "حُلّ محلّه بموجب",
+  "legislationRelScopeFull": "كلّي",
+  "legislationRelScopePartial": "جزئي",
+  "legislationRelScopeUnknown": "غير معروف"
 }

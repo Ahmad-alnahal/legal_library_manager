@@ -1373,4 +1373,120 @@ class AppLocalizationsAr extends AppLocalizations {
   String relatedReviewCount(int count) {
     return '$count اقتراح';
   }
+
+  @override
+  String get legislationRelationsSectionTitle => 'علاقات التشريع';
+
+  @override
+  String get legislationRelationAddTooltip => 'إضافة علاقة';
+
+  @override
+  String get legislationRelationsOutgoingHeader =>
+      'صادرة (هذا التشريع يؤثر في مستندات أخرى)';
+
+  @override
+  String get legislationRelationsIncomingHeader =>
+      'واردة (مستندات أخرى تؤثر في هذا التشريع)';
+
+  @override
+  String get legislationRelationsEmpty => 'لا توجد علاقات مسجّلة لهذا التشريع.';
+
+  @override
+  String get legislationRelationDeleteTooltip => 'حذف العلاقة';
+
+  @override
+  String get legislationRelationDeleteTitle => 'حذف العلاقة';
+
+  @override
+  String get legislationRelationDeleteContent =>
+      'هل تريد حذف هذه العلاقة؟ لن يُحذف أي مستند.';
+
+  @override
+  String get legislationRelationCancel => 'إلغاء';
+
+  @override
+  String get legislationRelationDeleteConfirm => 'حذف';
+
+  @override
+  String get legislationRelationAddDialogTitle => 'إضافة علاقة تشريعية';
+
+  @override
+  String get legislationRelationTypeLabel => 'نوع العلاقة';
+
+  @override
+  String get legislationRelationScopeLabel => 'نطاق العلاقة';
+
+  @override
+  String get legislationRelationNoTarget => 'لم يُختر مستند';
+
+  @override
+  String get legislationRelationPickTarget => 'اختيار مستند';
+
+  @override
+  String get legislationRelationEffectiveDateLabel => 'تاريخ النفاذ (اختياري)';
+
+  @override
+  String get legislationRelationEffectiveDateHint => 'YYYY-MM-DD';
+
+  @override
+  String get legislationRelationNotesLabel => 'ملاحظات (اختياري)';
+
+  @override
+  String get legislationRelationAddSubmit => 'إضافة';
+
+  @override
+  String legislationRelationDocumentFallback(int id) {
+    return 'مستند #$id';
+  }
+
+  @override
+  String get legislationPickerTitle => 'اختيار التشريع';
+
+  @override
+  String get legislationPickerSearchLabel => 'بحث بالعنوان';
+
+  @override
+  String get legislationPickerEmpty => 'لا توجد نتائج.';
+
+  @override
+  String get legislationPickerCancel => 'إلغاء';
+
+  @override
+  String get legislationRelTypeSourceRepeals => 'يُلغي';
+
+  @override
+  String get legislationRelTypeSourceAmends => 'يُعدّل';
+
+  @override
+  String get legislationRelTypeSourceImplements => 'يُنفّذ';
+
+  @override
+  String get legislationRelTypeSourceBasedOn => 'يستند إلى';
+
+  @override
+  String get legislationRelTypeSourceSupersedes => 'يحلّ محلّ';
+
+  @override
+  String get legislationRelTypeTargetRepeals => 'أُلغي بموجب';
+
+  @override
+  String get legislationRelTypeTargetAmends => 'عُدّل بموجب';
+
+  @override
+  String get legislationRelTypeTargetImplements => 'نُفّذ بموجب';
+
+  @override
+  String get legislationRelTypeTargetBasedOn => 'استُند إليه';
+
+  @override
+  String get legislationRelTypeTargetSupersedes => 'حُلّ محلّه بموجب';
+
+  @override
+  String get legislationRelScopeFull => 'كلّي';
+
+  @override
+  String get legislationRelScopePartial => 'جزئي';
+
+  @override
+  String get legislationRelScopeUnknown => 'غير معروف';
 }

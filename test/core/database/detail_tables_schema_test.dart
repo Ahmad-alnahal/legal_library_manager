@@ -134,9 +134,14 @@ void main() {
               LegislationDetailsCompanion.insert(
                 documentId: d1,
                 legislationTypeKey: const Value('executive_regulation'),
+                legislationTypeOther: const Value('تعليمات خاصة'),
                 effectiveStatusKey: const Value('active'),
               ),
             );
+        final saved = await (db.select(
+          db.legislationDetails,
+        )..where((row) => row.documentId.equals(d1))).getSingle();
+        expect(saved.legislationTypeOther, 'تعليمات خاصة');
 
         // Both NULL is allowed.
         final int d2 = await insertDocument();
@@ -158,14 +163,34 @@ void main() {
           throwsA(isA<SqliteException>()),
         );
 
-        // Invalid effective status rejected.
+        // New in v6: 'amended' and 'expired' are now valid effective statuses.
         final int d4 = await insertDocument();
+        await db
+            .into(db.legislationDetails)
+            .insert(
+              LegislationDetailsCompanion.insert(
+                documentId: d4,
+                effectiveStatusKey: const Value('amended'),
+              ),
+            );
+        final int d5 = await insertDocument();
+        await db
+            .into(db.legislationDetails)
+            .insert(
+              LegislationDetailsCompanion.insert(
+                documentId: d5,
+                effectiveStatusKey: const Value('expired'),
+              ),
+            );
+
+        // Invalid effective status rejected.
+        final int d6 = await insertDocument();
         expect(
           () => db
               .into(db.legislationDetails)
               .insert(
                 LegislationDetailsCompanion.insert(
-                  documentId: d4,
+                  documentId: d6,
                   effectiveStatusKey: const Value('suspended'),
                 ),
               ),

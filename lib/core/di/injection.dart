@@ -126,6 +126,13 @@ import '../../features/word_conversion/domain/services/word_converter.dart';
 import '../../features/word_conversion/domain/services/word_output_filesystem.dart';
 import '../database/app_database.dart';
 import '../time/clock.dart';
+import '../../features/legislation/data/repositories/drift_legislation_relation_repository.dart';
+import '../../features/legislation/domain/repositories/legislation_relation_repository.dart';
+import '../../features/legislation/domain/usecases/create_legislation_relation.dart';
+import '../../features/legislation/domain/usecases/delete_legislation_relation.dart';
+import '../../features/legislation/domain/usecases/list_incoming_relations.dart';
+import '../../features/legislation/domain/usecases/list_outgoing_relations.dart';
+import '../../features/legislation/presentation/bloc/legislation_relation_bloc.dart';
 import '../../features/related_files/application/generate_related_file_candidates_use_case.dart';
 import '../../features/related_files/application/load_pending_candidates_use_case.dart';
 import '../../features/related_files/application/update_candidate_status_use_case.dart';
@@ -670,6 +677,32 @@ void configureDependencies() {
         converter: getIt<WordConverter>(),
         outputFs: getIt<WordOutputFilesystem>(),
         hasher: getIt<FileHasher>(),
+      ),
+    )
+    // Pre-P3 Slice A — legislation lifecycle + relations foundation.
+    ..registerLazySingleton<LegislationRelationRepository>(
+      () => DriftLegislationRelationRepository(getIt<AppDatabase>()),
+    )
+    ..registerLazySingleton<CreateLegislationRelation>(
+      () => CreateLegislationRelation(getIt<LegislationRelationRepository>()),
+    )
+    ..registerLazySingleton<ListOutgoingRelations>(
+      () => ListOutgoingRelations(getIt<LegislationRelationRepository>()),
+    )
+    ..registerLazySingleton<ListIncomingRelations>(
+      () => ListIncomingRelations(getIt<LegislationRelationRepository>()),
+    )
+    ..registerLazySingleton<DeleteLegislationRelation>(
+      () => DeleteLegislationRelation(getIt<LegislationRelationRepository>()),
+    )
+    // Pre-P3 Slice B — legislation relations BLoC (factory: one per document).
+    ..registerFactory<LegislationRelationBloc>(
+      () => LegislationRelationBloc(
+        listOutgoing: getIt<ListOutgoingRelations>(),
+        listIncoming: getIt<ListIncomingRelations>(),
+        createRelation: getIt<CreateLegislationRelation>(),
+        deleteRelation: getIt<DeleteLegislationRelation>(),
+        clock: getIt<Clock>(),
       ),
     );
 }

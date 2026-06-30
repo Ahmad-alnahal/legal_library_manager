@@ -64,9 +64,14 @@ abstract final class MetadataNormalizer {
       ),
       LegislationDetailsData() => LegislationDetailsData(
         legislationTypeKey: t(d.legislationTypeKey),
+        legislationTypeOther: t(d.legislationTypeOther),
         effectiveStatusKey: t(d.effectiveStatusKey),
         issueNumber: t(d.issueNumber),
         publicationDate: t(d.publicationDate),
+        legislationNumber: t(d.legislationNumber),
+        legislationYear: d.legislationYear,
+        effectiveDate: t(d.effectiveDate),
+        repealDate: t(d.repealDate),
       ),
       CourtCaseDetailsData() => CourtCaseDetailsData(
         courtName: t(d.courtName),

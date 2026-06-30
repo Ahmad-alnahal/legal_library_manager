@@ -128,6 +128,61 @@ void main() {
       expect(r.hasError('legislation.publicationDate'), isTrue);
     });
 
+    test('requires custom legislation type text when type is other', () {
+      final missing = validator.validate(
+        MetadataNormalizer.normalize(
+          draft(
+            details: const LegislationDetailsData(legislationTypeKey: 'other'),
+          ),
+        ),
+      );
+      expect(missing.hasError('legislation.legislationTypeOther'), isTrue);
+      expect(missing.hasCode('required'), isTrue);
+
+      final filled = validator.validate(
+        MetadataNormalizer.normalize(
+          draft(
+            details: const LegislationDetailsData(
+              legislationTypeKey: 'other',
+              legislationTypeOther: 'تعليمات خاصة',
+            ),
+          ),
+        ),
+      );
+      expect(filled.isValid, isTrue);
+    });
+
+    test('accepts v6 effective statuses and validates legislation dates', () {
+      final valid = validator.validate(
+        MetadataNormalizer.normalize(
+          draft(
+            details: const LegislationDetailsData(
+              effectiveStatusKey: 'amended',
+              legislationYear: 2024,
+              effectiveDate: '2024-01-01',
+              repealDate: '2025-01-01',
+            ),
+          ),
+        ),
+      );
+      expect(valid.isValid, isTrue);
+
+      final invalid = validator.validate(
+        MetadataNormalizer.normalize(
+          draft(
+            details: const LegislationDetailsData(
+              effectiveStatusKey: 'suspended',
+              legislationYear: 3000,
+              effectiveDate: '2024-99-99',
+            ),
+          ),
+        ),
+      );
+      expect(invalid.hasError('legislation.effectiveStatusKey'), isTrue);
+      expect(invalid.hasError('legislation.legislationYear'), isTrue);
+      expect(invalid.hasError('legislation.effectiveDate'), isTrue);
+    });
+
     test('rejects blank and overlong keywords', () {
       final blank = validator.validate(
         MetadataNormalizer.normalize(

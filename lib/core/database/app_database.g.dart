@@ -9058,6 +9058,17 @@ class $LegislationDetailsTable extends LegislationDetails
         type: DriftSqlType.string,
         requiredDuringInsert: false,
       );
+  static const VerificationMeta _legislationTypeOtherMeta =
+      const VerificationMeta('legislationTypeOther');
+  @override
+  late final GeneratedColumn<String> legislationTypeOther =
+      GeneratedColumn<String>(
+        'legislation_type_other',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
   static const VerificationMeta _effectiveStatusKeyMeta =
       const VerificationMeta('effectiveStatusKey');
   @override
@@ -9066,8 +9077,13 @@ class $LegislationDetailsTable extends LegislationDetails
         'effective_status_key',
         aliasedName,
         true,
-        check: () =>
-            effectiveStatusKey.isIn(const ['active', 'repealed', 'unknown']),
+        check: () => effectiveStatusKey.isIn(const [
+          'active',
+          'repealed',
+          'amended',
+          'expired',
+          'unknown',
+        ]),
         type: DriftSqlType.string,
         requiredDuringInsert: false,
       );
@@ -9093,13 +9109,63 @@ class $LegislationDetailsTable extends LegislationDetails
     type: DriftSqlType.string,
     requiredDuringInsert: false,
   );
+  static const VerificationMeta _legislationNumberMeta = const VerificationMeta(
+    'legislationNumber',
+  );
+  @override
+  late final GeneratedColumn<String> legislationNumber =
+      GeneratedColumn<String>(
+        'legislation_number',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      );
+  static const VerificationMeta _legislationYearMeta = const VerificationMeta(
+    'legislationYear',
+  );
+  @override
+  late final GeneratedColumn<int> legislationYear = GeneratedColumn<int>(
+    'legislation_year',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _effectiveDateMeta = const VerificationMeta(
+    'effectiveDate',
+  );
+  @override
+  late final GeneratedColumn<String> effectiveDate = GeneratedColumn<String>(
+    'effective_date',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _repealDateMeta = const VerificationMeta(
+    'repealDate',
+  );
+  @override
+  late final GeneratedColumn<String> repealDate = GeneratedColumn<String>(
+    'repeal_date',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   @override
   List<GeneratedColumn> get $columns => [
     documentId,
     legislationTypeKey,
+    legislationTypeOther,
     effectiveStatusKey,
     issueNumber,
     publicationDate,
+    legislationNumber,
+    legislationYear,
+    effectiveDate,
+    repealDate,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -9130,6 +9196,15 @@ class $LegislationDetailsTable extends LegislationDetails
         ),
       );
     }
+    if (data.containsKey('legislation_type_other')) {
+      context.handle(
+        _legislationTypeOtherMeta,
+        legislationTypeOther.isAcceptableOrUnknown(
+          data['legislation_type_other']!,
+          _legislationTypeOtherMeta,
+        ),
+      );
+    }
     if (data.containsKey('effective_status_key')) {
       context.handle(
         _effectiveStatusKeyMeta,
@@ -9157,6 +9232,39 @@ class $LegislationDetailsTable extends LegislationDetails
         ),
       );
     }
+    if (data.containsKey('legislation_number')) {
+      context.handle(
+        _legislationNumberMeta,
+        legislationNumber.isAcceptableOrUnknown(
+          data['legislation_number']!,
+          _legislationNumberMeta,
+        ),
+      );
+    }
+    if (data.containsKey('legislation_year')) {
+      context.handle(
+        _legislationYearMeta,
+        legislationYear.isAcceptableOrUnknown(
+          data['legislation_year']!,
+          _legislationYearMeta,
+        ),
+      );
+    }
+    if (data.containsKey('effective_date')) {
+      context.handle(
+        _effectiveDateMeta,
+        effectiveDate.isAcceptableOrUnknown(
+          data['effective_date']!,
+          _effectiveDateMeta,
+        ),
+      );
+    }
+    if (data.containsKey('repeal_date')) {
+      context.handle(
+        _repealDateMeta,
+        repealDate.isAcceptableOrUnknown(data['repeal_date']!, _repealDateMeta),
+      );
+    }
     return context;
   }
 
@@ -9174,6 +9282,10 @@ class $LegislationDetailsTable extends LegislationDetails
         DriftSqlType.string,
         data['${effectivePrefix}legislation_type_key'],
       ),
+      legislationTypeOther: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}legislation_type_other'],
+      ),
       effectiveStatusKey: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}effective_status_key'],
@@ -9185,6 +9297,22 @@ class $LegislationDetailsTable extends LegislationDetails
       publicationDate: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}publication_date'],
+      ),
+      legislationNumber: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}legislation_number'],
+      ),
+      legislationYear: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}legislation_year'],
+      ),
+      effectiveDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}effective_date'],
+      ),
+      repealDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}repeal_date'],
       ),
     );
   }
@@ -9202,15 +9330,25 @@ class LegislationDetail extends DataClass
     implements Insertable<LegislationDetail> {
   final int documentId;
   final String? legislationTypeKey;
+  final String? legislationTypeOther;
   final String? effectiveStatusKey;
   final String? issueNumber;
   final String? publicationDate;
+  final String? legislationNumber;
+  final int? legislationYear;
+  final String? effectiveDate;
+  final String? repealDate;
   const LegislationDetail({
     required this.documentId,
     this.legislationTypeKey,
+    this.legislationTypeOther,
     this.effectiveStatusKey,
     this.issueNumber,
     this.publicationDate,
+    this.legislationNumber,
+    this.legislationYear,
+    this.effectiveDate,
+    this.repealDate,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -9218,6 +9356,9 @@ class LegislationDetail extends DataClass
     map['document_id'] = Variable<int>(documentId);
     if (!nullToAbsent || legislationTypeKey != null) {
       map['legislation_type_key'] = Variable<String>(legislationTypeKey);
+    }
+    if (!nullToAbsent || legislationTypeOther != null) {
+      map['legislation_type_other'] = Variable<String>(legislationTypeOther);
     }
     if (!nullToAbsent || effectiveStatusKey != null) {
       map['effective_status_key'] = Variable<String>(effectiveStatusKey);
@@ -9228,6 +9369,18 @@ class LegislationDetail extends DataClass
     if (!nullToAbsent || publicationDate != null) {
       map['publication_date'] = Variable<String>(publicationDate);
     }
+    if (!nullToAbsent || legislationNumber != null) {
+      map['legislation_number'] = Variable<String>(legislationNumber);
+    }
+    if (!nullToAbsent || legislationYear != null) {
+      map['legislation_year'] = Variable<int>(legislationYear);
+    }
+    if (!nullToAbsent || effectiveDate != null) {
+      map['effective_date'] = Variable<String>(effectiveDate);
+    }
+    if (!nullToAbsent || repealDate != null) {
+      map['repeal_date'] = Variable<String>(repealDate);
+    }
     return map;
   }
 
@@ -9237,6 +9390,9 @@ class LegislationDetail extends DataClass
       legislationTypeKey: legislationTypeKey == null && nullToAbsent
           ? const Value.absent()
           : Value(legislationTypeKey),
+      legislationTypeOther: legislationTypeOther == null && nullToAbsent
+          ? const Value.absent()
+          : Value(legislationTypeOther),
       effectiveStatusKey: effectiveStatusKey == null && nullToAbsent
           ? const Value.absent()
           : Value(effectiveStatusKey),
@@ -9246,6 +9402,18 @@ class LegislationDetail extends DataClass
       publicationDate: publicationDate == null && nullToAbsent
           ? const Value.absent()
           : Value(publicationDate),
+      legislationNumber: legislationNumber == null && nullToAbsent
+          ? const Value.absent()
+          : Value(legislationNumber),
+      legislationYear: legislationYear == null && nullToAbsent
+          ? const Value.absent()
+          : Value(legislationYear),
+      effectiveDate: effectiveDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(effectiveDate),
+      repealDate: repealDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(repealDate),
     );
   }
 
@@ -9259,11 +9427,20 @@ class LegislationDetail extends DataClass
       legislationTypeKey: serializer.fromJson<String?>(
         json['legislationTypeKey'],
       ),
+      legislationTypeOther: serializer.fromJson<String?>(
+        json['legislationTypeOther'],
+      ),
       effectiveStatusKey: serializer.fromJson<String?>(
         json['effectiveStatusKey'],
       ),
       issueNumber: serializer.fromJson<String?>(json['issueNumber']),
       publicationDate: serializer.fromJson<String?>(json['publicationDate']),
+      legislationNumber: serializer.fromJson<String?>(
+        json['legislationNumber'],
+      ),
+      legislationYear: serializer.fromJson<int?>(json['legislationYear']),
+      effectiveDate: serializer.fromJson<String?>(json['effectiveDate']),
+      repealDate: serializer.fromJson<String?>(json['repealDate']),
     );
   }
   @override
@@ -9272,23 +9449,36 @@ class LegislationDetail extends DataClass
     return <String, dynamic>{
       'documentId': serializer.toJson<int>(documentId),
       'legislationTypeKey': serializer.toJson<String?>(legislationTypeKey),
+      'legislationTypeOther': serializer.toJson<String?>(legislationTypeOther),
       'effectiveStatusKey': serializer.toJson<String?>(effectiveStatusKey),
       'issueNumber': serializer.toJson<String?>(issueNumber),
       'publicationDate': serializer.toJson<String?>(publicationDate),
+      'legislationNumber': serializer.toJson<String?>(legislationNumber),
+      'legislationYear': serializer.toJson<int?>(legislationYear),
+      'effectiveDate': serializer.toJson<String?>(effectiveDate),
+      'repealDate': serializer.toJson<String?>(repealDate),
     };
   }
 
   LegislationDetail copyWith({
     int? documentId,
     Value<String?> legislationTypeKey = const Value.absent(),
+    Value<String?> legislationTypeOther = const Value.absent(),
     Value<String?> effectiveStatusKey = const Value.absent(),
     Value<String?> issueNumber = const Value.absent(),
     Value<String?> publicationDate = const Value.absent(),
+    Value<String?> legislationNumber = const Value.absent(),
+    Value<int?> legislationYear = const Value.absent(),
+    Value<String?> effectiveDate = const Value.absent(),
+    Value<String?> repealDate = const Value.absent(),
   }) => LegislationDetail(
     documentId: documentId ?? this.documentId,
     legislationTypeKey: legislationTypeKey.present
         ? legislationTypeKey.value
         : this.legislationTypeKey,
+    legislationTypeOther: legislationTypeOther.present
+        ? legislationTypeOther.value
+        : this.legislationTypeOther,
     effectiveStatusKey: effectiveStatusKey.present
         ? effectiveStatusKey.value
         : this.effectiveStatusKey,
@@ -9296,6 +9486,16 @@ class LegislationDetail extends DataClass
     publicationDate: publicationDate.present
         ? publicationDate.value
         : this.publicationDate,
+    legislationNumber: legislationNumber.present
+        ? legislationNumber.value
+        : this.legislationNumber,
+    legislationYear: legislationYear.present
+        ? legislationYear.value
+        : this.legislationYear,
+    effectiveDate: effectiveDate.present
+        ? effectiveDate.value
+        : this.effectiveDate,
+    repealDate: repealDate.present ? repealDate.value : this.repealDate,
   );
   LegislationDetail copyWithCompanion(LegislationDetailsCompanion data) {
     return LegislationDetail(
@@ -9305,6 +9505,9 @@ class LegislationDetail extends DataClass
       legislationTypeKey: data.legislationTypeKey.present
           ? data.legislationTypeKey.value
           : this.legislationTypeKey,
+      legislationTypeOther: data.legislationTypeOther.present
+          ? data.legislationTypeOther.value
+          : this.legislationTypeOther,
       effectiveStatusKey: data.effectiveStatusKey.present
           ? data.effectiveStatusKey.value
           : this.effectiveStatusKey,
@@ -9314,6 +9517,18 @@ class LegislationDetail extends DataClass
       publicationDate: data.publicationDate.present
           ? data.publicationDate.value
           : this.publicationDate,
+      legislationNumber: data.legislationNumber.present
+          ? data.legislationNumber.value
+          : this.legislationNumber,
+      legislationYear: data.legislationYear.present
+          ? data.legislationYear.value
+          : this.legislationYear,
+      effectiveDate: data.effectiveDate.present
+          ? data.effectiveDate.value
+          : this.effectiveDate,
+      repealDate: data.repealDate.present
+          ? data.repealDate.value
+          : this.repealDate,
     );
   }
 
@@ -9322,9 +9537,14 @@ class LegislationDetail extends DataClass
     return (StringBuffer('LegislationDetail(')
           ..write('documentId: $documentId, ')
           ..write('legislationTypeKey: $legislationTypeKey, ')
+          ..write('legislationTypeOther: $legislationTypeOther, ')
           ..write('effectiveStatusKey: $effectiveStatusKey, ')
           ..write('issueNumber: $issueNumber, ')
-          ..write('publicationDate: $publicationDate')
+          ..write('publicationDate: $publicationDate, ')
+          ..write('legislationNumber: $legislationNumber, ')
+          ..write('legislationYear: $legislationYear, ')
+          ..write('effectiveDate: $effectiveDate, ')
+          ..write('repealDate: $repealDate')
           ..write(')'))
         .toString();
   }
@@ -9333,9 +9553,14 @@ class LegislationDetail extends DataClass
   int get hashCode => Object.hash(
     documentId,
     legislationTypeKey,
+    legislationTypeOther,
     effectiveStatusKey,
     issueNumber,
     publicationDate,
+    legislationNumber,
+    legislationYear,
+    effectiveDate,
+    repealDate,
   );
   @override
   bool operator ==(Object other) =>
@@ -9343,62 +9568,103 @@ class LegislationDetail extends DataClass
       (other is LegislationDetail &&
           other.documentId == this.documentId &&
           other.legislationTypeKey == this.legislationTypeKey &&
+          other.legislationTypeOther == this.legislationTypeOther &&
           other.effectiveStatusKey == this.effectiveStatusKey &&
           other.issueNumber == this.issueNumber &&
-          other.publicationDate == this.publicationDate);
+          other.publicationDate == this.publicationDate &&
+          other.legislationNumber == this.legislationNumber &&
+          other.legislationYear == this.legislationYear &&
+          other.effectiveDate == this.effectiveDate &&
+          other.repealDate == this.repealDate);
 }
 
 class LegislationDetailsCompanion extends UpdateCompanion<LegislationDetail> {
   final Value<int> documentId;
   final Value<String?> legislationTypeKey;
+  final Value<String?> legislationTypeOther;
   final Value<String?> effectiveStatusKey;
   final Value<String?> issueNumber;
   final Value<String?> publicationDate;
+  final Value<String?> legislationNumber;
+  final Value<int?> legislationYear;
+  final Value<String?> effectiveDate;
+  final Value<String?> repealDate;
   const LegislationDetailsCompanion({
     this.documentId = const Value.absent(),
     this.legislationTypeKey = const Value.absent(),
+    this.legislationTypeOther = const Value.absent(),
     this.effectiveStatusKey = const Value.absent(),
     this.issueNumber = const Value.absent(),
     this.publicationDate = const Value.absent(),
+    this.legislationNumber = const Value.absent(),
+    this.legislationYear = const Value.absent(),
+    this.effectiveDate = const Value.absent(),
+    this.repealDate = const Value.absent(),
   });
   LegislationDetailsCompanion.insert({
     required int documentId,
     this.legislationTypeKey = const Value.absent(),
+    this.legislationTypeOther = const Value.absent(),
     this.effectiveStatusKey = const Value.absent(),
     this.issueNumber = const Value.absent(),
     this.publicationDate = const Value.absent(),
+    this.legislationNumber = const Value.absent(),
+    this.legislationYear = const Value.absent(),
+    this.effectiveDate = const Value.absent(),
+    this.repealDate = const Value.absent(),
   }) : documentId = Value(documentId);
   static Insertable<LegislationDetail> custom({
     Expression<int>? documentId,
     Expression<String>? legislationTypeKey,
+    Expression<String>? legislationTypeOther,
     Expression<String>? effectiveStatusKey,
     Expression<String>? issueNumber,
     Expression<String>? publicationDate,
+    Expression<String>? legislationNumber,
+    Expression<int>? legislationYear,
+    Expression<String>? effectiveDate,
+    Expression<String>? repealDate,
   }) {
     return RawValuesInsertable({
       if (documentId != null) 'document_id': documentId,
       if (legislationTypeKey != null)
         'legislation_type_key': legislationTypeKey,
+      if (legislationTypeOther != null)
+        'legislation_type_other': legislationTypeOther,
       if (effectiveStatusKey != null)
         'effective_status_key': effectiveStatusKey,
       if (issueNumber != null) 'issue_number': issueNumber,
       if (publicationDate != null) 'publication_date': publicationDate,
+      if (legislationNumber != null) 'legislation_number': legislationNumber,
+      if (legislationYear != null) 'legislation_year': legislationYear,
+      if (effectiveDate != null) 'effective_date': effectiveDate,
+      if (repealDate != null) 'repeal_date': repealDate,
     });
   }
 
   LegislationDetailsCompanion copyWith({
     Value<int>? documentId,
     Value<String?>? legislationTypeKey,
+    Value<String?>? legislationTypeOther,
     Value<String?>? effectiveStatusKey,
     Value<String?>? issueNumber,
     Value<String?>? publicationDate,
+    Value<String?>? legislationNumber,
+    Value<int?>? legislationYear,
+    Value<String?>? effectiveDate,
+    Value<String?>? repealDate,
   }) {
     return LegislationDetailsCompanion(
       documentId: documentId ?? this.documentId,
       legislationTypeKey: legislationTypeKey ?? this.legislationTypeKey,
+      legislationTypeOther: legislationTypeOther ?? this.legislationTypeOther,
       effectiveStatusKey: effectiveStatusKey ?? this.effectiveStatusKey,
       issueNumber: issueNumber ?? this.issueNumber,
       publicationDate: publicationDate ?? this.publicationDate,
+      legislationNumber: legislationNumber ?? this.legislationNumber,
+      legislationYear: legislationYear ?? this.legislationYear,
+      effectiveDate: effectiveDate ?? this.effectiveDate,
+      repealDate: repealDate ?? this.repealDate,
     );
   }
 
@@ -9411,6 +9677,11 @@ class LegislationDetailsCompanion extends UpdateCompanion<LegislationDetail> {
     if (legislationTypeKey.present) {
       map['legislation_type_key'] = Variable<String>(legislationTypeKey.value);
     }
+    if (legislationTypeOther.present) {
+      map['legislation_type_other'] = Variable<String>(
+        legislationTypeOther.value,
+      );
+    }
     if (effectiveStatusKey.present) {
       map['effective_status_key'] = Variable<String>(effectiveStatusKey.value);
     }
@@ -9420,6 +9691,18 @@ class LegislationDetailsCompanion extends UpdateCompanion<LegislationDetail> {
     if (publicationDate.present) {
       map['publication_date'] = Variable<String>(publicationDate.value);
     }
+    if (legislationNumber.present) {
+      map['legislation_number'] = Variable<String>(legislationNumber.value);
+    }
+    if (legislationYear.present) {
+      map['legislation_year'] = Variable<int>(legislationYear.value);
+    }
+    if (effectiveDate.present) {
+      map['effective_date'] = Variable<String>(effectiveDate.value);
+    }
+    if (repealDate.present) {
+      map['repeal_date'] = Variable<String>(repealDate.value);
+    }
     return map;
   }
 
@@ -9428,9 +9711,609 @@ class LegislationDetailsCompanion extends UpdateCompanion<LegislationDetail> {
     return (StringBuffer('LegislationDetailsCompanion(')
           ..write('documentId: $documentId, ')
           ..write('legislationTypeKey: $legislationTypeKey, ')
+          ..write('legislationTypeOther: $legislationTypeOther, ')
           ..write('effectiveStatusKey: $effectiveStatusKey, ')
           ..write('issueNumber: $issueNumber, ')
-          ..write('publicationDate: $publicationDate')
+          ..write('publicationDate: $publicationDate, ')
+          ..write('legislationNumber: $legislationNumber, ')
+          ..write('legislationYear: $legislationYear, ')
+          ..write('effectiveDate: $effectiveDate, ')
+          ..write('repealDate: $repealDate')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $LegislationRelationsTable extends LegislationRelations
+    with TableInfo<$LegislationRelationsTable, LegislationRelationRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $LegislationRelationsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _sourceDocumentIdMeta = const VerificationMeta(
+    'sourceDocumentId',
+  );
+  @override
+  late final GeneratedColumn<int> sourceDocumentId = GeneratedColumn<int>(
+    'source_document_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES documents (id) ON DELETE RESTRICT',
+    ),
+  );
+  static const VerificationMeta _targetDocumentIdMeta = const VerificationMeta(
+    'targetDocumentId',
+  );
+  @override
+  late final GeneratedColumn<int> targetDocumentId = GeneratedColumn<int>(
+    'target_document_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES documents (id) ON DELETE RESTRICT',
+    ),
+  );
+  static const VerificationMeta _relationTypeKeyMeta = const VerificationMeta(
+    'relationTypeKey',
+  );
+  @override
+  late final GeneratedColumn<String> relationTypeKey = GeneratedColumn<String>(
+    'relation_type_key',
+    aliasedName,
+    false,
+    check: () => relationTypeKey.isIn(const [
+      'repeals',
+      'amends',
+      'implements',
+      'based_on',
+      'supersedes',
+    ]),
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _relationScopeKeyMeta = const VerificationMeta(
+    'relationScopeKey',
+  );
+  @override
+  late final GeneratedColumn<String> relationScopeKey = GeneratedColumn<String>(
+    'relation_scope_key',
+    aliasedName,
+    false,
+    check: () => relationScopeKey.isIn(const ['full', 'partial', 'unknown']),
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant('unknown'),
+  );
+  static const VerificationMeta _effectiveDateMeta = const VerificationMeta(
+    'effectiveDate',
+  );
+  @override
+  late final GeneratedColumn<String> effectiveDate = GeneratedColumn<String>(
+    'effective_date',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _notesMeta = const VerificationMeta('notes');
+  @override
+  late final GeneratedColumn<String> notes = GeneratedColumn<String>(
+    'notes',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _createdAtMeta = const VerificationMeta(
+    'createdAt',
+  );
+  @override
+  late final GeneratedColumn<String> createdAt = GeneratedColumn<String>(
+    'created_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _updatedAtMeta = const VerificationMeta(
+    'updatedAt',
+  );
+  @override
+  late final GeneratedColumn<String> updatedAt = GeneratedColumn<String>(
+    'updated_at',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    sourceDocumentId,
+    targetDocumentId,
+    relationTypeKey,
+    relationScopeKey,
+    effectiveDate,
+    notes,
+    createdAt,
+    updatedAt,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'legislation_relations';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<LegislationRelationRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('source_document_id')) {
+      context.handle(
+        _sourceDocumentIdMeta,
+        sourceDocumentId.isAcceptableOrUnknown(
+          data['source_document_id']!,
+          _sourceDocumentIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_sourceDocumentIdMeta);
+    }
+    if (data.containsKey('target_document_id')) {
+      context.handle(
+        _targetDocumentIdMeta,
+        targetDocumentId.isAcceptableOrUnknown(
+          data['target_document_id']!,
+          _targetDocumentIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_targetDocumentIdMeta);
+    }
+    if (data.containsKey('relation_type_key')) {
+      context.handle(
+        _relationTypeKeyMeta,
+        relationTypeKey.isAcceptableOrUnknown(
+          data['relation_type_key']!,
+          _relationTypeKeyMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_relationTypeKeyMeta);
+    }
+    if (data.containsKey('relation_scope_key')) {
+      context.handle(
+        _relationScopeKeyMeta,
+        relationScopeKey.isAcceptableOrUnknown(
+          data['relation_scope_key']!,
+          _relationScopeKeyMeta,
+        ),
+      );
+    }
+    if (data.containsKey('effective_date')) {
+      context.handle(
+        _effectiveDateMeta,
+        effectiveDate.isAcceptableOrUnknown(
+          data['effective_date']!,
+          _effectiveDateMeta,
+        ),
+      );
+    }
+    if (data.containsKey('notes')) {
+      context.handle(
+        _notesMeta,
+        notes.isAcceptableOrUnknown(data['notes']!, _notesMeta),
+      );
+    }
+    if (data.containsKey('created_at')) {
+      context.handle(
+        _createdAtMeta,
+        createdAt.isAcceptableOrUnknown(data['created_at']!, _createdAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_createdAtMeta);
+    }
+    if (data.containsKey('updated_at')) {
+      context.handle(
+        _updatedAtMeta,
+        updatedAt.isAcceptableOrUnknown(data['updated_at']!, _updatedAtMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_updatedAtMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {sourceDocumentId, targetDocumentId, relationTypeKey},
+  ];
+  @override
+  LegislationRelationRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return LegislationRelationRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      sourceDocumentId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}source_document_id'],
+      )!,
+      targetDocumentId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}target_document_id'],
+      )!,
+      relationTypeKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}relation_type_key'],
+      )!,
+      relationScopeKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}relation_scope_key'],
+      )!,
+      effectiveDate: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}effective_date'],
+      ),
+      notes: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}notes'],
+      ),
+      createdAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}created_at'],
+      )!,
+      updatedAt: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}updated_at'],
+      )!,
+    );
+  }
+
+  @override
+  $LegislationRelationsTable createAlias(String alias) {
+    return $LegislationRelationsTable(attachedDatabase, alias);
+  }
+}
+
+class LegislationRelationRow extends DataClass
+    implements Insertable<LegislationRelationRow> {
+  final int id;
+  final int sourceDocumentId;
+  final int targetDocumentId;
+  final String relationTypeKey;
+  final String relationScopeKey;
+  final String? effectiveDate;
+  final String? notes;
+  final String createdAt;
+  final String updatedAt;
+  const LegislationRelationRow({
+    required this.id,
+    required this.sourceDocumentId,
+    required this.targetDocumentId,
+    required this.relationTypeKey,
+    required this.relationScopeKey,
+    this.effectiveDate,
+    this.notes,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['source_document_id'] = Variable<int>(sourceDocumentId);
+    map['target_document_id'] = Variable<int>(targetDocumentId);
+    map['relation_type_key'] = Variable<String>(relationTypeKey);
+    map['relation_scope_key'] = Variable<String>(relationScopeKey);
+    if (!nullToAbsent || effectiveDate != null) {
+      map['effective_date'] = Variable<String>(effectiveDate);
+    }
+    if (!nullToAbsent || notes != null) {
+      map['notes'] = Variable<String>(notes);
+    }
+    map['created_at'] = Variable<String>(createdAt);
+    map['updated_at'] = Variable<String>(updatedAt);
+    return map;
+  }
+
+  LegislationRelationsCompanion toCompanion(bool nullToAbsent) {
+    return LegislationRelationsCompanion(
+      id: Value(id),
+      sourceDocumentId: Value(sourceDocumentId),
+      targetDocumentId: Value(targetDocumentId),
+      relationTypeKey: Value(relationTypeKey),
+      relationScopeKey: Value(relationScopeKey),
+      effectiveDate: effectiveDate == null && nullToAbsent
+          ? const Value.absent()
+          : Value(effectiveDate),
+      notes: notes == null && nullToAbsent
+          ? const Value.absent()
+          : Value(notes),
+      createdAt: Value(createdAt),
+      updatedAt: Value(updatedAt),
+    );
+  }
+
+  factory LegislationRelationRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return LegislationRelationRow(
+      id: serializer.fromJson<int>(json['id']),
+      sourceDocumentId: serializer.fromJson<int>(json['sourceDocumentId']),
+      targetDocumentId: serializer.fromJson<int>(json['targetDocumentId']),
+      relationTypeKey: serializer.fromJson<String>(json['relationTypeKey']),
+      relationScopeKey: serializer.fromJson<String>(json['relationScopeKey']),
+      effectiveDate: serializer.fromJson<String?>(json['effectiveDate']),
+      notes: serializer.fromJson<String?>(json['notes']),
+      createdAt: serializer.fromJson<String>(json['createdAt']),
+      updatedAt: serializer.fromJson<String>(json['updatedAt']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'sourceDocumentId': serializer.toJson<int>(sourceDocumentId),
+      'targetDocumentId': serializer.toJson<int>(targetDocumentId),
+      'relationTypeKey': serializer.toJson<String>(relationTypeKey),
+      'relationScopeKey': serializer.toJson<String>(relationScopeKey),
+      'effectiveDate': serializer.toJson<String?>(effectiveDate),
+      'notes': serializer.toJson<String?>(notes),
+      'createdAt': serializer.toJson<String>(createdAt),
+      'updatedAt': serializer.toJson<String>(updatedAt),
+    };
+  }
+
+  LegislationRelationRow copyWith({
+    int? id,
+    int? sourceDocumentId,
+    int? targetDocumentId,
+    String? relationTypeKey,
+    String? relationScopeKey,
+    Value<String?> effectiveDate = const Value.absent(),
+    Value<String?> notes = const Value.absent(),
+    String? createdAt,
+    String? updatedAt,
+  }) => LegislationRelationRow(
+    id: id ?? this.id,
+    sourceDocumentId: sourceDocumentId ?? this.sourceDocumentId,
+    targetDocumentId: targetDocumentId ?? this.targetDocumentId,
+    relationTypeKey: relationTypeKey ?? this.relationTypeKey,
+    relationScopeKey: relationScopeKey ?? this.relationScopeKey,
+    effectiveDate: effectiveDate.present
+        ? effectiveDate.value
+        : this.effectiveDate,
+    notes: notes.present ? notes.value : this.notes,
+    createdAt: createdAt ?? this.createdAt,
+    updatedAt: updatedAt ?? this.updatedAt,
+  );
+  LegislationRelationRow copyWithCompanion(LegislationRelationsCompanion data) {
+    return LegislationRelationRow(
+      id: data.id.present ? data.id.value : this.id,
+      sourceDocumentId: data.sourceDocumentId.present
+          ? data.sourceDocumentId.value
+          : this.sourceDocumentId,
+      targetDocumentId: data.targetDocumentId.present
+          ? data.targetDocumentId.value
+          : this.targetDocumentId,
+      relationTypeKey: data.relationTypeKey.present
+          ? data.relationTypeKey.value
+          : this.relationTypeKey,
+      relationScopeKey: data.relationScopeKey.present
+          ? data.relationScopeKey.value
+          : this.relationScopeKey,
+      effectiveDate: data.effectiveDate.present
+          ? data.effectiveDate.value
+          : this.effectiveDate,
+      notes: data.notes.present ? data.notes.value : this.notes,
+      createdAt: data.createdAt.present ? data.createdAt.value : this.createdAt,
+      updatedAt: data.updatedAt.present ? data.updatedAt.value : this.updatedAt,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LegislationRelationRow(')
+          ..write('id: $id, ')
+          ..write('sourceDocumentId: $sourceDocumentId, ')
+          ..write('targetDocumentId: $targetDocumentId, ')
+          ..write('relationTypeKey: $relationTypeKey, ')
+          ..write('relationScopeKey: $relationScopeKey, ')
+          ..write('effectiveDate: $effectiveDate, ')
+          ..write('notes: $notes, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    sourceDocumentId,
+    targetDocumentId,
+    relationTypeKey,
+    relationScopeKey,
+    effectiveDate,
+    notes,
+    createdAt,
+    updatedAt,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is LegislationRelationRow &&
+          other.id == this.id &&
+          other.sourceDocumentId == this.sourceDocumentId &&
+          other.targetDocumentId == this.targetDocumentId &&
+          other.relationTypeKey == this.relationTypeKey &&
+          other.relationScopeKey == this.relationScopeKey &&
+          other.effectiveDate == this.effectiveDate &&
+          other.notes == this.notes &&
+          other.createdAt == this.createdAt &&
+          other.updatedAt == this.updatedAt);
+}
+
+class LegislationRelationsCompanion
+    extends UpdateCompanion<LegislationRelationRow> {
+  final Value<int> id;
+  final Value<int> sourceDocumentId;
+  final Value<int> targetDocumentId;
+  final Value<String> relationTypeKey;
+  final Value<String> relationScopeKey;
+  final Value<String?> effectiveDate;
+  final Value<String?> notes;
+  final Value<String> createdAt;
+  final Value<String> updatedAt;
+  const LegislationRelationsCompanion({
+    this.id = const Value.absent(),
+    this.sourceDocumentId = const Value.absent(),
+    this.targetDocumentId = const Value.absent(),
+    this.relationTypeKey = const Value.absent(),
+    this.relationScopeKey = const Value.absent(),
+    this.effectiveDate = const Value.absent(),
+    this.notes = const Value.absent(),
+    this.createdAt = const Value.absent(),
+    this.updatedAt = const Value.absent(),
+  });
+  LegislationRelationsCompanion.insert({
+    this.id = const Value.absent(),
+    required int sourceDocumentId,
+    required int targetDocumentId,
+    required String relationTypeKey,
+    this.relationScopeKey = const Value.absent(),
+    this.effectiveDate = const Value.absent(),
+    this.notes = const Value.absent(),
+    required String createdAt,
+    required String updatedAt,
+  }) : sourceDocumentId = Value(sourceDocumentId),
+       targetDocumentId = Value(targetDocumentId),
+       relationTypeKey = Value(relationTypeKey),
+       createdAt = Value(createdAt),
+       updatedAt = Value(updatedAt);
+  static Insertable<LegislationRelationRow> custom({
+    Expression<int>? id,
+    Expression<int>? sourceDocumentId,
+    Expression<int>? targetDocumentId,
+    Expression<String>? relationTypeKey,
+    Expression<String>? relationScopeKey,
+    Expression<String>? effectiveDate,
+    Expression<String>? notes,
+    Expression<String>? createdAt,
+    Expression<String>? updatedAt,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (sourceDocumentId != null) 'source_document_id': sourceDocumentId,
+      if (targetDocumentId != null) 'target_document_id': targetDocumentId,
+      if (relationTypeKey != null) 'relation_type_key': relationTypeKey,
+      if (relationScopeKey != null) 'relation_scope_key': relationScopeKey,
+      if (effectiveDate != null) 'effective_date': effectiveDate,
+      if (notes != null) 'notes': notes,
+      if (createdAt != null) 'created_at': createdAt,
+      if (updatedAt != null) 'updated_at': updatedAt,
+    });
+  }
+
+  LegislationRelationsCompanion copyWith({
+    Value<int>? id,
+    Value<int>? sourceDocumentId,
+    Value<int>? targetDocumentId,
+    Value<String>? relationTypeKey,
+    Value<String>? relationScopeKey,
+    Value<String?>? effectiveDate,
+    Value<String?>? notes,
+    Value<String>? createdAt,
+    Value<String>? updatedAt,
+  }) {
+    return LegislationRelationsCompanion(
+      id: id ?? this.id,
+      sourceDocumentId: sourceDocumentId ?? this.sourceDocumentId,
+      targetDocumentId: targetDocumentId ?? this.targetDocumentId,
+      relationTypeKey: relationTypeKey ?? this.relationTypeKey,
+      relationScopeKey: relationScopeKey ?? this.relationScopeKey,
+      effectiveDate: effectiveDate ?? this.effectiveDate,
+      notes: notes ?? this.notes,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (sourceDocumentId.present) {
+      map['source_document_id'] = Variable<int>(sourceDocumentId.value);
+    }
+    if (targetDocumentId.present) {
+      map['target_document_id'] = Variable<int>(targetDocumentId.value);
+    }
+    if (relationTypeKey.present) {
+      map['relation_type_key'] = Variable<String>(relationTypeKey.value);
+    }
+    if (relationScopeKey.present) {
+      map['relation_scope_key'] = Variable<String>(relationScopeKey.value);
+    }
+    if (effectiveDate.present) {
+      map['effective_date'] = Variable<String>(effectiveDate.value);
+    }
+    if (notes.present) {
+      map['notes'] = Variable<String>(notes.value);
+    }
+    if (createdAt.present) {
+      map['created_at'] = Variable<String>(createdAt.value);
+    }
+    if (updatedAt.present) {
+      map['updated_at'] = Variable<String>(updatedAt.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('LegislationRelationsCompanion(')
+          ..write('id: $id, ')
+          ..write('sourceDocumentId: $sourceDocumentId, ')
+          ..write('targetDocumentId: $targetDocumentId, ')
+          ..write('relationTypeKey: $relationTypeKey, ')
+          ..write('relationScopeKey: $relationScopeKey, ')
+          ..write('effectiveDate: $effectiveDate, ')
+          ..write('notes: $notes, ')
+          ..write('createdAt: $createdAt, ')
+          ..write('updatedAt: $updatedAt')
           ..write(')'))
         .toString();
   }
@@ -18058,6 +18941,8 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   );
   late final $LegislationDetailsTable legislationDetails =
       $LegislationDetailsTable(this);
+  late final $LegislationRelationsTable legislationRelations =
+      $LegislationRelationsTable(this);
   late final $CourtCaseDetailsTable courtCaseDetails = $CourtCaseDetailsTable(
     this,
   );
@@ -18263,6 +19148,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     thesisDetails,
     researchDetails,
     legislationDetails,
+    legislationRelations,
     courtCaseDetails,
     reportDetails,
     duplicateGroups,
@@ -28898,17 +29784,27 @@ typedef $$LegislationDetailsTableCreateCompanionBuilder =
     LegislationDetailsCompanion Function({
       required int documentId,
       Value<String?> legislationTypeKey,
+      Value<String?> legislationTypeOther,
       Value<String?> effectiveStatusKey,
       Value<String?> issueNumber,
       Value<String?> publicationDate,
+      Value<String?> legislationNumber,
+      Value<int?> legislationYear,
+      Value<String?> effectiveDate,
+      Value<String?> repealDate,
     });
 typedef $$LegislationDetailsTableUpdateCompanionBuilder =
     LegislationDetailsCompanion Function({
       Value<int> documentId,
       Value<String?> legislationTypeKey,
+      Value<String?> legislationTypeOther,
       Value<String?> effectiveStatusKey,
       Value<String?> issueNumber,
       Value<String?> publicationDate,
+      Value<String?> legislationNumber,
+      Value<int?> legislationYear,
+      Value<String?> effectiveDate,
+      Value<String?> repealDate,
     });
 
 final class $$LegislationDetailsTableReferences
@@ -28958,6 +29854,11 @@ class $$LegislationDetailsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get legislationTypeOther => $composableBuilder(
+    column: $table.legislationTypeOther,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<String> get effectiveStatusKey => $composableBuilder(
     column: $table.effectiveStatusKey,
     builder: (column) => ColumnFilters(column),
@@ -28970,6 +29871,26 @@ class $$LegislationDetailsTableFilterComposer
 
   ColumnFilters<String> get publicationDate => $composableBuilder(
     column: $table.publicationDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get legislationNumber => $composableBuilder(
+    column: $table.legislationNumber,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get legislationYear => $composableBuilder(
+    column: $table.legislationYear,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get effectiveDate => $composableBuilder(
+    column: $table.effectiveDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get repealDate => $composableBuilder(
+    column: $table.repealDate,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -29011,6 +29932,11 @@ class $$LegislationDetailsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get legislationTypeOther => $composableBuilder(
+    column: $table.legislationTypeOther,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get effectiveStatusKey => $composableBuilder(
     column: $table.effectiveStatusKey,
     builder: (column) => ColumnOrderings(column),
@@ -29023,6 +29949,26 @@ class $$LegislationDetailsTableOrderingComposer
 
   ColumnOrderings<String> get publicationDate => $composableBuilder(
     column: $table.publicationDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get legislationNumber => $composableBuilder(
+    column: $table.legislationNumber,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get legislationYear => $composableBuilder(
+    column: $table.legislationYear,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get effectiveDate => $composableBuilder(
+    column: $table.effectiveDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get repealDate => $composableBuilder(
+    column: $table.repealDate,
     builder: (column) => ColumnOrderings(column),
   );
 
@@ -29064,6 +30010,11 @@ class $$LegislationDetailsTableAnnotationComposer
     builder: (column) => column,
   );
 
+  GeneratedColumn<String> get legislationTypeOther => $composableBuilder(
+    column: $table.legislationTypeOther,
+    builder: (column) => column,
+  );
+
   GeneratedColumn<String> get effectiveStatusKey => $composableBuilder(
     column: $table.effectiveStatusKey,
     builder: (column) => column,
@@ -29076,6 +30027,26 @@ class $$LegislationDetailsTableAnnotationComposer
 
   GeneratedColumn<String> get publicationDate => $composableBuilder(
     column: $table.publicationDate,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get legislationNumber => $composableBuilder(
+    column: $table.legislationNumber,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get legislationYear => $composableBuilder(
+    column: $table.legislationYear,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get effectiveDate => $composableBuilder(
+    column: $table.effectiveDate,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get repealDate => $composableBuilder(
+    column: $table.repealDate,
     builder: (column) => column,
   );
 
@@ -29138,29 +30109,49 @@ class $$LegislationDetailsTableTableManager
               ({
                 Value<int> documentId = const Value.absent(),
                 Value<String?> legislationTypeKey = const Value.absent(),
+                Value<String?> legislationTypeOther = const Value.absent(),
                 Value<String?> effectiveStatusKey = const Value.absent(),
                 Value<String?> issueNumber = const Value.absent(),
                 Value<String?> publicationDate = const Value.absent(),
+                Value<String?> legislationNumber = const Value.absent(),
+                Value<int?> legislationYear = const Value.absent(),
+                Value<String?> effectiveDate = const Value.absent(),
+                Value<String?> repealDate = const Value.absent(),
               }) => LegislationDetailsCompanion(
                 documentId: documentId,
                 legislationTypeKey: legislationTypeKey,
+                legislationTypeOther: legislationTypeOther,
                 effectiveStatusKey: effectiveStatusKey,
                 issueNumber: issueNumber,
                 publicationDate: publicationDate,
+                legislationNumber: legislationNumber,
+                legislationYear: legislationYear,
+                effectiveDate: effectiveDate,
+                repealDate: repealDate,
               ),
           createCompanionCallback:
               ({
                 required int documentId,
                 Value<String?> legislationTypeKey = const Value.absent(),
+                Value<String?> legislationTypeOther = const Value.absent(),
                 Value<String?> effectiveStatusKey = const Value.absent(),
                 Value<String?> issueNumber = const Value.absent(),
                 Value<String?> publicationDate = const Value.absent(),
+                Value<String?> legislationNumber = const Value.absent(),
+                Value<int?> legislationYear = const Value.absent(),
+                Value<String?> effectiveDate = const Value.absent(),
+                Value<String?> repealDate = const Value.absent(),
               }) => LegislationDetailsCompanion.insert(
                 documentId: documentId,
                 legislationTypeKey: legislationTypeKey,
+                legislationTypeOther: legislationTypeOther,
                 effectiveStatusKey: effectiveStatusKey,
                 issueNumber: issueNumber,
                 publicationDate: publicationDate,
+                legislationNumber: legislationNumber,
+                legislationYear: legislationYear,
+                effectiveDate: effectiveDate,
+                repealDate: repealDate,
               ),
           withReferenceMapper: (p0) => p0
               .map(
@@ -29230,6 +30221,517 @@ typedef $$LegislationDetailsTableProcessedTableManager =
       (LegislationDetail, $$LegislationDetailsTableReferences),
       LegislationDetail,
       PrefetchHooks Function({bool documentId})
+    >;
+typedef $$LegislationRelationsTableCreateCompanionBuilder =
+    LegislationRelationsCompanion Function({
+      Value<int> id,
+      required int sourceDocumentId,
+      required int targetDocumentId,
+      required String relationTypeKey,
+      Value<String> relationScopeKey,
+      Value<String?> effectiveDate,
+      Value<String?> notes,
+      required String createdAt,
+      required String updatedAt,
+    });
+typedef $$LegislationRelationsTableUpdateCompanionBuilder =
+    LegislationRelationsCompanion Function({
+      Value<int> id,
+      Value<int> sourceDocumentId,
+      Value<int> targetDocumentId,
+      Value<String> relationTypeKey,
+      Value<String> relationScopeKey,
+      Value<String?> effectiveDate,
+      Value<String?> notes,
+      Value<String> createdAt,
+      Value<String> updatedAt,
+    });
+
+final class $$LegislationRelationsTableReferences
+    extends
+        BaseReferences<
+          _$AppDatabase,
+          $LegislationRelationsTable,
+          LegislationRelationRow
+        > {
+  $$LegislationRelationsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $DocumentsTable _sourceDocumentIdTable(_$AppDatabase db) =>
+      db.documents.createAlias(
+        $_aliasNameGenerator(
+          db.legislationRelations.sourceDocumentId,
+          db.documents.id,
+        ),
+      );
+
+  $$DocumentsTableProcessedTableManager get sourceDocumentId {
+    final $_column = $_itemColumn<int>('source_document_id')!;
+
+    final manager = $$DocumentsTableTableManager(
+      $_db,
+      $_db.documents,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_sourceDocumentIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $DocumentsTable _targetDocumentIdTable(_$AppDatabase db) =>
+      db.documents.createAlias(
+        $_aliasNameGenerator(
+          db.legislationRelations.targetDocumentId,
+          db.documents.id,
+        ),
+      );
+
+  $$DocumentsTableProcessedTableManager get targetDocumentId {
+    final $_column = $_itemColumn<int>('target_document_id')!;
+
+    final manager = $$DocumentsTableTableManager(
+      $_db,
+      $_db.documents,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_targetDocumentIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$LegislationRelationsTableFilterComposer
+    extends Composer<_$AppDatabase, $LegislationRelationsTable> {
+  $$LegislationRelationsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get relationTypeKey => $composableBuilder(
+    column: $table.relationTypeKey,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get relationScopeKey => $composableBuilder(
+    column: $table.relationScopeKey,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get effectiveDate => $composableBuilder(
+    column: $table.effectiveDate,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$DocumentsTableFilterComposer get sourceDocumentId {
+    final $$DocumentsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.sourceDocumentId,
+      referencedTable: $db.documents,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DocumentsTableFilterComposer(
+            $db: $db,
+            $table: $db.documents,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$DocumentsTableFilterComposer get targetDocumentId {
+    final $$DocumentsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.targetDocumentId,
+      referencedTable: $db.documents,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DocumentsTableFilterComposer(
+            $db: $db,
+            $table: $db.documents,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$LegislationRelationsTableOrderingComposer
+    extends Composer<_$AppDatabase, $LegislationRelationsTable> {
+  $$LegislationRelationsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get relationTypeKey => $composableBuilder(
+    column: $table.relationTypeKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get relationScopeKey => $composableBuilder(
+    column: $table.relationScopeKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get effectiveDate => $composableBuilder(
+    column: $table.effectiveDate,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get notes => $composableBuilder(
+    column: $table.notes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get createdAt => $composableBuilder(
+    column: $table.createdAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get updatedAt => $composableBuilder(
+    column: $table.updatedAt,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$DocumentsTableOrderingComposer get sourceDocumentId {
+    final $$DocumentsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.sourceDocumentId,
+      referencedTable: $db.documents,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DocumentsTableOrderingComposer(
+            $db: $db,
+            $table: $db.documents,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$DocumentsTableOrderingComposer get targetDocumentId {
+    final $$DocumentsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.targetDocumentId,
+      referencedTable: $db.documents,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DocumentsTableOrderingComposer(
+            $db: $db,
+            $table: $db.documents,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$LegislationRelationsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $LegislationRelationsTable> {
+  $$LegislationRelationsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get relationTypeKey => $composableBuilder(
+    column: $table.relationTypeKey,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get relationScopeKey => $composableBuilder(
+    column: $table.relationScopeKey,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get effectiveDate => $composableBuilder(
+    column: $table.effectiveDate,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<String> get notes =>
+      $composableBuilder(column: $table.notes, builder: (column) => column);
+
+  GeneratedColumn<String> get createdAt =>
+      $composableBuilder(column: $table.createdAt, builder: (column) => column);
+
+  GeneratedColumn<String> get updatedAt =>
+      $composableBuilder(column: $table.updatedAt, builder: (column) => column);
+
+  $$DocumentsTableAnnotationComposer get sourceDocumentId {
+    final $$DocumentsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.sourceDocumentId,
+      referencedTable: $db.documents,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DocumentsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.documents,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$DocumentsTableAnnotationComposer get targetDocumentId {
+    final $$DocumentsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.targetDocumentId,
+      referencedTable: $db.documents,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$DocumentsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.documents,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$LegislationRelationsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $LegislationRelationsTable,
+          LegislationRelationRow,
+          $$LegislationRelationsTableFilterComposer,
+          $$LegislationRelationsTableOrderingComposer,
+          $$LegislationRelationsTableAnnotationComposer,
+          $$LegislationRelationsTableCreateCompanionBuilder,
+          $$LegislationRelationsTableUpdateCompanionBuilder,
+          (LegislationRelationRow, $$LegislationRelationsTableReferences),
+          LegislationRelationRow,
+          PrefetchHooks Function({bool sourceDocumentId, bool targetDocumentId})
+        > {
+  $$LegislationRelationsTableTableManager(
+    _$AppDatabase db,
+    $LegislationRelationsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$LegislationRelationsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$LegislationRelationsTableOrderingComposer(
+                $db: db,
+                $table: table,
+              ),
+          createComputedFieldComposer: () =>
+              $$LegislationRelationsTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> sourceDocumentId = const Value.absent(),
+                Value<int> targetDocumentId = const Value.absent(),
+                Value<String> relationTypeKey = const Value.absent(),
+                Value<String> relationScopeKey = const Value.absent(),
+                Value<String?> effectiveDate = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                Value<String> createdAt = const Value.absent(),
+                Value<String> updatedAt = const Value.absent(),
+              }) => LegislationRelationsCompanion(
+                id: id,
+                sourceDocumentId: sourceDocumentId,
+                targetDocumentId: targetDocumentId,
+                relationTypeKey: relationTypeKey,
+                relationScopeKey: relationScopeKey,
+                effectiveDate: effectiveDate,
+                notes: notes,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required int sourceDocumentId,
+                required int targetDocumentId,
+                required String relationTypeKey,
+                Value<String> relationScopeKey = const Value.absent(),
+                Value<String?> effectiveDate = const Value.absent(),
+                Value<String?> notes = const Value.absent(),
+                required String createdAt,
+                required String updatedAt,
+              }) => LegislationRelationsCompanion.insert(
+                id: id,
+                sourceDocumentId: sourceDocumentId,
+                targetDocumentId: targetDocumentId,
+                relationTypeKey: relationTypeKey,
+                relationScopeKey: relationScopeKey,
+                effectiveDate: effectiveDate,
+                notes: notes,
+                createdAt: createdAt,
+                updatedAt: updatedAt,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable(table),
+                  $$LegislationRelationsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({sourceDocumentId = false, targetDocumentId = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (sourceDocumentId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.sourceDocumentId,
+                                    referencedTable:
+                                        $$LegislationRelationsTableReferences
+                                            ._sourceDocumentIdTable(db),
+                                    referencedColumn:
+                                        $$LegislationRelationsTableReferences
+                                            ._sourceDocumentIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+                        if (targetDocumentId) {
+                          state =
+                              state.withJoin(
+                                    currentTable: table,
+                                    currentColumn: table.targetDocumentId,
+                                    referencedTable:
+                                        $$LegislationRelationsTableReferences
+                                            ._targetDocumentIdTable(db),
+                                    referencedColumn:
+                                        $$LegislationRelationsTableReferences
+                                            ._targetDocumentIdTable(db)
+                                            .id,
+                                  )
+                                  as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$LegislationRelationsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $LegislationRelationsTable,
+      LegislationRelationRow,
+      $$LegislationRelationsTableFilterComposer,
+      $$LegislationRelationsTableOrderingComposer,
+      $$LegislationRelationsTableAnnotationComposer,
+      $$LegislationRelationsTableCreateCompanionBuilder,
+      $$LegislationRelationsTableUpdateCompanionBuilder,
+      (LegislationRelationRow, $$LegislationRelationsTableReferences),
+      LegislationRelationRow,
+      PrefetchHooks Function({bool sourceDocumentId, bool targetDocumentId})
     >;
 typedef $$CourtCaseDetailsTableCreateCompanionBuilder =
     CourtCaseDetailsCompanion Function({
@@ -36847,6 +38349,8 @@ class $AppDatabaseManager {
       $$ResearchDetailsTableTableManager(_db, _db.researchDetails);
   $$LegislationDetailsTableTableManager get legislationDetails =>
       $$LegislationDetailsTableTableManager(_db, _db.legislationDetails);
+  $$LegislationRelationsTableTableManager get legislationRelations =>
+      $$LegislationRelationsTableTableManager(_db, _db.legislationRelations);
   $$CourtCaseDetailsTableTableManager get courtCaseDetails =>
       $$CourtCaseDetailsTableTableManager(_db, _db.courtCaseDetails);
   $$ReportDetailsTableTableManager get reportDetails =>

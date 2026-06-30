@@ -23,6 +23,7 @@ import 'tables/import_batch_files.dart';
 import 'tables/import_batches.dart';
 import 'tables/keywords.dart';
 import 'tables/legislation_details.dart';
+import 'tables/legislation_relations.dart';
 import 'tables/main_categories.dart';
 import 'tables/recovery_credentials.dart';
 import 'tables/related_file_candidates.dart';
@@ -65,6 +66,7 @@ part 'app_database.g.dart';
     ThesisDetails,
     ResearchDetails,
     LegislationDetails,
+    LegislationRelations,
     CourtCaseDetails,
     ReportDetails,
     DuplicateGroups,
@@ -96,16 +98,20 @@ class AppDatabase extends _$AppDatabase {
   factory AppDatabase.inMemory() =>
       AppDatabase.forExecutor(NativeDatabase.memory());
 
-  /// Schema version 5 adds the `related_file_candidates` table (P2.4) for
-  /// candidate pairs of files that may represent the same logical document but
-  /// differ in name, format, or location.
+  /// Schema version 7 adds `legislation_details.legislation_type_other` for
+  /// typed custom labels when legislation_type_key is 'other'.
   ///
+  /// Version 6 added the `legislation_relations` table and extended
+  /// `legislation_details` with four new nullable columns plus expands the
+  /// effective_status_key allowed values (Pre-P3 Slice A).
+  ///
+  /// Version 5 added `related_file_candidates` (P2.4).
   /// Version 4 added `paired_count` to `import_batches` (P2.1).
   /// Version 3 added the four security tables (M14).
   /// Version 2 added normalized category-name columns (M6.4).
   /// Version 1 databases are migrated through all steps in sequence.
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 7;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -115,6 +121,7 @@ class AppDatabase extends _$AppDatabase {
       // A fresh database is created directly at version 2, so the normalized
       // category indexes are part of initial creation.
       await _createCategoryNormalizedIndexes();
+      await _createLegislationRelationIndexes();
     },
     onUpgrade: (Migrator m, int from, int to) async {
       if (from < 2) {
@@ -128,6 +135,12 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from < 5) {
         await _migrateV4ToV5(m);
+      }
+      if (from < 6) {
+        await _migrateV5ToV6(m);
+      }
+      if (from < 7) {
+        await _migrateV6ToV7();
       }
     },
     beforeOpen: (OpeningDetails details) async {
@@ -263,6 +276,110 @@ class AppDatabase extends _$AppDatabase {
       // 4. Only after a clean collision check, enforce uniqueness.
       await _createCategoryNormalizedIndexes();
     });
+  }
+
+  /// Creates performance indexes on `legislation_relations`.
+  ///
+  /// Called on both fresh database creation (onCreate) and during the v5→v6
+  /// migration so indexes exist in all code paths.
+  Future<void> _createLegislationRelationIndexes() async {
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_lr_source '
+      'ON legislation_relations(source_document_id)',
+    );
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_lr_target '
+      'ON legislation_relations(target_document_id)',
+    );
+    await customStatement(
+      'CREATE INDEX IF NOT EXISTS idx_lr_type '
+      'ON legislation_relations(relation_type_key)',
+    );
+  }
+
+  /// Migrates a v5 database to v6 (Pre-P3 Slice A).
+  ///
+  /// 1. Recreates `legislation_details` via a temp table to add four nullable
+  ///    columns and expand the effective_status_key CHECK constraint — SQLite
+  ///    does not support modifying CHECK constraints via ALTER TABLE.
+  /// 2. Creates the new `legislation_relations` table.
+  /// 3. Creates performance indexes on `legislation_relations`.
+  ///
+  /// Existing `legislation_details` rows are preserved; the four new columns
+  /// default to NULL. The migration runs inside the Drift-managed upgrade
+  /// transaction.
+  Future<void> _migrateV5ToV6(Migrator m) async {
+    // Step A: recreate legislation_details with expanded schema.
+    // Guard: skip if the table does not exist (possible only in minimal test
+    // proxy databases that simulate a version number without the full schema;
+    // real installations always have the table from initial setup).
+    final List<QueryRow> existing = await customSelect(
+      "SELECT name FROM sqlite_master WHERE type='table' "
+      "AND name='legislation_details';",
+    ).get();
+    if (existing.isNotEmpty) {
+      await customStatement('''
+        CREATE TABLE legislation_details_v6 (
+          document_id INTEGER NOT NULL
+            REFERENCES documents(id) ON DELETE CASCADE,
+          legislation_type_key TEXT
+            CHECK(legislation_type_key IN (
+              'ordinary_legislation','regulation',
+              'executive_regulation','other')),
+          effective_status_key TEXT
+            CHECK(effective_status_key IN (
+              'active','repealed','amended','expired','unknown')),
+          issue_number TEXT,
+          publication_date TEXT,
+          legislation_number TEXT,
+          legislation_year INTEGER,
+          effective_date TEXT,
+          repeal_date TEXT,
+          PRIMARY KEY (document_id)
+        ) WITHOUT ROWID
+      ''');
+      await customStatement('''
+        INSERT INTO legislation_details_v6
+          (document_id, legislation_type_key, effective_status_key,
+           issue_number, publication_date)
+        SELECT
+          document_id, legislation_type_key, effective_status_key,
+          issue_number, publication_date
+        FROM legislation_details
+      ''');
+      await customStatement('DROP TABLE legislation_details');
+      await customStatement(
+        'ALTER TABLE legislation_details_v6 RENAME TO legislation_details',
+      );
+    }
+
+    // Step B: create legislation_relations table.
+    await m.createTable(legislationRelations);
+
+    // Step C: create performance indexes.
+    await _createLegislationRelationIndexes();
+  }
+
+  /// Adds the custom free-text label for `legislation_type_key = 'other'`.
+  ///
+  /// This is nullable so existing v6 rows remain valid. The application/domain
+  /// validation enforces that it is filled when a user chooses "other".
+  Future<void> _migrateV6ToV7() async {
+    final List<QueryRow> tables = await customSelect(
+      "SELECT name FROM sqlite_master WHERE type='table' "
+      "AND name='legislation_details';",
+    ).get();
+    if (tables.isEmpty) return;
+
+    final Set<String> columns = (await customSelect(
+      'PRAGMA table_info(legislation_details);',
+    ).get()).map((row) => row.read<String>('name')).toSet();
+    if (columns.contains('legislation_type_other')) return;
+
+    await customStatement(
+      'ALTER TABLE legislation_details '
+      'ADD COLUMN legislation_type_other TEXT',
+    );
   }
 
   /// Reads each row's display names and writes back the shared normalized

@@ -185,6 +185,42 @@ void main() {
       expect((await db.select(db.thesisDetails).get()).length, 1);
     });
 
+    test('saves and reloads full legislation metadata fields', () async {
+      final int docId = await insertDocument(db);
+      final int legislationType = await typeId(db, 'legislation');
+
+      final result = await saveDraft.call(
+        DraftSaveInput(
+          documentId: docId,
+          common: DocumentCommonMetadata(documentTypeId: legislationType),
+          details: const LegislationDetailsData(
+            legislationTypeKey: 'other',
+            legislationTypeOther: 'قرار إداري خاص',
+            effectiveStatusKey: 'expired',
+            issueNumber: '45',
+            publicationDate: '2023-04-01',
+            legislationNumber: '7',
+            legislationYear: 2005,
+            effectiveDate: '2005-09-01',
+            repealDate: '2020-06-15',
+          ),
+        ),
+      );
+
+      expect(result.isValid, isTrue);
+      final aggregate = await metaRepo.loadAggregate(docId);
+      final details = aggregate!.details as LegislationDetailsData;
+      expect(details.legislationTypeKey, 'other');
+      expect(details.legislationTypeOther, 'قرار إداري خاص');
+      expect(details.effectiveStatusKey, 'expired');
+      expect(details.issueNumber, '45');
+      expect(details.publicationDate, '2023-04-01');
+      expect(details.legislationNumber, '7');
+      expect(details.legislationYear, 2005);
+      expect(details.effectiveDate, '2005-09-01');
+      expect(details.repealDate, '2020-06-15');
+    });
+
     test('keywords normalize, reuse rows, and never duplicate links', () async {
       final int docId = await insertDocument(db);
       await saveDraft.call(
@@ -323,6 +359,29 @@ void main() {
       expect(doc.classifiedAt, '2026-01-01T00:00:00.000Z');
       expect(doc.title, 'عنوان محدث');
       expect(doc.updatedAt, '2026-06-07T00:00:00.000Z');
+    });
+
+    test('valid edit of a copied document stays copied_to_library', () async {
+      final int id = await classifiedBook();
+      await (db.update(db.documents)..where((d) => d.id.equals(id))).write(
+        const DocumentsCompanion(
+          workflowStatusKey: Value('copied_to_library'),
+          copiedToLibraryAt: Value('2026-01-02T00:00:00.000Z'),
+        ),
+      );
+
+      final r = await saveDraft.call(
+        await approvableBookDraft(id, title: 'عنوان محدث بعد النسخ'),
+      );
+
+      expect(r.isValid, isTrue);
+      final doc = await (db.select(
+        db.documents,
+      )..where((d) => d.id.equals(id))).getSingle();
+      expect(doc.workflowStatusKey, 'copied_to_library');
+      expect(doc.classifiedAt, '2026-01-01T00:00:00.000Z');
+      expect(doc.copiedToLibraryAt, '2026-01-02T00:00:00.000Z');
+      expect(doc.title, 'عنوان محدث بعد النسخ');
     });
 
     test(

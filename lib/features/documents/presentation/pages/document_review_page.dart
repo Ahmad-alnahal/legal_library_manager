@@ -30,6 +30,7 @@ import '../../domain/entities/keyword_input.dart';
 import '../../domain/entities/review_queue_item.dart';
 import '../../domain/entities/review_queue_query.dart';
 import '../../domain/repositories/document_list_repository.dart';
+import '../../../legislation/presentation/widgets/legislation_relations_section.dart';
 import '../bloc/review_bloc.dart';
 import '../bloc/review_event.dart';
 import '../bloc/review_state.dart';
@@ -1204,14 +1205,26 @@ class _FormFieldsState extends State<_FormFields> {
         _c('research.issue').text = issue ?? '';
       case LegislationDetailsData(
         :final legislationTypeKey,
+        :final legislationTypeOther,
         :final effectiveStatusKey,
         :final issueNumber,
         :final publicationDate,
+        :final legislationNumber,
+        :final legislationYear,
+        :final effectiveDate,
+        :final repealDate,
       ):
         _legislationTypeKey = legislationTypeKey;
+        _c('legislation.legislationTypeOther').text =
+            legislationTypeOther ?? '';
         _effectiveStatusKey = effectiveStatusKey;
         _c('legislation.issueNumber').text = issueNumber ?? '';
         _c('legislation.publicationDate').text = publicationDate ?? '';
+        _c('legislation.legislationNumber').text = legislationNumber ?? '';
+        _c('legislation.legislationYear').text =
+            legislationYear?.toString() ?? '';
+        _c('legislation.effectiveDate').text = effectiveDate ?? '';
+        _c('legislation.repealDate').text = repealDate ?? '';
       case CourtCaseDetailsData(
         :final courtName,
         :final caseNumber,
@@ -1299,9 +1312,16 @@ class _FormFieldsState extends State<_FormFields> {
       case 'legislation':
         return LegislationDetailsData(
           legislationTypeKey: _legislationTypeKey,
+          legislationTypeOther: _textOrNull('legislation.legislationTypeOther'),
           effectiveStatusKey: _effectiveStatusKey,
           issueNumber: _textOrNull('legislation.issueNumber'),
           publicationDate: _textOrNull('legislation.publicationDate'),
+          legislationNumber: _textOrNull('legislation.legislationNumber'),
+          legislationYear: int.tryParse(
+            _c('legislation.legislationYear').text.trim(),
+          ),
+          effectiveDate: _textOrNull('legislation.effectiveDate'),
+          repealDate: _textOrNull('legislation.repealDate'),
         );
       case 'court_precedent':
         return CourtCaseDetailsData(
@@ -1434,6 +1454,13 @@ class _FormFieldsState extends State<_FormFields> {
           ],
         ),
         _typeSpecificSection(),
+        if (widget.references.typeKeyFor(_documentTypeId) == 'legislation' &&
+            widget.initialDraft.documentId > 0)
+          LegislationRelationsSection(
+            documentId: widget.initialDraft.documentId,
+            legislationDocumentTypeId:
+                widget.references.legislationDocumentTypeId,
+          ),
         _classificationSection(context),
         _keywordSection(context),
       ],
@@ -1530,10 +1557,21 @@ class _FormFieldsState extends State<_FormFields> {
                 _Option(e.key, e.value),
             ],
             onChanged: (value) {
-              setState(() => _legislationTypeKey = value);
+              setState(() {
+                _legislationTypeKey = value;
+                if (value != 'other') {
+                  _c('legislation.legislationTypeOther').clear();
+                }
+              });
               _emit();
             },
           ),
+          if (_legislationTypeKey == 'other')
+            _LabeledField(
+              label: 'نوع التشريع الآخر',
+              controller: _c('legislation.legislationTypeOther'),
+              onChanged: _emit,
+            ),
           _Dropdown<String>(
             label: 'حالة النفاذ',
             value: _effectiveStatusKey,
@@ -1554,6 +1592,27 @@ class _FormFieldsState extends State<_FormFields> {
           _DateField(
             label: 'تاريخ النشر',
             controller: _c('legislation.publicationDate'),
+            onChanged: _emit,
+          ),
+          _LabeledField(
+            label: 'رقم التشريع',
+            controller: _c('legislation.legislationNumber'),
+            onChanged: _emit,
+          ),
+          _LabeledField(
+            label: 'سنة التشريع',
+            controller: _c('legislation.legislationYear'),
+            keyboardType: TextInputType.number,
+            onChanged: _emit,
+          ),
+          _DateField(
+            label: 'تاريخ النفاذ',
+            controller: _c('legislation.effectiveDate'),
+            onChanged: _emit,
+          ),
+          _DateField(
+            label: 'تاريخ الإلغاء',
+            controller: _c('legislation.repealDate'),
             onChanged: _emit,
           ),
         ]);

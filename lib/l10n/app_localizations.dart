@@ -2553,6 +2553,228 @@ abstract class AppLocalizations {
   /// In ar, this message translates to:
   /// **'{count} اقتراح'**
   String relatedReviewCount(int count);
+
+  /// No description provided for @legislationRelationsSectionTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'علاقات التشريع'**
+  String get legislationRelationsSectionTitle;
+
+  /// No description provided for @legislationRelationAddTooltip.
+  ///
+  /// In ar, this message translates to:
+  /// **'إضافة علاقة'**
+  String get legislationRelationAddTooltip;
+
+  /// No description provided for @legislationRelationsOutgoingHeader.
+  ///
+  /// In ar, this message translates to:
+  /// **'صادرة (هذا التشريع يؤثر في مستندات أخرى)'**
+  String get legislationRelationsOutgoingHeader;
+
+  /// No description provided for @legislationRelationsIncomingHeader.
+  ///
+  /// In ar, this message translates to:
+  /// **'واردة (مستندات أخرى تؤثر في هذا التشريع)'**
+  String get legislationRelationsIncomingHeader;
+
+  /// No description provided for @legislationRelationsEmpty.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا توجد علاقات مسجّلة لهذا التشريع.'**
+  String get legislationRelationsEmpty;
+
+  /// No description provided for @legislationRelationDeleteTooltip.
+  ///
+  /// In ar, this message translates to:
+  /// **'حذف العلاقة'**
+  String get legislationRelationDeleteTooltip;
+
+  /// No description provided for @legislationRelationDeleteTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'حذف العلاقة'**
+  String get legislationRelationDeleteTitle;
+
+  /// No description provided for @legislationRelationDeleteContent.
+  ///
+  /// In ar, this message translates to:
+  /// **'هل تريد حذف هذه العلاقة؟ لن يُحذف أي مستند.'**
+  String get legislationRelationDeleteContent;
+
+  /// No description provided for @legislationRelationCancel.
+  ///
+  /// In ar, this message translates to:
+  /// **'إلغاء'**
+  String get legislationRelationCancel;
+
+  /// No description provided for @legislationRelationDeleteConfirm.
+  ///
+  /// In ar, this message translates to:
+  /// **'حذف'**
+  String get legislationRelationDeleteConfirm;
+
+  /// No description provided for @legislationRelationAddDialogTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'إضافة علاقة تشريعية'**
+  String get legislationRelationAddDialogTitle;
+
+  /// No description provided for @legislationRelationTypeLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'نوع العلاقة'**
+  String get legislationRelationTypeLabel;
+
+  /// No description provided for @legislationRelationScopeLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'نطاق العلاقة'**
+  String get legislationRelationScopeLabel;
+
+  /// No description provided for @legislationRelationNoTarget.
+  ///
+  /// In ar, this message translates to:
+  /// **'لم يُختر مستند'**
+  String get legislationRelationNoTarget;
+
+  /// No description provided for @legislationRelationPickTarget.
+  ///
+  /// In ar, this message translates to:
+  /// **'اختيار مستند'**
+  String get legislationRelationPickTarget;
+
+  /// No description provided for @legislationRelationEffectiveDateLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'تاريخ النفاذ (اختياري)'**
+  String get legislationRelationEffectiveDateLabel;
+
+  /// No description provided for @legislationRelationEffectiveDateHint.
+  ///
+  /// In ar, this message translates to:
+  /// **'YYYY-MM-DD'**
+  String get legislationRelationEffectiveDateHint;
+
+  /// No description provided for @legislationRelationNotesLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'ملاحظات (اختياري)'**
+  String get legislationRelationNotesLabel;
+
+  /// No description provided for @legislationRelationAddSubmit.
+  ///
+  /// In ar, this message translates to:
+  /// **'إضافة'**
+  String get legislationRelationAddSubmit;
+
+  /// No description provided for @legislationRelationDocumentFallback.
+  ///
+  /// In ar, this message translates to:
+  /// **'مستند #{id}'**
+  String legislationRelationDocumentFallback(int id);
+
+  /// No description provided for @legislationPickerTitle.
+  ///
+  /// In ar, this message translates to:
+  /// **'اختيار التشريع'**
+  String get legislationPickerTitle;
+
+  /// No description provided for @legislationPickerSearchLabel.
+  ///
+  /// In ar, this message translates to:
+  /// **'بحث بالعنوان'**
+  String get legislationPickerSearchLabel;
+
+  /// No description provided for @legislationPickerEmpty.
+  ///
+  /// In ar, this message translates to:
+  /// **'لا توجد نتائج.'**
+  String get legislationPickerEmpty;
+
+  /// No description provided for @legislationPickerCancel.
+  ///
+  /// In ar, this message translates to:
+  /// **'إلغاء'**
+  String get legislationPickerCancel;
+
+  /// No description provided for @legislationRelTypeSourceRepeals.
+  ///
+  /// In ar, this message translates to:
+  /// **'يُلغي'**
+  String get legislationRelTypeSourceRepeals;
+
+  /// No description provided for @legislationRelTypeSourceAmends.
+  ///
+  /// In ar, this message translates to:
+  /// **'يُعدّل'**
+  String get legislationRelTypeSourceAmends;
+
+  /// No description provided for @legislationRelTypeSourceImplements.
+  ///
+  /// In ar, this message translates to:
+  /// **'يُنفّذ'**
+  String get legislationRelTypeSourceImplements;
+
+  /// No description provided for @legislationRelTypeSourceBasedOn.
+  ///
+  /// In ar, this message translates to:
+  /// **'يستند إلى'**
+  String get legislationRelTypeSourceBasedOn;
+
+  /// No description provided for @legislationRelTypeSourceSupersedes.
+  ///
+  /// In ar, this message translates to:
+  /// **'يحلّ محلّ'**
+  String get legislationRelTypeSourceSupersedes;
+
+  /// No description provided for @legislationRelTypeTargetRepeals.
+  ///
+  /// In ar, this message translates to:
+  /// **'أُلغي بموجب'**
+  String get legislationRelTypeTargetRepeals;
+
+  /// No description provided for @legislationRelTypeTargetAmends.
+  ///
+  /// In ar, this message translates to:
+  /// **'عُدّل بموجب'**
+  String get legislationRelTypeTargetAmends;
+
+  /// No description provided for @legislationRelTypeTargetImplements.
+  ///
+  /// In ar, this message translates to:
+  /// **'نُفّذ بموجب'**
+  String get legislationRelTypeTargetImplements;
+
+  /// No description provided for @legislationRelTypeTargetBasedOn.
+  ///
+  /// In ar, this message translates to:
+  /// **'استُند إليه'**
+  String get legislationRelTypeTargetBasedOn;
+
+  /// No description provided for @legislationRelTypeTargetSupersedes.
+  ///
+  /// In ar, this message translates to:
+  /// **'حُلّ محلّه بموجب'**
+  String get legislationRelTypeTargetSupersedes;
+
+  /// No description provided for @legislationRelScopeFull.
+  ///
+  /// In ar, this message translates to:
+  /// **'كلّي'**
+  String get legislationRelScopeFull;
+
+  /// No description provided for @legislationRelScopePartial.
+  ///
+  /// In ar, this message translates to:
+  /// **'جزئي'**
+  String get legislationRelScopePartial;
+
+  /// No description provided for @legislationRelScopeUnknown.
+  ///
+  /// In ar, this message translates to:
+  /// **'غير معروف'**
+  String get legislationRelScopeUnknown;
 }
 
 class _AppLocalizationsDelegate

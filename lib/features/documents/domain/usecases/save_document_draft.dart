@@ -81,16 +81,19 @@ class SaveDocumentDraft {
       ]);
     }
 
-    // Decide the resulting workflow status. Only an already-classified document
-    // can stay classified across an edit; everything else becomes in_progress.
+    // Decide the resulting workflow status. Classified and copied documents can
+    // keep their workflow state across metadata-only edits when the prospective
+    // aggregate still passes full approval rules; everything else becomes
+    // in_progress.
     String workflowStatusKey = 'in_progress';
     bool clearClassifiedAt = true;
-    if (existing.workflowStatusKey == 'classified') {
+    if (existing.workflowStatusKey == 'classified' ||
+        existing.workflowStatusKey == 'copied_to_library') {
       final ValidationResult approval = await classificationValidator(
         _prospectiveAggregate(draft, existing),
       );
       if (approval.isValid) {
-        workflowStatusKey = 'classified';
+        workflowStatusKey = existing.workflowStatusKey;
         clearClassifiedAt = false; // preserve existing classified_at
       }
     }

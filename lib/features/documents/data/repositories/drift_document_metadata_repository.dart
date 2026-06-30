@@ -358,9 +358,14 @@ class DriftDocumentMetadataRepository implements DocumentMetadataRepository {
             ? null
             : LegislationDetailsData(
                 legislationTypeKey: r.legislationTypeKey,
+                legislationTypeOther: r.legislationTypeOther,
                 effectiveStatusKey: r.effectiveStatusKey,
                 issueNumber: r.issueNumber,
                 publicationDate: r.publicationDate,
+                legislationNumber: r.legislationNumber,
+                legislationYear: r.legislationYear,
+                effectiveDate: r.effectiveDate,
+                repealDate: r.repealDate,
               );
       case 'court_precedent':
         final r = await (_db.select(
@@ -458,9 +463,14 @@ class DriftDocumentMetadataRepository implements DocumentMetadataRepository {
               LegislationDetailsCompanion.insert(
                 documentId: documentId,
                 legislationTypeKey: Value(details.legislationTypeKey),
+                legislationTypeOther: Value(details.legislationTypeOther),
                 effectiveStatusKey: Value(details.effectiveStatusKey),
                 issueNumber: Value(details.issueNumber),
                 publicationDate: Value(details.publicationDate),
+                legislationNumber: Value(details.legislationNumber),
+                legislationYear: Value(details.legislationYear),
+                effectiveDate: Value(details.effectiveDate),
+                repealDate: Value(details.repealDate),
               ),
             );
       case CourtCaseDetailsData():
