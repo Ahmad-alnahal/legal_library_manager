@@ -8,6 +8,7 @@ import 'package:win32/win32.dart';
 
 import '../../domain/entities/open_file_result.dart';
 import '../../domain/services/os_file_opener.dart';
+import 'explorer_process_launcher.dart';
 
 /// Windows-specific [OsFileOpener].
 ///
@@ -17,9 +18,10 @@ import '../../domain/services/os_file_opener.dart';
 /// way to detect errors such as no registered association or access denied,
 /// which are invisible when launching explorer.exe (it forks and always exits 0).
 ///
-/// For [openFolder]: uses explorer.exe `/select,path` via [Process.start] with
-/// [runInShell] = false. Folder reveal is fire-and-forget; the result is not
-/// reported by explorer.exe and success is assumed when the process starts.
+/// For [openFolder]: launches explorer.exe with the file's parent directory
+/// as its only argument, via [Process.start] with [runInShell] = false.
+/// Folder-open is fire-and-forget; the result is not reported by explorer.exe
+/// and success is assumed when the process starts.
 ///
 /// Safety invariants enforced:
 /// - No shell interpreter or shell built-in command is used.
@@ -29,7 +31,13 @@ import '../../domain/services/os_file_opener.dart';
 /// - No elevation is requested.
 /// - The registered file is never modified, copied, moved, renamed, or deleted.
 class WindowsOsFileOpener implements OsFileOpener {
-  const WindowsOsFileOpener();
+  const WindowsOsFileOpener({
+    this.processLauncher = const IoExplorerProcessLauncher(),
+  });
+
+  /// Injectable so Explorer argument construction can be unit-tested without
+  /// spawning a real process.
+  final ExplorerProcessLauncher processLauncher;
 
   static const String _explorer = 'explorer.exe';
 
@@ -67,18 +75,33 @@ class WindowsOsFileOpener implements OsFileOpener {
 
   @override
   Future<OsOpenResult> openFolder(String absolutePath) {
-    // The /select,<path> value is a single argument (explorer.exe's own syntax,
-    // not shell syntax). The path is wrapped in double quotes so that
-    // Explorer's argument parser treats it as one token even when the path
-    // contains commas (which Explorer would otherwise interpret as delimiters).
-    // runInShell: false means CreateProcess — not the Windows command shell —
-    // handles the command line, so the embedded quotes survive correctly.
-    return _launchExplorer(['/select,"$absolutePath"']);
+    // `explorer.exe /select,<path>` is unreliable in practice: when Explorer
+    // reuses an existing process (single-instance IPC), the /select request
+    // can silently be dropped and Explorer falls back to its configured home
+    // location (typically Documents) while still exiting 0 — a launch
+    // "succeeds" but reveals the wrong folder with no way to detect the
+    // mismatch from the exit code alone. Opening the exact parent folder
+    // directly (no /select switch) is the reliable primitive: Explorer always
+    // navigates to a directory argument it is given.
+    final String parentFolder = _parentDirectory(absolutePath);
+    return _launchExplorer([parentFolder]);
+  }
+
+  /// Returns the parent directory of an absolute Windows file path using
+  /// plain string manipulation (no dart:path dependency).
+  static String _parentDirectory(String absolutePath) {
+    final String normalized = absolutePath.replaceAll('/', r'\');
+    final int lastSeparator = normalized.lastIndexOf(r'\');
+    if (lastSeparator <= 2) {
+      // Drive root, e.g. `C:\file.pdf` -> `C:\`.
+      return normalized.substring(0, lastSeparator + 1);
+    }
+    return normalized.substring(0, lastSeparator);
   }
 
   Future<OsOpenResult> _launchExplorer(List<String> arguments) async {
     try {
-      await Process.start(_explorer, arguments, runInShell: false);
+      await processLauncher.start(_explorer, arguments);
       return const OsOpenSuccess();
     } on ProcessException catch (e) {
       final code = _classifyProcessError(e.errorCode);

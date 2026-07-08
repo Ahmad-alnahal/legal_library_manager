@@ -64,6 +64,9 @@ class _FakeRepo implements ManagedCopyRepository {
   Future<String> loadDatabaseRoot() async => r'C:\AppData';
 
   @override
+  Future<String> loadWordTempRoot() async => r'C:\LocalTemp\MARJIY';
+
+  @override
   Future<void> appendFileEvent({
     required int? documentId,
     required int? fileId,
@@ -131,6 +134,11 @@ class _FakeRepo implements ManagedCopyRepository {
   }) async {}
   @override
   Future<List<ManagedFileRef>> loadAllManagedCopyFiles() async => const [];
+  @override
+  Future<List<int>> loadCopiedToLibraryDocumentIds() async => const [];
+  @override
+  Future<List<({int documentId, String workflowStatusKey})>>
+  loadDocumentsWithStaleDocumentCode() async => const [];
   @override
   Future<void> markManagedFileCorrupted({
     required int fileId,

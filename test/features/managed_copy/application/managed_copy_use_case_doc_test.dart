@@ -27,7 +27,12 @@ const _kDocId = 1;
 const _kDocPath = r'C:\Sources\report.doc';
 const _kPdfHash =
     'bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb';
-const _kTempPdfPath = r'C:\Library\WordTemp\copy_test_1.word_out';
+// Word conversion temp input/output live in a local, non-cloud-synced app
+// temp folder — never under the managed library root.
+const _kWordTempParent = r'C:\LocalTemp\MARJIY';
+const _kWordTempDir = r'C:\LocalTemp\MARJIY\WordConversionTemp';
+const _kTempPdfPath =
+    r'C:\LocalTemp\MARJIY\WordConversionTemp\copy_test_1.word_out';
 // <managedFilesDir>\<docCode>.pdf.<operationId>.copying
 const _kCopyingPath = r'C:\Library\files\DOC-0000001.pdf.copy_test_1.copying';
 
@@ -51,12 +56,14 @@ class _FakeRepo implements ManagedCopyRepository {
     backupRoot: r'D:\Backups',
   );
   String databaseRoot = r'C:\AppSupport';
+  String wordTempRoot = _kWordTempParent;
   List<String> sourcePaths = [_kDocPath];
   List<SourceFileCandidate> candidates = [];
   List<ManagedFileRef> managedFiles = [];
   String allocatedCode = 'DOC-0000001';
   bool throwOnPersist = false;
   int persistedFileId = 42;
+  int allocateDocumentCodeCalls = 0;
 
   final List<Map<String, Object?>> events = [];
 
@@ -75,6 +82,9 @@ class _FakeRepo implements ManagedCopyRepository {
 
   @override
   Future<String> loadDatabaseRoot() async => databaseRoot;
+
+  @override
+  Future<String> loadWordTempRoot() async => wordTempRoot;
 
   @override
   Future<List<String>> loadDocumentSourcePaths(int documentId) async =>
@@ -98,7 +108,10 @@ class _FakeRepo implements ManagedCopyRepository {
       candidates;
 
   @override
-  Future<String> allocateDocumentCode(int documentId) async => allocatedCode;
+  Future<String> allocateDocumentCode(int documentId) async {
+    allocateDocumentCodeCalls++;
+    return allocatedCode;
+  }
 
   Set<String> throwOnAuditEvent = {};
 
@@ -141,6 +154,13 @@ class _FakeRepo implements ManagedCopyRepository {
 
   @override
   Future<List<ManagedFileRef>> loadAllManagedCopyFiles() async => managedFiles;
+
+  @override
+  Future<List<int>> loadCopiedToLibraryDocumentIds() async => const [];
+
+  @override
+  Future<List<({int documentId, String workflowStatusKey})>>
+  loadDocumentsWithStaleDocumentCode() async => const [];
 
   @override
   Future<void> markManagedFileMissing({
@@ -203,7 +223,8 @@ class _FakeFilesystem implements ManagedLibraryFilesystem {
             r'C:\Library',
             r'D:\Backups',
             r'C:\Library\files',
-            r'C:\Library\WordTemp',
+            _kWordTempParent,
+            _kWordTempDir,
           };
 
   @override
@@ -504,6 +525,52 @@ void main() {
         expect(converter.cleanupCalls, isEmpty);
       },
     );
+
+    test(
+      'document_code is not allocated when .doc conversion fails (bug 2)',
+      () async {
+        final converter = _FakeWordConverter()
+          ..result = const WordDocumentConversionFailed(
+            safeMessage: 'Word not found',
+            errorCode: 'microsoft_word_unavailable',
+          );
+        final repo = _FakeRepo()..candidates = [_docCandidate()];
+        await _makeUseCase(
+          repo: repo,
+          wordConverter: converter,
+        ).execute(_kDocId);
+        expect(
+          repo.allocateDocumentCodeCalls,
+          0,
+          reason:
+              'A failed .doc conversion must never allocate a document code',
+        );
+      },
+    );
+
+    test(
+      'workflow status remains classified after .doc conversion failure (bug 2)',
+      () async {
+        final converter = _FakeWordConverter()
+          ..result = const WordDocumentConversionFailed(
+            safeMessage: 'Word not found',
+            errorCode: 'microsoft_word_unavailable',
+          );
+        final repo = _FakeRepo()..candidates = [_docCandidate()];
+        final result = await _makeUseCase(
+          repo: repo,
+          wordConverter: converter,
+        ).execute(_kDocId);
+        // No persistence call means workflow_status_key was never touched by
+        // persistManagedCopySuccess (which is the only place that flips it to
+        // copied_to_library).
+        expect(result, isA<ManagedCopyFailed>());
+        expect(
+          repo.events.any((e) => e['eventTypeKey'] == 'copy_completed'),
+          isFalse,
+        );
+      },
+    );
   });
 
   group('ManagedCopyUseCase — .doc source: temp cleanup on failure', () {
@@ -643,7 +710,32 @@ void main() {
   });
 
   group('ManagedCopyUseCase — .doc source: no WordStaging artifacts', () {
-    test('conversion output lives in WordTemp, not WordStaging', () async {
+    test(
+      'conversion output lives in WordConversionTemp, not WordStaging',
+      () async {
+        String? capturedTempDir;
+        final capturingConverter = _CapturingConverter(
+          wrapped: _FakeWordConverter(),
+          onConvert: (_, dir, _) => capturedTempDir = dir,
+          result: const WordDocumentConversionSuccess(
+            tempPdfPath: _kTempPdfPath,
+            pdfSha256: _kPdfHash,
+            fileSizeBytes: 54321,
+          ),
+        );
+        await _makeUseCase(wordConverter: capturingConverter).execute(_kDocId);
+        expect(capturedTempDir, contains('WordConversionTemp'));
+        expect(capturedTempDir, isNot(contains('WordStaging')));
+      },
+    );
+  });
+
+  // ── Word temp dir must be a local app temp folder, never the managed
+  //    library (QA follow-up: offline .doc conversion) ────────────────────
+
+  group('ManagedCopyUseCase — Word temp dir is local app temp', () {
+    test('conversion temp directory comes from loadWordTempRoot(), not the '
+        'managed library root', () async {
       String? capturedTempDir;
       final capturingConverter = _CapturingConverter(
         wrapped: _FakeWordConverter(),
@@ -654,9 +746,88 @@ void main() {
           fileSizeBytes: 54321,
         ),
       );
-      await _makeUseCase(wordConverter: capturingConverter).execute(_kDocId);
-      expect(capturedTempDir, contains('WordTemp'));
-      expect(capturedTempDir, isNot(contains('WordStaging')));
+      final repo = _FakeRepo()
+        ..candidates = [_docCandidate()]
+        ..wordTempRoot = _kWordTempParent;
+      await _makeUseCase(
+        repo: repo,
+        wordConverter: capturingConverter,
+      ).execute(_kDocId);
+
+      expect(capturedTempDir, isNotNull);
+      expect(capturedTempDir, startsWith(_kWordTempParent));
+      expect(capturedTempDir, isNot(startsWith(r'C:\Library')));
+      expect(capturedTempDir!.contains(r'C:\Library'), isFalse);
+    });
+
+    test(
+      'temp dir is created under the local root, not inside managed files',
+      () async {
+        final fs = _FakeFilesystem(
+          existingDirs: {r'C:\Library', r'D:\Backups', r'C:\Library\files'},
+        );
+        final repo = _FakeRepo()..candidates = [_docCandidate()];
+        await _makeUseCase(repo: repo, fs: fs).execute(_kDocId);
+
+        expect(fs.isExistingDirectory(_kWordTempParent), isTrue);
+        expect(fs.isExistingDirectory(_kWordTempDir), isTrue);
+      },
+    );
+
+    test('blocks with unsafeRoots when the resolved Word temp root overlaps '
+        'the managed library root', () async {
+      final repo = _FakeRepo()
+        ..candidates = [_docCandidate()]
+        ..wordTempRoot = r'C:\Library\WordTemp';
+      final result = await _makeUseCase(repo: repo).execute(_kDocId);
+
+      expect(result, isA<ManagedCopyBlocked>());
+      expect(
+        (result as ManagedCopyBlocked).error,
+        ManagedCopyError.unsafeRoots,
+      );
+    });
+
+    test('blocks with unsafeRoots when the resolved Word temp root overlaps '
+        'the managed files directory', () async {
+      final repo = _FakeRepo()
+        ..candidates = [_docCandidate()]
+        ..wordTempRoot = r'C:\Library\files\WordTemp';
+      final result = await _makeUseCase(repo: repo).execute(_kDocId);
+
+      expect(result, isA<ManagedCopyBlocked>());
+      expect(
+        (result as ManagedCopyBlocked).error,
+        ManagedCopyError.unsafeRoots,
+      );
+    });
+
+    test('blocks with unsafeRoots when the resolved Word temp root overlaps '
+        'the backup root', () async {
+      final repo = _FakeRepo()
+        ..candidates = [_docCandidate()]
+        ..wordTempRoot = r'D:\Backups\WordTemp';
+      final result = await _makeUseCase(repo: repo).execute(_kDocId);
+
+      expect(result, isA<ManagedCopyBlocked>());
+      expect(
+        (result as ManagedCopyBlocked).error,
+        ManagedCopyError.unsafeRoots,
+      );
+    });
+
+    test('blocks with unsafeRoots when the resolved Word temp root is not an '
+        'absolute path', () async {
+      final repo = _FakeRepo()
+        ..candidates = [_docCandidate()]
+        ..wordTempRoot = 'relative\\path';
+      final result = await _makeUseCase(repo: repo).execute(_kDocId);
+
+      expect(result, isA<ManagedCopyBlocked>());
+      expect(
+        (result as ManagedCopyBlocked).error,
+        ManagedCopyError.unsafeRoots,
+      );
     });
   });
 }

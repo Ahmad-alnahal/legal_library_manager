@@ -67,7 +67,16 @@ class ReconcileManagedCopyIntegrity {
     }
 
     final allFiles = await _repository.loadAllManagedCopyFiles();
-    if (allFiles.isEmpty) return ReconcileIntegrityResult.empty;
+    final copiedToLibraryDocIds = await _repository
+        .loadCopiedToLibraryDocumentIds();
+    final staleCodeDocs = await _repository
+        .loadDocumentsWithStaleDocumentCode();
+
+    if (allFiles.isEmpty &&
+        copiedToLibraryDocIds.isEmpty &&
+        staleCodeDocs.isEmpty) {
+      return ReconcileIntegrityResult.empty;
+    }
 
     final byDocument = <int, List<ManagedFileRef>>{};
     for (final file in allFiles) {
@@ -116,6 +125,54 @@ class ReconcileManagedCopyIntegrity {
         } catch (_) {
           failed++;
         }
+      }
+    }
+
+    // A document can be recorded as copied_to_library with zero managed_copy
+    // rows at all (e.g. a prior failed/interrupted attempt). These are
+    // invisible to the loop above, which only iterates documents that have at
+    // least one managed_copy row. Detect and downgrade them here so the scan
+    // reports the problem instead of silently reporting "all healthy".
+    for (final docId in copiedToLibraryDocIds) {
+      if (byDocument.containsKey(docId)) continue;
+      try {
+        await _repository.downgradeDocumentToClassified(
+          documentId: docId,
+          now: _clock.nowUtc(),
+        );
+        downgraded++;
+        missing++;
+      } catch (_) {
+        failed++;
+      }
+    }
+
+    // A document can also carry a document_code (allocated by a prior copy
+    // attempt) with no healthy managed_copy row backing it — e.g. the row was
+    // never created, or every row for it is missing/corrupted. Documents
+    // already processed above (either via a managed_copy row or via the
+    // copied_to_library orphan check) are skipped here to avoid double
+    // counting. What remains are: (a) documents still claiming
+    // copied_to_library/ready_for_export that need downgrading, and (b)
+    // documents already classified with a stale code — nothing to downgrade,
+    // but the scan must still report the problem instead of "all healthy".
+    const downgradableStatuses = {'copied_to_library', 'ready_for_export'};
+    final coveredDocIds = <int>{...byDocument.keys, ...copiedToLibraryDocIds};
+    for (final entry in staleCodeDocs) {
+      if (coveredDocIds.contains(entry.documentId)) continue;
+      if (downgradableStatuses.contains(entry.workflowStatusKey)) {
+        try {
+          await _repository.downgradeDocumentToClassified(
+            documentId: entry.documentId,
+            now: _clock.nowUtc(),
+          );
+          downgraded++;
+          missing++;
+        } catch (_) {
+          failed++;
+        }
+      } else {
+        missing++;
       }
     }
 

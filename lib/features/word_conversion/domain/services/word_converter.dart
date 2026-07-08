@@ -67,4 +67,22 @@ abstract class WordConverter {
     required String outputPath,
     void Function(ConversionStage stage)? onStageChanged,
   });
+
+  /// Creates a throwaway blank document via local Word and exports it to PDF
+  /// at [outputPath], to verify Word's automation and export pipeline is
+  /// capable of producing a PDF right now — independent of any specific
+  /// input file.
+  ///
+  /// Intended as a secondary diagnostic run only after [convert] has already
+  /// failed for a real document, to distinguish a problem specific to that
+  /// document (e.g. Protected View, corruption) from Word itself being
+  /// unable to export any PDF at all (e.g. requires online activation or
+  /// sign-in). No user document is ever opened or touched by this method.
+  ///
+  /// Returns [WordConverterOutput] on success, [WordConverterFailed] on any
+  /// error. Must never throw.
+  Future<WordConverterResult> convertBlankDocument({
+    required String executablePath,
+    required String outputPath,
+  });
 }

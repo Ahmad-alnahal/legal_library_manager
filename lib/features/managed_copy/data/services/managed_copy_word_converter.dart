@@ -7,6 +7,7 @@ import '../../../import/domain/services/file_hasher.dart';
 import '../../../word_conversion/domain/services/microsoft_word_probe.dart';
 import '../../../word_conversion/domain/services/word_converter.dart';
 import '../../../word_conversion/domain/services/word_output_filesystem.dart';
+import '../../domain/services/local_file_availability_checker.dart';
 import '../../domain/services/word_document_converter.dart';
 
 /// Data-layer implementation of [WordDocumentConverter].
@@ -24,18 +25,22 @@ class ManagedCopyWordConverter implements WordDocumentConverter {
     required WordConverter converter,
     required WordOutputFilesystem outputFs,
     required FileHasher hasher,
+    required LocalFileAvailabilityChecker localFileChecker,
   }) : _probe = probe,
        _converter = converter,
        _outputFs = outputFs,
-       _hasher = hasher;
+       _hasher = hasher,
+       _localFileChecker = localFileChecker;
 
   final MicrosoftWordProbe _probe;
   final WordConverter _converter;
   final WordOutputFilesystem _outputFs;
   final FileHasher _hasher;
+  final LocalFileAvailabilityChecker _localFileChecker;
 
   static const String _tempDocSuffix = '.word_src.doc';
   static const String _tempPdfSuffix = '.word_out';
+  static const String _capabilityProbeSuffix = '.word_capability_probe.pdf';
 
   @override
   Future<WordDocumentConversionResult> convert({
@@ -63,6 +68,21 @@ class ManagedCopyWordConverter implements WordDocumentConverter {
       );
     }
 
+    // 2.5. Verify the source is actually resident on local disk before ever
+    // touching it. A OneDrive Files On-Demand (or similar cloud-sync)
+    // "online-only" placeholder must never be read here — that would either
+    // silently trigger a network download (violating the no-internet-
+    // dependency rule) or fail unpredictably offline. Fail safely and
+    // specifically instead.
+    if (!_localFileChecker.isLocallyAvailable(sourceDocPath)) {
+      return const WordDocumentConversionFailed(
+        safeMessage:
+            'The source Word document is not available on local disk '
+            '(cloud placeholder) and cannot be converted offline',
+        errorCode: 'source_not_available_offline',
+      );
+    }
+
     // 3. Create a temporary .doc copy inside tempOutputDir.
     //    The WordConverter contract requires an app-owned staged path, not the
     //    original user file. This copy is temporary and never persisted to DB.
@@ -75,6 +95,15 @@ class ManagedCopyWordConverter implements WordDocumentConverter {
         errorCode: 'temp_copy_failed',
       );
     }
+
+    // 3.5. Strip the NTFS "Mark of the Web" (Zone.Identifier) from the staged
+    // copy, if present. Word treats zone-tagged files as coming from an
+    // untrusted location and opens them in Protected View, which silently
+    // blocks headless COM automation even though the same file converts fine
+    // when a user manually opens it and dismisses the Protected View banner.
+    // This only touches the app-owned temp copy created above — the original
+    // source file is never touched.
+    await _stripZoneIdentifier(tempDocPath);
 
     // 4. Run Word converter. Output path is inside tempOutputDir.
     final tempOutputPath = _pathJoin(
@@ -96,6 +125,31 @@ class ManagedCopyWordConverter implements WordDocumentConverter {
 
     if (convResult is WordConverterFailed) {
       await _outputFs.deleteOutputFileSafe(tempOutputPath, tempOutputDir);
+
+      // Secondary diagnostic: convert a throwaway blank document (no user
+      // content, no user file) to determine whether Word's export pipeline
+      // is broken for every document right now (e.g. requires online
+      // activation/sign-in) versus a problem specific to this .doc. This
+      // only runs after a real failure — never proactively or at startup —
+      // and never fakes success or writes any managed-copy DB state.
+      final capabilityProbePath = _pathJoin(
+        tempOutputDir,
+        '$operationId$_capabilityProbeSuffix',
+      );
+      final capabilityResult = await _converter.convertBlankDocument(
+        executablePath: executablePath,
+        outputPath: capabilityProbePath,
+      );
+      await _outputFs.deleteOutputFileSafe(capabilityProbePath, tempOutputDir);
+
+      if (capabilityResult is WordConverterFailed) {
+        return WordDocumentConversionFailed(
+          safeMessage:
+              'Microsoft Word cannot export any PDF right now — it may '
+              'require online activation or sign-in: ${convResult.safeMessage}',
+          errorCode: 'local_word_unavailable_offline_or_not_activated',
+        );
+      }
       return WordDocumentConversionFailed(
         safeMessage: convResult.safeMessage,
         errorCode: 'word_process_failed',
@@ -155,6 +209,24 @@ class ManagedCopyWordConverter implements WordDocumentConverter {
       await _outputFs.deleteOutputFileSafe(tempPdfPath, tempDir);
     } catch (_) {
       // Best-effort cleanup — never throws.
+    }
+  }
+
+  /// Best-effort removal of the `:Zone.Identifier` alternate data stream that
+  /// Windows attaches to files originating from the internet/network zone
+  /// (email attachments, browser downloads, some network shares). Never
+  /// throws: if the stream is absent or cannot be removed, conversion still
+  /// proceeds — Word may show Protected View, and the downstream output
+  /// checks (exists, non-empty, valid `%PDF` header) safely fail the
+  /// conversion rather than fake success.
+  Future<void> _stripZoneIdentifier(String path) async {
+    try {
+      final adsFile = File('$path:Zone.Identifier');
+      if (adsFile.existsSync()) {
+        adsFile.deleteSync();
+      }
+    } catch (_) {
+      // Best-effort; see doc comment above.
     }
   }
 

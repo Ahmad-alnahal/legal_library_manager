@@ -130,8 +130,8 @@ void main() {
     });
 
     test('passes executable and arguments separately to Process.start', () {
-      // Confirm Process.start is used for the folder-reveal path (explorer.exe
-      // /select,<path>). File opens use ShellExecuteEx instead.
+      // Confirm Process.start is used for the folder-open path (explorer.exe
+      // with the parent directory). File opens use ShellExecuteEx instead.
       final bool usesProcessStart = source.contains('Process.start');
       expect(
         usesProcessStart,

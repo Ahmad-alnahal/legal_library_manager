@@ -30,6 +30,7 @@ Future<void> _seedReferenceData(AppDatabase db) async {
     ('in_progress', 'قيد التصنيف', 'In Progress'),
     ('classified', 'مصنف', 'Classified'),
     ('copied_to_library', 'منسوخ إلى المكتبة', 'Copied to Library'),
+    ('ready_for_export', 'جاهز للتصدير', 'Ready for Export'),
   ]) {
     await db
         .into(db.workflowStatuses)
@@ -353,6 +354,20 @@ void main() {
       },
     );
 
+    test('changes workflow_status_key from ready_for_export to classified '
+        '(QA follow-up: stale document_code)', () async {
+      final docId = await _insertDocument(db, status: 'ready_for_export');
+      final now = DateTime.utc(2026, 6, 17, 12, 0, 0);
+
+      await repo.downgradeDocumentToClassified(documentId: docId, now: now);
+
+      final doc = await (db.select(
+        db.documents,
+      )..where((d) => d.id.equals(docId))).getSingle();
+      expect(doc.workflowStatusKey, 'classified');
+      expect(doc.updatedAt, now.toIso8601String());
+    });
+
     test('is idempotent when document is already classified', () async {
       final docId = await _insertDocument(db, status: 'classified');
       final now = DateTime.utc(2026, 6, 17, 12, 0, 0);
@@ -405,6 +420,15 @@ void main() {
       await _insertManagedCopyFile(db, docId, healthKey: 'missing');
       final state = await repo.loadDocumentState(docId);
       // hasManagedCopy is still true (row exists), but no healthy copy.
+      expect(state!.hasManagedCopy, isTrue);
+      expect(state.hasHealthyManagedCopy, isFalse);
+    });
+
+    test('is false when the only managed-copy file is marked corrupted '
+        '(bug 4 follow-up)', () async {
+      final docId = await _insertDocument(db, status: 'classified');
+      await _insertManagedCopyFile(db, docId, healthKey: 'corrupted');
+      final state = await repo.loadDocumentState(docId);
       expect(state!.hasManagedCopy, isTrue);
       expect(state.hasHealthyManagedCopy, isFalse);
     });
@@ -545,6 +569,109 @@ void main() {
         );
       },
     );
+
+    test('revives matching corrupted row instead of inserting duplicate '
+        'absolute path (bug 4 follow-up)', () async {
+      final docId = await _insertDocument(
+        db,
+        status: 'classified',
+        code: 'DOC-0000001',
+      );
+      final srcId = await _insertSourceFile(db, docId);
+      final corruptedId = await _insertManagedCopyFile(
+        db,
+        docId,
+        healthKey: 'corrupted',
+      );
+
+      final now = DateTime.utc(2026, 6, 17, 12, 0, 0);
+      final revivedId = await repo.persistManagedCopySuccess(
+        ManagedCopyPersistenceData(
+          documentId: docId,
+          documentCode: 'DOC-0000001',
+          operationId: 'op_revive_corrupted',
+          managedFilePath: r'C:\Library\files\DOC-0000001.pdf',
+          managedFileName: 'DOC-0000001.pdf',
+          sha256Hash: _kHash,
+          fileSizeBytes: 2048,
+          sourceFileId: srcId,
+          sourceFilePath: r'C:\Sources\doc.pdf',
+          nowUtc: now,
+        ),
+      );
+
+      expect(revivedId, corruptedId);
+
+      final managedRows =
+          await (db.select(db.documentFiles)..where(
+                (f) =>
+                    f.documentId.equals(docId) &
+                    f.fileRoleKey.equals('managed_copy'),
+              ))
+              .get();
+      expect(managedRows, hasLength(1));
+      expect(managedRows.single.id, corruptedId);
+      expect(managedRows.single.fileHealthKey, 'healthy');
+      expect(managedRows.single.sha256Hash, _kHash);
+
+      final doc = await (db.select(
+        db.documents,
+      )..where((d) => d.id.equals(docId))).getSingle();
+      expect(doc.workflowStatusKey, 'copied_to_library');
+    });
+
+    test('allows re-copy when the only prior managed-copy is marked corrupted '
+        '(bug 4 follow-up)', () async {
+      final docId = await _insertDocument(
+        db,
+        status: 'classified',
+        code: 'DOC-0000001',
+      );
+      final srcId = await _insertSourceFile(db, docId);
+      await _insertManagedCopyFile(db, docId, healthKey: 'corrupted');
+
+      final now = DateTime.utc(2026, 6, 17, 12, 0, 0);
+      final newId = await repo.persistManagedCopySuccess(
+        ManagedCopyPersistenceData(
+          documentId: docId,
+          documentCode: 'DOC-0000001',
+          operationId: 'op_recopy_corrupted',
+          managedFilePath: r'C:\Library\files\DOC-0000001-new.pdf',
+          managedFileName: 'DOC-0000001-new.pdf',
+          sha256Hash: _kHash,
+          fileSizeBytes: 2048,
+          sourceFileId: srcId,
+          sourceFilePath: r'C:\Sources\doc.pdf',
+          nowUtc: now,
+        ),
+      );
+
+      expect(newId, isPositive);
+      final doc = await (db.select(
+        db.documents,
+      )..where((d) => d.id.equals(docId))).getSingle();
+      expect(doc.workflowStatusKey, 'copied_to_library');
+
+      // The old corrupted row is preserved, not deleted.
+      final allFiles =
+          await (db.select(db.documentFiles)..where(
+                (f) =>
+                    f.documentId.equals(docId) &
+                    f.fileRoleKey.equals('managed_copy'),
+              ))
+              .get();
+      expect(allFiles.length, 2);
+      expect(
+        allFiles.any((f) => f.fileHealthKey == 'corrupted'),
+        isTrue,
+        reason: 'Old corrupted row must be preserved',
+      );
+      expect(
+        allFiles.any((f) => f.fileHealthKey == 'healthy'),
+        isTrue,
+        reason: 'New healthy row must be inserted',
+      );
+    });
 
     test('blocks re-copy when a healthy managed-copy already exists', () async {
       final docId = await _insertDocument(

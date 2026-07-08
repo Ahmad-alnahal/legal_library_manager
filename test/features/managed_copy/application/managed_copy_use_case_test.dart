@@ -70,6 +70,9 @@ class _FakeRepo implements ManagedCopyRepository {
   Future<String> loadDatabaseRoot() async => databaseRoot;
 
   @override
+  Future<String> loadWordTempRoot() async => r'C:\LocalTemp\MARJIY';
+
+  @override
   Future<List<String>> loadDocumentSourcePaths(int documentId) async =>
       sourcePaths;
 
@@ -218,6 +221,13 @@ class _FakeRepo implements ManagedCopyRepository {
 
   @override
   Future<List<ManagedFileRef>> loadAllManagedCopyFiles() async => managedFiles;
+
+  @override
+  Future<List<int>> loadCopiedToLibraryDocumentIds() async => const [];
+
+  @override
+  Future<List<({int documentId, String workflowStatusKey})>>
+  loadDocumentsWithStaleDocumentCode() async => const [];
 
   @override
   Future<void> markManagedFileCorrupted({
@@ -684,6 +694,48 @@ void main() {
         expect(fs.copyCalls, isEmpty);
       },
     );
+
+    test('allows re-copy and replaces the file when the only prior '
+        'managed_copy row is corrupted (bug 4 follow-up)', () async {
+      // Simulates the state after ReconcileManagedCopyIntegrity has already
+      // detected a corrupted managed copy and downgraded the document to
+      // 'classified'. The stale corrupted row is still present in
+      // document_files (it is never deleted, only superseded).
+      final repo = _FakeRepo()
+        ..docState = DocumentCopyState(
+          documentId: _kDocId,
+          workflowStatusKey: 'classified',
+          existingDocumentCode: 'DOC-0000009',
+          hasManagedCopy: true,
+          hasHealthyManagedCopy: false,
+        )
+        ..allocatedCode = 'DOC-0000009'
+        ..candidates = [_sourceCandidate(hash: _kHash)]
+        ..managedFiles = [
+          const ManagedFileRef(
+            fileId: 200,
+            documentId: _kDocId,
+            absolutePath: r'C:\Library\files\DOC-0000009.pdf',
+            fileHealthKey: 'corrupted',
+            fileSizeBytes: 12345,
+            sha256Hash: _kHash,
+          ),
+        ];
+      final fs = _FakeFilesystem()..finalFileExists = true;
+
+      final result = await _makeUseCase(repo: repo, fs: fs).execute(_kDocId);
+
+      expect(result, isA<ManagedCopySuccess>());
+      expect((result as ManagedCopySuccess).documentCode, 'DOC-0000009');
+      // A corrupted row is not eligible for the missing-file restore path
+      // (only 'missing' rows are), so the conflicting file at the managed
+      // path is removed after the pre-copy backup and replaced by a fresh,
+      // hash-verified copy — never a silently reused/faked success.
+      expect(repo.markedMissingFileIds, isEmpty);
+      expect(repo.restoredFileIds, isEmpty);
+      expect(fs.deleteCalls, [r'C:\Library\files\DOC-0000009.pdf']);
+      expect(fs.copyCalls[0], _kSourcePath);
+    });
   });
 
   // ── Root configuration guards ──────────────────────────────────────────────

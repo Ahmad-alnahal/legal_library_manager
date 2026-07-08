@@ -58,6 +58,8 @@ import '../../features/managed_copy/application/repair_copy_root.dart';
 import '../../features/managed_copy/data/repositories/drift_managed_copy_repository.dart';
 import '../../features/managed_copy/data/services/default_operation_id_generator.dart';
 import '../../features/managed_copy/data/services/managed_copy_word_converter.dart';
+import '../../features/managed_copy/data/services/win32_local_file_availability_checker.dart';
+import '../../features/managed_copy/domain/services/local_file_availability_checker.dart';
 import '../../features/managed_copy/domain/services/word_document_converter.dart';
 import '../../features/managed_copy/data/services/file_picker_copy_root_picker.dart';
 import '../../features/managed_copy/data/services/path_provider_documents_directory_resolver.dart';
@@ -671,12 +673,16 @@ void configureDependencies() {
     )
     // Managed-copy Word converter: converts .doc sources to a temporary PDF
     // inside the managed-copy flow, without staging to the database.
+    ..registerLazySingleton<LocalFileAvailabilityChecker>(
+      Win32LocalFileAvailabilityChecker.new,
+    )
     ..registerLazySingleton<WordDocumentConverter>(
       () => ManagedCopyWordConverter(
         probe: getIt<MicrosoftWordProbe>(),
         converter: getIt<WordConverter>(),
         outputFs: getIt<WordOutputFilesystem>(),
         hasher: getIt<FileHasher>(),
+        localFileChecker: getIt<LocalFileAvailabilityChecker>(),
       ),
     )
     // Pre-P3 Slice A — legislation lifecycle + relations foundation.

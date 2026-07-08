@@ -336,139 +336,81 @@ class ManagedCopyUseCase {
       );
     }
 
-    // ── 5. Allocate (or reuse) document code ─────────────────────────────────
-
-    final String docCode;
-    try {
-      docCode = await _repository.allocateDocumentCode(documentId);
-    } on StateError {
-      return const ManagedCopyBlocked(
-        error: ManagedCopyError.codeSpaceExhausted,
-        safeMessage: 'All document code slots are exhausted.',
-      );
-    }
-
-    // Validate the returned code: must be exactly DOC-[0-9]{7}.
-    // This catches malformed values in existing DB rows and any future
-    // format drift before the code becomes part of a filesystem path.
-    if (!RegExp(r'^DOC-[0-9]{7}$').hasMatch(docCode)) {
-      return const ManagedCopyBlocked(
-        error: ManagedCopyError.malformedDocumentCode,
-        safeMessage: 'Allocated document code has an invalid format.',
-      );
-    }
-
-    // ── Ensure managed files subdirectory exists ──────────────────────────────
-
-    final FilesystemOperationResult ensureResult = await _filesystem
-        .ensureDirectoryExists(managedFilesDir);
-    if (ensureResult is FilesystemFailure) {
-      return ManagedCopyFailed(
-        error: ManagedCopyError.copyFailed,
-        safeMessage:
-            'Failed to create managed files directory: ${ensureResult.safeMessage}',
-      );
-    }
-
-    // Re-resolve the files directory after creation. This closes the gap where
-    // a junction/reparse point could appear between the initial validation and
-    // directory creation. No backup or managed bytes are written before this
-    // second validation succeeds.
-    final String? postCreateCanonFiles = _pathCanonicalizer.canonicalize(
-      managedFilesDir,
-    );
-    if (postCreateCanonFiles == null ||
-        _normalizePath(postCreateCanonFiles) != _normalizePath(canonFilesDir) ||
-        _pathsOverlap(postCreateCanonFiles, canonBackupRoot) ||
-        _pathsOverlap(postCreateCanonFiles, canonDatabaseRoot) ||
-        canonicalSourceParents.any(
-          (sourceParent) => _pathsOverlap(postCreateCanonFiles, sourceParent),
-        )) {
-      return const ManagedCopyBlocked(
-        error: ManagedCopyError.unsafeRoots,
-        safeMessage:
-            'Managed files directory changed or overlaps a protected location.',
-      );
-    }
-
-    // ── 6. Word conversion (for .doc sources) and trusted hash resolution ───────
+    // ── 5. Word conversion (for .doc sources) ─────────────────────────────────
     //
-    // For .doc sources: convert to a temporary PDF before any bytes are written
-    // to the managed library. The temp PDF is the effective copy source; its
-    // hash becomes the trusted reference for integrity verification.
+    // This must happen BEFORE any document_code allocation or DB write. If
+    // Word conversion fails (including when local Word cannot run offline),
+    // the document must not get a new document_code and no managed_copy row
+    // may ever be created. The temp PDF (if any) lives in a true local,
+    // non-cloud-synced application temp folder — never inside the managed
+    // library, backup root, or any OneDrive/cloud-synced location — named
+    // from operationId, never from a document code, since no code exists yet
+    // at this point.
     //
-    // For .pdf sources: compute (or reuse the stored) SHA-256 of the source
-    // file as before.
-    //
-    // In both cases the temp PDF (if any) is cleaned up in a try/finally block
-    // that wraps the remaining copy flow, guaranteeing no WordTemp file survives
-    // regardless of which code path exits.
+    // For .pdf sources this whole step is skipped; the trusted hash is
+    // resolved later, inside _executeAfterTempSetup, from the stored or
+    // freshly computed SHA-256 of the source file.
 
-    final String finalPath = _pathJoin(managedFilesDir, '$docCode.pdf');
-    final String tmpPath = _pathJoin(
-      managedFilesDir,
-      '$docCode.pdf.$operationId.copying',
-    );
-
-    // wordTempDir / wordTempPdfPath are set only when isDocSource == true.
     String wordTempDir = '';
     String wordTempPdfPath = '';
-
-    try {
-      return await _executeAfterTempSetup(
-        documentId: documentId,
-        source: source,
-        isDocSource: isDocSource,
-        operationId: operationId,
-        now: now,
-        managedRoot: managedRoot,
-        managedFilesDir: managedFilesDir,
-        postCreateCanonFiles: postCreateCanonFiles,
-        backupRoot: backupRoot,
-        finalPath: finalPath,
-        tmpPath: tmpPath,
-        docCode: docCode,
-        wordTempDirOut: (dir) => wordTempDir = dir,
-        wordTempPdfPathOut: (path) => wordTempPdfPath = path,
-      );
-    } finally {
-      if (wordTempPdfPath.isNotEmpty && wordTempDir.isNotEmpty) {
-        await _wordConverter?.cleanupSafely(wordTempPdfPath, wordTempDir);
-      }
-    }
-  }
-
-  // Separated so the try/finally above can cleanly capture wordTempDir and
-  // wordTempPdfPath through the out-parameter callbacks.
-  Future<ManagedCopyResult> _executeAfterTempSetup({
-    required int documentId,
-    required SourceFileCandidate source,
-    required bool isDocSource,
-    required String operationId,
-    required DateTime now,
-    required String managedRoot,
-    required String managedFilesDir,
-    required String postCreateCanonFiles,
-    required String backupRoot,
-    required String finalPath,
-    required String tmpPath,
-    required String docCode,
-    required void Function(String) wordTempDirOut,
-    required void Function(String) wordTempPdfPathOut,
-  }) async {
-    // The effective copy source for byte operations.
-    // For .pdf sources this is source.absolutePath.
-    // For .doc sources this is the temp PDF produced by Word conversion.
-    final String copySrcPath;
-    final String trustedSourceHash;
+    String? docTrustedHash;
 
     if (isDocSource) {
-      // ── 6a. Word conversion ─────────────────────────────────────────────────
-      final wordTempDir = _pathJoin(managedRoot, 'WordTemp');
-      wordTempDirOut(wordTempDir);
+      final String wordTempParent = await _repository.loadWordTempRoot();
+      if (!_isAbsolutePath(wordTempParent)) {
+        return const ManagedCopyBlocked(
+          error: ManagedCopyError.unsafeRoots,
+          safeMessage:
+              'Word conversion temp directory is not an absolute path.',
+        );
+      }
+
+      // Defensive overlap check: the local temp root is expected to be
+      // structurally separate from the managed library and backup root by
+      // construction (it resolves under the OS local temp folder), but this
+      // is verified explicitly rather than assumed. The temp folder may not
+      // exist yet on first use, so canonicalization falls back to the raw
+      // path when resolution fails — matching the same fallback already used
+      // for the managed files directory below.
+      final String probeWordTempParent =
+          _pathCanonicalizer.canonicalize(wordTempParent) ?? wordTempParent;
+      if (_pathsOverlap(probeWordTempParent, canonManagedRoot) ||
+          _pathsOverlap(probeWordTempParent, canonFilesDir) ||
+          _pathsOverlap(probeWordTempParent, canonBackupRoot)) {
+        return const ManagedCopyBlocked(
+          error: ManagedCopyError.unsafeRoots,
+          safeMessage:
+              'Word conversion temp directory must not overlap the managed '
+              'library or backup root.',
+        );
+      }
+
+      final parentDirResult = await _filesystem.ensureDirectoryExists(
+        wordTempParent,
+      );
+      if (parentDirResult is FilesystemFailure) {
+        await _tryAppendEvent(
+          documentId: documentId,
+          fileId: source.fileId,
+          operationId: operationId,
+          eventTypeKey: 'copy_failed',
+          resultKey: 'failed',
+          errorCode: ManagedCopyError.wordConversionFailed.name,
+          messageSafe: 'Word conversion temp directory could not be created.',
+        );
+        return const ManagedCopyFailed(
+          error: ManagedCopyError.wordConversionFailed,
+          safeMessage: 'Word conversion temp directory could not be created.',
+        );
+      }
+
+      final String candidateWordTempDir = _pathJoin(
+        wordTempParent,
+        'WordConversionTemp',
+      );
 
       final wordTempDirResult = await _filesystem.ensureDirectoryExists(
-        wordTempDir,
+        candidateWordTempDir,
       );
       if (wordTempDirResult is FilesystemFailure) {
         await _tryAppendEvent(
@@ -488,7 +430,7 @@ class ManagedCopyUseCase {
 
       final convResult = await _wordConverter!.convert(
         sourceDocPath: source.absolutePath,
-        tempOutputDir: wordTempDir,
+        tempOutputDir: candidateWordTempDir,
         operationId: operationId,
       );
 
@@ -511,9 +453,130 @@ class ManagedCopyUseCase {
       }
 
       final conv = convResult as WordDocumentConversionSuccess;
-      wordTempPdfPathOut(conv.tempPdfPath);
-      copySrcPath = conv.tempPdfPath;
-      trustedSourceHash = conv.pdfSha256;
+      wordTempDir = candidateWordTempDir;
+      wordTempPdfPath = conv.tempPdfPath;
+      docTrustedHash = conv.pdfSha256;
+    }
+
+    try {
+      // ── 6. Allocate (or reuse) document code ────────────────────────────────
+      // Only reached once a .doc source has been verified-converted (or the
+      // source was already a .pdf). A failed conversion above returns before
+      // this point, so document_code is never touched by a failed attempt.
+
+      final String docCode;
+      try {
+        docCode = await _repository.allocateDocumentCode(documentId);
+      } on StateError {
+        return const ManagedCopyBlocked(
+          error: ManagedCopyError.codeSpaceExhausted,
+          safeMessage: 'All document code slots are exhausted.',
+        );
+      }
+
+      // Validate the returned code: must be exactly DOC-[0-9]{7}.
+      // This catches malformed values in existing DB rows and any future
+      // format drift before the code becomes part of a filesystem path.
+      if (!RegExp(r'^DOC-[0-9]{7}$').hasMatch(docCode)) {
+        return const ManagedCopyBlocked(
+          error: ManagedCopyError.malformedDocumentCode,
+          safeMessage: 'Allocated document code has an invalid format.',
+        );
+      }
+
+      // ── Ensure managed files subdirectory exists ────────────────────────────
+
+      final FilesystemOperationResult ensureResult = await _filesystem
+          .ensureDirectoryExists(managedFilesDir);
+      if (ensureResult is FilesystemFailure) {
+        return ManagedCopyFailed(
+          error: ManagedCopyError.copyFailed,
+          safeMessage:
+              'Failed to create managed files directory: ${ensureResult.safeMessage}',
+        );
+      }
+
+      // Re-resolve the files directory after creation. This closes the gap
+      // where a junction/reparse point could appear between the initial
+      // validation and directory creation. No backup or managed bytes are
+      // written before this second validation succeeds.
+      final String? postCreateCanonFiles = _pathCanonicalizer.canonicalize(
+        managedFilesDir,
+      );
+      if (postCreateCanonFiles == null ||
+          _normalizePath(postCreateCanonFiles) !=
+              _normalizePath(canonFilesDir) ||
+          _pathsOverlap(postCreateCanonFiles, canonBackupRoot) ||
+          _pathsOverlap(postCreateCanonFiles, canonDatabaseRoot) ||
+          canonicalSourceParents.any(
+            (sourceParent) => _pathsOverlap(postCreateCanonFiles, sourceParent),
+          )) {
+        return const ManagedCopyBlocked(
+          error: ManagedCopyError.unsafeRoots,
+          safeMessage:
+              'Managed files directory changed or overlaps a protected location.',
+        );
+      }
+
+      // ── 7. Copy, verify, and finalize ─────────────────────────────────────
+      //
+      // For .pdf sources the trusted hash is resolved (or reused) inside
+      // _executeAfterTempSetup. For .doc sources it was already computed above
+      // by the verified Word conversion.
+
+      final String finalPath = _pathJoin(managedFilesDir, '$docCode.pdf');
+      final String tmpPath = _pathJoin(
+        managedFilesDir,
+        '$docCode.pdf.$operationId.copying',
+      );
+
+      return await _executeAfterTempSetup(
+        documentId: documentId,
+        source: source,
+        isDocSource: isDocSource,
+        operationId: operationId,
+        now: now,
+        managedFilesDir: managedFilesDir,
+        postCreateCanonFiles: postCreateCanonFiles,
+        backupRoot: backupRoot,
+        finalPath: finalPath,
+        tmpPath: tmpPath,
+        docCode: docCode,
+        docTempPdfPath: wordTempPdfPath.isEmpty ? null : wordTempPdfPath,
+        docTrustedHash: docTrustedHash,
+      );
+    } finally {
+      if (wordTempPdfPath.isNotEmpty && wordTempDir.isNotEmpty) {
+        await _wordConverter?.cleanupSafely(wordTempPdfPath, wordTempDir);
+      }
+    }
+  }
+
+  Future<ManagedCopyResult> _executeAfterTempSetup({
+    required int documentId,
+    required SourceFileCandidate source,
+    required bool isDocSource,
+    required String operationId,
+    required DateTime now,
+    required String managedFilesDir,
+    required String postCreateCanonFiles,
+    required String backupRoot,
+    required String finalPath,
+    required String tmpPath,
+    required String docCode,
+    required String? docTempPdfPath,
+    required String? docTrustedHash,
+  }) async {
+    // The effective copy source for byte operations.
+    // For .pdf sources this is source.absolutePath.
+    // For .doc sources this is the temp PDF produced by the earlier verified
+    // Word conversion (see execute()).
+    final String copySrcPath;
+    final String trustedSourceHash;
+
+    if (isDocSource) {
+      copySrcPath = docTempPdfPath!;
+      trustedSourceHash = docTrustedHash!;
     } else {
       // ── 6b. PDF source hash ─────────────────────────────────────────────────
       // Compute the trusted source hash before artifact detection. This lets us

@@ -159,6 +159,29 @@ Future<int> _insertSourceFile(
       );
 }
 
+Future<int> _insertManagedCopyFile(
+  AppDatabase db,
+  int documentId, {
+  String path = r'C:\Library\files\DOC-0000001.pdf',
+  String healthKey = 'healthy',
+}) async {
+  return db
+      .into(db.documentFiles)
+      .insert(
+        DocumentFilesCompanion.insert(
+          documentId: documentId,
+          fileRoleKey: 'managed_copy',
+          fileName: 'DOC-0000001.pdf',
+          absolutePath: path,
+          extension: '.pdf',
+          fileSizeBytes: 2048,
+          fileHealthKey: Value(healthKey),
+          createdAt: DateTime.utc(2026, 1, 1).toIso8601String(),
+          updatedAt: DateTime.utc(2026, 1, 1).toIso8601String(),
+        ),
+      );
+}
+
 void main() {
   late AppDatabase db;
   late DriftManagedCopyRepository repo;
@@ -210,6 +233,147 @@ void main() {
           );
       final state = await repo.loadDocumentState(docId);
       expect(state!.hasManagedCopy, isTrue);
+    });
+
+    Future<void> _insertManagedCopy(
+      AppDatabase db,
+      int docId, {
+      required String health,
+    }) async {
+      await db
+          .into(db.documentFiles)
+          .insert(
+            DocumentFilesCompanion.insert(
+              documentId: docId,
+              fileRoleKey: 'managed_copy',
+              fileName: 'DOC-0000001.pdf',
+              absolutePath: r'C:\Library\files\DOC-0000001.pdf',
+              extension: '.pdf',
+              fileSizeBytes: 1024,
+              fileHealthKey: Value(health),
+              createdAt: DateTime.utc(2026, 1, 1).toIso8601String(),
+              updatedAt: DateTime.utc(2026, 1, 1).toIso8601String(),
+            ),
+          );
+    }
+
+    test('hasHealthyManagedCopy is true when the row is healthy', () async {
+      final docId = await _insertDocument(db);
+      await _insertManagedCopy(db, docId, health: 'healthy');
+      final state = await repo.loadDocumentState(docId);
+      expect(state!.hasHealthyManagedCopy, isTrue);
+    });
+
+    test('hasHealthyManagedCopy is false when the only row is corrupted '
+        '(bug 4: corrupted must not count as healthy)', () async {
+      final docId = await _insertDocument(db);
+      await _insertManagedCopy(db, docId, health: 'corrupted');
+      final state = await repo.loadDocumentState(docId);
+      expect(state!.hasHealthyManagedCopy, isFalse);
+    });
+
+    test(
+      'hasHealthyManagedCopy is false when the only row is missing',
+      () async {
+        final docId = await _insertDocument(db);
+        await _insertManagedCopy(db, docId, health: 'missing');
+        final state = await repo.loadDocumentState(docId);
+        expect(state!.hasHealthyManagedCopy, isFalse);
+      },
+    );
+  });
+
+  // ── loadCopiedToLibraryDocumentIds (bug 4) ─────────────────────────────────
+
+  group('loadCopiedToLibraryDocumentIds', () {
+    test(
+      'returns empty list when no documents are copied_to_library',
+      () async {
+        await _insertDocument(db, status: 'classified');
+        final ids = await repo.loadCopiedToLibraryDocumentIds();
+        expect(ids, isEmpty);
+      },
+    );
+
+    test('returns document ids with workflow_status_key = copied_to_library, '
+        'including ones with zero managed_copy rows', () async {
+      final orphanId = await _insertDocument(db, status: 'copied_to_library');
+      await _insertDocument(db, status: 'classified');
+      final ids = await repo.loadCopiedToLibraryDocumentIds();
+      expect(ids, [orphanId]);
+    });
+
+    test('does not return classified or imported documents', () async {
+      await _insertDocument(db, status: 'imported');
+      await _insertDocument(db, status: 'classified');
+      final ids = await repo.loadCopiedToLibraryDocumentIds();
+      expect(ids, isEmpty);
+    });
+  });
+
+  // ── loadDocumentsWithStaleDocumentCode (QA follow-up) ──────────────────────
+
+  group('loadDocumentsWithStaleDocumentCode', () {
+    test(
+      'returns a classified document with a code and zero managed_copy rows',
+      () async {
+        final docId = await _insertDocument(
+          db,
+          status: 'classified',
+          code: 'DOC-0000002',
+        );
+        final entries = await repo.loadDocumentsWithStaleDocumentCode();
+        expect(entries, [(documentId: docId, workflowStatusKey: 'classified')]);
+      },
+    );
+
+    test('returns a copied_to_library document whose only managed_copy row is '
+        'missing', () async {
+      final docId = await _insertDocument(
+        db,
+        status: 'copied_to_library',
+        code: 'DOC-0000003',
+      );
+      await _insertManagedCopyFile(db, docId, healthKey: 'missing');
+      final entries = await repo.loadDocumentsWithStaleDocumentCode();
+      expect(entries, [
+        (documentId: docId, workflowStatusKey: 'copied_to_library'),
+      ]);
+    });
+
+    test('excludes a document with a healthy managed_copy row', () async {
+      final docId = await _insertDocument(
+        db,
+        status: 'copied_to_library',
+        code: 'DOC-0000004',
+      );
+      await _insertManagedCopyFile(db, docId, healthKey: 'healthy');
+      final entries = await repo.loadDocumentsWithStaleDocumentCode();
+      expect(entries, isEmpty);
+    });
+
+    test('excludes a document with no document_code', () async {
+      await _insertDocument(db, status: 'classified');
+      final entries = await repo.loadDocumentsWithStaleDocumentCode();
+      expect(entries, isEmpty);
+    });
+
+    test('a document with one healthy and one missing managed_copy row is '
+        'excluded (at least one healthy row is enough)', () async {
+      final docId = await _insertDocument(
+        db,
+        status: 'copied_to_library',
+        code: 'DOC-0000005',
+      );
+      await _insertManagedCopyFile(db, docId, healthKey: 'healthy');
+      await _insertManagedCopyFile(
+        db,
+        docId,
+        path: r'C:\Library\files\DOC-0000005-old.pdf',
+        healthKey: 'missing',
+      );
+      final entries = await repo.loadDocumentsWithStaleDocumentCode();
+      expect(entries, isEmpty);
     });
   });
 

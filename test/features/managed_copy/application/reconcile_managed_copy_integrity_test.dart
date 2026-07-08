@@ -79,6 +79,8 @@ class _StubRepo implements ManagedCopyRepository {
   final List<int> markedCorrupted = [];
   final List<int> restoredHealthy = [];
   final List<int> downgradedDocIds = [];
+  List<int> copiedToLibraryDocIds = [];
+  List<({int documentId, String workflowStatusKey})> staleCodeDocs = [];
   bool throwOnMarkMissing = false;
   bool throwOnMarkCorrupted = false;
   bool throwOnDowngrade = false;
@@ -87,6 +89,14 @@ class _StubRepo implements ManagedCopyRepository {
 
   @override
   Future<List<ManagedFileRef>> loadAllManagedCopyFiles() async => allFiles;
+
+  @override
+  Future<List<int>> loadCopiedToLibraryDocumentIds() async =>
+      copiedToLibraryDocIds;
+
+  @override
+  Future<List<({int documentId, String workflowStatusKey})>>
+  loadDocumentsWithStaleDocumentCode() async => staleCodeDocs;
 
   @override
   Future<void> markManagedFileMissing({
@@ -513,6 +523,157 @@ void main() {
         await _build(repo: repo, fs: fs).call();
         expect(repo.markedMissing, [50]);
         expect(repo.markedCorrupted, isEmpty);
+      },
+    );
+
+    // ── Bug 4: documents copied_to_library with no managed_copy row ───────
+
+    test('downgrades a copied_to_library document that has zero managed_copy '
+        'rows and counts it as a problem', () async {
+      final repo = _StubRepo([])..copiedToLibraryDocIds = [77];
+      final fs = _StubFs({});
+      final result = await _build(repo: repo, fs: fs).call();
+      expect(repo.downgradedDocIds, [77]);
+      expect(result.downgradedDocumentCount, 1);
+      expect(result.missingCount, 1);
+      expect(result.hasIssues, isTrue);
+    });
+
+    test('does not double-downgrade a copied_to_library document that already '
+        'has a healthy managed_copy row', () async {
+      final repo = _StubRepo([_ref(fileId: 60, size: kSize)])
+        ..copiedToLibraryDocIds = [kDocId];
+      final fs = _StubFs({kPath}, sizes: {kPath: kSize});
+      final result = await _build(repo: repo, fs: fs).call();
+      expect(repo.downgradedDocIds, isEmpty);
+      expect(result.healthyCount, 1);
+      expect(result.downgradedDocumentCount, 0);
+    });
+
+    test('still downgrades documents whose only managed_copy rows are '
+        'unhealthy even when other copied_to_library ids exist', () async {
+      final repo =
+          _StubRepo([_ref(fileId: 8)]) // absent from disk
+            ..copiedToLibraryDocIds = [kDocId, 88];
+      final fs = _StubFs({});
+      final result = await _build(repo: repo, fs: fs).call();
+      expect(repo.downgradedDocIds, containsAll([kDocId, 88]));
+      expect(result.downgradedDocumentCount, 2);
+    });
+
+    test(
+      'does not crash when downgrading an orphaned document throws',
+      () async {
+        final repo = _StubRepo([])
+          ..copiedToLibraryDocIds = [99]
+          ..throwOnDowngrade = true;
+        final fs = _StubFs({});
+        final result = await _build(repo: repo, fs: fs).call();
+        expect(result.failedCount, 1);
+        expect(result.downgradedDocumentCount, 0);
+      },
+    );
+
+    // ── Stale document_code (QA follow-up) ─────────────────────────────────
+
+    test(
+      'classified document with a stale document_code and zero managed_copy '
+      'rows is reported as a problem, not downgraded (nothing to downgrade)',
+      () async {
+        final repo = _StubRepo([])
+          ..staleCodeDocs = [(documentId: 5, workflowStatusKey: 'classified')];
+        final fs = _StubFs({});
+        final result = await _build(repo: repo, fs: fs).call();
+        expect(repo.downgradedDocIds, isEmpty);
+        expect(result.downgradedDocumentCount, 0);
+        expect(result.missingCount, 1);
+        expect(result.hasIssues, isTrue);
+      },
+    );
+
+    test(
+      'copied_to_library document with a stale document_code is downgraded',
+      () async {
+        final repo = _StubRepo([])
+          ..staleCodeDocs = [
+            (documentId: 6, workflowStatusKey: 'copied_to_library'),
+          ];
+        final fs = _StubFs({});
+        final result = await _build(repo: repo, fs: fs).call();
+        expect(repo.downgradedDocIds, [6]);
+        expect(result.downgradedDocumentCount, 1);
+        expect(result.missingCount, 1);
+      },
+    );
+
+    test(
+      'ready_for_export document with a stale document_code is downgraded',
+      () async {
+        final repo = _StubRepo([])
+          ..staleCodeDocs = [
+            (documentId: 7, workflowStatusKey: 'ready_for_export'),
+          ];
+        final fs = _StubFs({});
+        final result = await _build(repo: repo, fs: fs).call();
+        expect(repo.downgradedDocIds, [7]);
+        expect(result.downgradedDocumentCount, 1);
+      },
+    );
+
+    test('a document already covered by a managed_copy row is not '
+        'double-counted by the stale document_code pass', () async {
+      // The document has one unhealthy managed_copy row (already processed
+      // and counted by the main per-file loop) and also appears in
+      // staleCodeDocs (as the real repository would report it, since it
+      // has a code but no healthy row) — it must only be counted once.
+      final repo =
+          _StubRepo([_ref(fileId: 9)]) // absent from disk
+            ..staleCodeDocs = [
+              (documentId: kDocId, workflowStatusKey: 'classified'),
+            ];
+      final fs = _StubFs({});
+      final result = await _build(repo: repo, fs: fs).call();
+      expect(result.missingCount, 1);
+      expect(repo.markedMissing, [9]);
+    });
+
+    test('a document already covered by the copied_to_library orphan pass is '
+        'not double-counted by the stale document_code pass', () async {
+      final repo = _StubRepo([])
+        ..copiedToLibraryDocIds = [11]
+        ..staleCodeDocs = [
+          (documentId: 11, workflowStatusKey: 'copied_to_library'),
+        ];
+      final fs = _StubFs({});
+      final result = await _build(repo: repo, fs: fs).call();
+      expect(repo.downgradedDocIds, [11]);
+      expect(result.downgradedDocumentCount, 1);
+      expect(result.missingCount, 1);
+    });
+
+    test(
+      'a document with a healthy managed_copy row is not reported even if '
+      'it has a document_code (repository excludes it from staleCodeDocs)',
+      () async {
+        final repo = _StubRepo([_ref(fileId: 10, size: kSize)]);
+        // staleCodeDocs left empty: a real repository implementation
+        // excludes any document with a healthy managed_copy row.
+        final fs = _StubFs({kPath}, sizes: {kPath: kSize});
+        final result = await _build(repo: repo, fs: fs).call();
+        expect(result.healthyCount, 1);
+        expect(result.missingCount, 0);
+        expect(repo.downgradedDocIds, isEmpty);
+      },
+    );
+
+    test(
+      'a document with no document_code and no managed_copy row is ignored',
+      () async {
+        final repo = _StubRepo([]); // no files, no stale codes reported
+        final fs = _StubFs({});
+        final result = await _build(repo: repo, fs: fs).call();
+        expect(result, ReconcileIntegrityResult.empty);
+        expect(repo.downgradedDocIds, isEmpty);
       },
     );
   });

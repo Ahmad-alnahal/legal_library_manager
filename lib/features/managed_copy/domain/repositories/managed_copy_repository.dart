@@ -30,6 +30,18 @@ abstract class ManagedCopyRepository {
   /// Returns the application-support directory path (where the SQLite DB lives).
   Future<String> loadDatabaseRoot();
 
+  /// Returns the parent of a local, non-cloud-synced temp directory for Word
+  /// document conversion staging. The managed-copy use case creates a
+  /// `WordConversionTemp` child folder directly inside this path and never
+  /// writes conversion input/output anywhere else.
+  ///
+  /// This must resolve to a true local application temp location (e.g. under
+  /// the OS per-user local/temp folder) — never inside the managed library,
+  /// the database backup root, OneDrive, or any other cloud-synced or user
+  /// document folder. Word automation must never touch a path that could be
+  /// paused, locked, or intercepted by a cloud-sync client.
+  Future<String> loadWordTempRoot();
+
   /// Returns absolute_path values for all source_original files belonging to
   /// [documentId]. Used for root-overlap safety validation.
   Future<List<String>> loadDocumentSourcePaths(int documentId);
@@ -113,6 +125,34 @@ abstract class ManagedCopyRepository {
   /// single-document operations.
   Future<List<ManagedFileRef>> loadAllManagedCopyFiles() =>
       throw UnimplementedError('loadAllManagedCopyFiles is not implemented.');
+
+  /// Returns the IDs of every document whose workflow_status_key is
+  /// 'copied_to_library'.
+  ///
+  /// Used by the M11.4 bulk integrity scan to detect documents that claim to
+  /// be copied to the managed library but have zero managed_copy file rows
+  /// at all (e.g. after a prior failed attempt left the workflow status
+  /// inconsistent). [loadAllManagedCopyFiles] alone cannot find these, since
+  /// it only returns rows that already exist.
+  Future<List<int>> loadCopiedToLibraryDocumentIds() =>
+      throw UnimplementedError(
+        'loadCopiedToLibraryDocumentIds is not implemented.',
+      );
+
+  /// Returns every document that has a non-null `document_code` but no
+  /// `managed_copy` row with `file_health_key = 'healthy'`.
+  ///
+  /// A stale code means a code was allocated (or previously earned by a
+  /// successful copy that has since been lost/corrupted) but no verified
+  /// managed copy currently backs it. Each entry carries the document's
+  /// current `workflow_status_key` so the caller can decide whether to
+  /// downgrade it (when it claims `copied_to_library` or `ready_for_export`)
+  /// or only report it (when it is already `classified` — nothing to
+  /// downgrade, but the scan must not report "all healthy").
+  Future<List<({int documentId, String workflowStatusKey})>>
+  loadDocumentsWithStaleDocumentCode() => throw UnimplementedError(
+    'loadDocumentsWithStaleDocumentCode is not implemented.',
+  );
 
   /// Marks a managed-copy file as having content that does not match the stored
   /// SHA-256 hash or file size (M11.4). The physical file is left untouched.

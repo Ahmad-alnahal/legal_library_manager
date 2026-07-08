@@ -172,6 +172,23 @@ void main() {
       expect((result as OpenFileBlocked).code, FileOpenError.pathNotFound);
     });
 
+    test('missing file on disk also blocks OpenTarget.folder without '
+        'attempting to open any folder (chosen behavior: fail closed, never '
+        'silently reveal an unrelated folder)', () async {
+      final opener = _FakeOpener();
+      final uc = OpenFileUseCase(
+        repository: _FakeRepo()..recordToReturn = _kRecord,
+        existenceChecker: _FakeChecker(FileExistenceStatus.notFound),
+        osOpener: opener,
+      );
+
+      final result = await uc.execute(1, OpenTarget.folder);
+
+      expect(result, isA<OpenFileBlocked>());
+      expect((result as OpenFileBlocked).code, FileOpenError.pathNotFound);
+      expect(opener.openFolderCalls, isEmpty);
+    });
+
     test('directory masquerading as file returns blocked', () async {
       final uc = _makeUseCase(existenceStatus: FileExistenceStatus.directory);
       final result = await uc.execute(1, OpenTarget.file);

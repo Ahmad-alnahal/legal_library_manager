@@ -131,6 +131,36 @@ void main() {
       expect(src.contains('.writeAs'), isFalse);
       expect(src.contains('.openWrite('), isFalse);
     });
+
+    // ── QA follow-up: Word temp dir must be a local app temp folder ────────
+
+    test('Word conversion temp dir is resolved via loadWordTempRoot(), not '
+        'derived from the managed library root', () {
+      expect(
+        src.contains('loadWordTempRoot'),
+        isTrue,
+        reason:
+            'Word temp dir must come from a local app-owned temp '
+            'provider, not the managed library root',
+      );
+      expect(
+        src.contains("_pathJoin(managedRoot, 'WordTemp')"),
+        isFalse,
+        reason:
+            'Word temp dir must no longer be derived from managedRoot '
+            '(old design risked staging inside OneDrive/managed storage)',
+      );
+    });
+
+    test('Word temp root overlap with managed/backup roots is checked', () {
+      expect(
+        src.contains('probeWordTempParent'),
+        isTrue,
+        reason:
+            'the resolved Word temp root must be checked against the '
+            'managed library, managed files, and backup roots',
+      );
+    });
   });
 
   // ── Filesystem service: no bulk or directory deletion API ────────────────

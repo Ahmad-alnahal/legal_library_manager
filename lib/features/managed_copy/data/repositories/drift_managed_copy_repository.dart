@@ -54,7 +54,7 @@ class DriftManagedCopyRepository implements ManagedCopyRepository {
       existingDocumentCode: doc.documentCode,
       hasManagedCopy: managedCopyRows.isNotEmpty,
       hasHealthyManagedCopy: managedCopyRows.any(
-        (r) => r.fileHealthKey != 'missing',
+        (r) => r.fileHealthKey == 'healthy',
       ),
     );
   }
@@ -99,6 +99,20 @@ class DriftManagedCopyRepository implements ManagedCopyRepository {
   Future<String> loadDatabaseRoot() async {
     final dir = await getApplicationSupportDirectory();
     return dir.path;
+  }
+
+  @override
+  Future<String> loadWordTempRoot() async {
+    // getTemporaryDirectory() resolves to the OS per-user local temp folder
+    // (on Windows: under %LOCALAPPDATA%\Temp), which is never OneDrive- or
+    // cloud-sync-managed — unlike getApplicationSupportDirectory(), which can
+    // resolve under a roaming profile subject to Known Folder Move policies.
+    final dir = await getTemporaryDirectory();
+    final base = dir.path.replaceAll('/', r'\');
+    final trimmed = base.endsWith(r'\')
+        ? base.substring(0, base.length - 1)
+        : base;
+    return '$trimmed\\MARJIY';
   }
 
   // ── Source file queries ────────────────────────────────────────────────────
@@ -322,10 +336,11 @@ class DriftManagedCopyRepository implements ManagedCopyRepository {
                     f.fileRoleKey.equals('managed_copy'),
               ))
               .get();
-      // Allow re-copy when all prior managed-copy rows are marked 'missing'
-      // (M8.6 reconciliation). Block only when a healthy copy exists.
+      // Allow re-copy when all prior managed-copy rows are 'missing' or
+      // 'corrupted' (M8.6 / M11.4 reconciliation). Block only when a genuinely
+      // healthy copy exists — a corrupted row must never count as healthy.
       final hasHealthyCopy = existingManaged.any(
-        (r) => r.fileHealthKey != 'missing',
+        (r) => r.fileHealthKey == 'healthy',
       );
       if (hasHealthyCopy) {
         throw StateError(
@@ -333,24 +348,27 @@ class DriftManagedCopyRepository implements ManagedCopyRepository {
         );
       }
 
-      final matchingMissingRows = existingManaged
+      final matchingRevivableRows = existingManaged
           .where(
             (r) =>
-                r.fileHealthKey == 'missing' &&
+                (r.fileHealthKey == 'missing' ||
+                    r.fileHealthKey == 'corrupted') &&
                 _samePath(r.absolutePath, data.managedFilePath),
           )
           .toList(growable: false);
-      if (matchingMissingRows.length > 1) {
+      if (matchingRevivableRows.length > 1) {
         throw StateError(
-          'Pre-write validation failed: duplicate missing managed copy rows.',
+          'Pre-write validation failed: duplicate missing/corrupted managed '
+          'copy rows.',
         );
       }
 
-      // 1. Insert a new managed_copy row, or revive the existing missing row
-      // for this exact managed path. Reviving avoids the absolute_path UNIQUE
-      // collision after a user restores or re-copies a previously missing file.
+      // 1. Insert a new managed_copy row, or revive the existing missing or
+      // corrupted row for this exact managed path. Reviving avoids the
+      // absolute_path UNIQUE collision after a user restores or re-copies a
+      // previously missing or corrupted file.
       final int managedFileId;
-      if (matchingMissingRows.isEmpty) {
+      if (matchingRevivableRows.isEmpty) {
         managedFileId = await _db
             .into(_db.documentFiles)
             .insert(
@@ -372,7 +390,7 @@ class DriftManagedCopyRepository implements ManagedCopyRepository {
               ),
             );
       } else {
-        final row = matchingMissingRows.single;
+        final row = matchingRevivableRows.single;
         managedFileId = row.id;
         await (_db.update(
           _db.documentFiles,
@@ -554,7 +572,8 @@ class DriftManagedCopyRepository implements ManagedCopyRepository {
     await (_db.update(_db.documents)..where(
           (d) =>
               d.id.equals(documentId) &
-              d.workflowStatusKey.equals('copied_to_library'),
+              (d.workflowStatusKey.equals('copied_to_library') |
+                  d.workflowStatusKey.equals('ready_for_export')),
         ))
         .write(
           DocumentsCompanion(
@@ -613,6 +632,53 @@ class DriftManagedCopyRepository implements ManagedCopyRepository {
             createdAt: ts,
           ),
         );
+  }
+
+  @override
+  Future<List<int>> loadCopiedToLibraryDocumentIds() async {
+    final rows =
+        await (_db.selectOnly(_db.documents)
+              ..addColumns([_db.documents.id])
+              ..where(
+                _db.documents.workflowStatusKey.equals('copied_to_library'),
+              ))
+            .get();
+    return rows
+        .map((row) => row.read(_db.documents.id)!)
+        .toList(growable: false);
+  }
+
+  @override
+  Future<List<({int documentId, String workflowStatusKey})>>
+  loadDocumentsWithStaleDocumentCode() async {
+    final codedDocRows =
+        await (_db.selectOnly(_db.documents)
+              ..addColumns([_db.documents.id, _db.documents.workflowStatusKey])
+              ..where(_db.documents.documentCode.isNotNull()))
+            .get();
+    if (codedDocRows.isEmpty) return const [];
+
+    final healthyRows =
+        await (_db.selectOnly(_db.documentFiles)
+              ..addColumns([_db.documentFiles.documentId])
+              ..where(
+                _db.documentFiles.fileRoleKey.equals('managed_copy') &
+                    _db.documentFiles.fileHealthKey.equals('healthy'),
+              ))
+            .get();
+    final healthyDocIds = healthyRows
+        .map((row) => row.read(_db.documentFiles.documentId)!)
+        .toSet();
+
+    return codedDocRows
+        .map(
+          (row) => (
+            documentId: row.read(_db.documents.id)!,
+            workflowStatusKey: row.read(_db.documents.workflowStatusKey)!,
+          ),
+        )
+        .where((entry) => !healthyDocIds.contains(entry.documentId))
+        .toList(growable: false);
   }
 
   // ── Private helpers ────────────────────────────────────────────────────────

@@ -219,6 +219,87 @@ void main() {
         );
       }
     });
+
+    // ── QA follow-up: Protected View fallback + diagnostic markers ─────────
+
+    test('converter falls back to ProtectedViewWindows when Open fails', () {
+      expect(
+        src.contains('ProtectedViewWindows.Open'),
+        isTrue,
+        reason:
+            'a Protected View fallback must be attempted when the normal '
+            'Documents.Open call fails',
+      );
+      expect(
+        src.contains('.Edit()'),
+        isTrue,
+        reason:
+            'the protected-view window must be edited out of protected '
+            'view to obtain a real, exportable Document object',
+      );
+    });
+
+    test('protected view fallback only touches the staged temp path', () {
+      // The fallback must reuse the same $inputPath variable used by the
+      // normal Documents.Open call — never the original source path, which
+      // this converter never receives (only the app-owned staged copy).
+      expect(src.contains('ProtectedViewWindows.Open(\$inputPath)'), isTrue);
+    });
+
+    test('converter emits stage-specific safe diagnostic markers', () {
+      for (final marker in [
+        'MARJIY_ERROR:document_open_failed:',
+        'MARJIY_ERROR:protected_view_edit_failed:',
+        'MARJIY_ERROR:export_failed:',
+        'MARJIY_ERROR:blank_export_failed:',
+      ]) {
+        expect(
+          src.contains(marker),
+          isTrue,
+          reason: 'converter must emit the $marker diagnostic marker',
+        );
+      }
+    });
+
+    test('diagnostic markers carry only a numeric HResult, never raw text', () {
+      expect(src.contains(r'$($_.Exception.HResult)'), isTrue);
+      // No raw exception message property is ever written to output.
+      expect(src.contains(r'.Exception.Message'), isFalse);
+      expect(src.contains(r'.ToString()'), isFalse);
+    });
+
+    test('_extractDiagnostic never surfaces raw stderr text', () {
+      expect(src.contains('result.stderr'), isFalse);
+    });
+
+    test('convertBlankDocument creates a throwaway document and never opens '
+        'a user file', () {
+      expect(src.contains('convertBlankDocument'), isTrue);
+      expect(
+        src.contains('Documents.Add()'),
+        isTrue,
+        reason: 'blank-document diagnostic must not open any input file',
+      );
+      expect(
+        src.contains('MARJIY_WORD_INPUT'),
+        isTrue,
+        reason:
+            'MARJIY_WORD_INPUT must still exist for the real conversion '
+            'path even though the blank-document script never reads it',
+      );
+    });
+
+    test('exit codes distinguish every failure stage', () {
+      // 2 = document_open_failed, 3 = export_failed,
+      // 4 = protected_view_edit_failed, 5 = blank_export_failed.
+      for (final exitCode in ['exit 2', 'exit 3', 'exit 4', 'exit 5']) {
+        expect(
+          src.contains(exitCode),
+          isTrue,
+          reason: 'missing distinct $exitCode for a diagnosable failure stage',
+        );
+      }
+    });
   });
 
   group('word_converter.dart domain interface is OS-agnostic', () {
@@ -276,6 +357,82 @@ void main() {
 
     test('output filesystem does not invoke any Process', () {
       expect(RegExp(r'\bProcess\s*\.').hasMatch(src), isFalse);
+    });
+  });
+
+  // ── Bug 1: no network/cloud dependency for .doc conversion ────────────────
+  //
+  // Conversion must use local Microsoft Word COM automation only. No http
+  // client, raw sockets, or web/cloud endpoints may be reachable from any
+  // word_conversion or managed_copy data service.
+
+  group('word_conversion and managed_copy data services have no network I/O', () {
+    const List<String> networkFreeDirs = [
+      'lib/features/word_conversion/data',
+      'lib/features/managed_copy/data',
+    ];
+
+    const List<String> forbiddenNetworkTokens = [
+      "import 'package:http/",
+      'import "package:http/',
+      'HttpClient(',
+      'Uri.http(',
+      'Uri.https(',
+      'WebSocket',
+      'dart:io show Socket',
+      'RawSocket',
+      "Socket.connect",
+    ];
+
+    for (final dir in networkFreeDirs) {
+      test('$dir contains no http/socket/cloud tokens', () {
+        for (final file in dartFilesIn(dir)) {
+          final src = read(file.path);
+          for (final token in forbiddenNetworkTokens) {
+            expect(
+              src.contains(token),
+              isFalse,
+              reason: '${file.path} must not contain network token: $token',
+            );
+          }
+        }
+      });
+    }
+
+    test('windows_microsoft_word_converter.dart drives local Word COM only', () {
+      const converterPath =
+          'lib/features/word_conversion/data/services/windows_microsoft_word_converter.dart';
+      final src = read(converterPath);
+      expect(
+        src.contains('Word.Application'),
+        isTrue,
+        reason:
+            'Conversion must automate the local Word.Application COM object',
+      );
+      expect(src.contains('runInShell: false'), isTrue);
+      expect(src.contains('runInShell: true'), isFalse);
+    });
+
+    test('windows_microsoft_word_probe.dart probes local Word COM only', () {
+      const probePath =
+          'lib/features/word_conversion/data/services/windows_microsoft_word_probe.dart';
+      final src = read(probePath);
+      expect(
+        src.contains('Word.Application'),
+        isTrue,
+        reason: 'Probe must check the local Word.Application COM object',
+      );
+      expect(src.contains('runInShell: false'), isTrue);
+      expect(src.contains('runInShell: true'), isFalse);
+    });
+
+    test('managed_copy_word_converter.dart has no network tokens', () {
+      const path =
+          'lib/features/managed_copy/data/services/managed_copy_word_converter.dart';
+      final src = read(path);
+      for (final token in forbiddenNetworkTokens) {
+        expect(src.contains(token), isFalse);
+      }
     });
   });
 
