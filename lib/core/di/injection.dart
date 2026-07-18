@@ -9,6 +9,7 @@ import '../../features/dashboard/presentation/bloc/dashboard_bloc.dart'
 import '../../features/duplicates/data/repositories/drift_duplicate_review_repository.dart';
 import '../../features/duplicates/domain/repositories/duplicate_review_repository.dart';
 import '../../features/duplicates/presentation/bloc/duplicate_review_bloc.dart';
+import '../../features/export/application/use_cases/generate_export_batch.dart';
 import '../../features/export/application/use_cases/mark_document_ready_for_export.dart';
 import '../../features/export/data/repositories/drift_export_batch_repository.dart';
 import '../../features/export/data/services/windows_export_filesystem.dart';
@@ -303,6 +304,19 @@ void configureDependencies() {
     ..registerLazySingleton<ExportFilesystem>(WindowsExportFilesystem.new)
     ..registerLazySingleton<ExportBatchRepository>(
       () => DriftExportBatchRepository(getIt<AppDatabase>()),
+    )
+    // P3.3.2 export batch generation orchestration. Not wired into UI yet
+    // (deferred to P3.4).
+    ..registerLazySingleton<GenerateExportBatch>(
+      () => GenerateExportBatch(
+        metadataRepository: getIt<DocumentMetadataRepository>(),
+        copyRepository: getIt<ManagedCopyRepository>(),
+        batchRepository: getIt<ExportBatchRepository>(),
+        filesystem: getIt<ExportFilesystem>(),
+        hasher: getIt<FileHasher>(),
+        clock: getIt<Clock>(),
+        documentsDirectoryResolver: getIt<DocumentsDirectoryResolver>(),
+      ),
     )
     ..registerFactory<ReviewBloc>(
       () => ReviewBloc(

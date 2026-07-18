@@ -190,18 +190,26 @@ class StreamingFileHasher implements FileHasher {
       }
     }
 
+    // The result is computed here and only sent to the caller (via `finish`,
+    // below) after the file handle has been fully, awaited-closed. The
+    // caller kills this isolate as soon as it receives that message; sending
+    // it any earlier would race an in-flight `closeFile()` against
+    // `Isolate.kill`, which can abandon the close mid-flight and leave the
+    // OS file handle briefly held after the caller's Future resolves
+    // (observed on Windows as a transient "file in use" on delete).
+    _DoneMessage result;
     try {
       final RandomAccessFile opened;
       try {
         opened = await file.open();
         raf = opened;
       } on FileSystemException catch (e) {
-        finish(
-          _DoneMessage.failure(
-            ImportErrorCode.unreadable,
-            e.osError?.message ?? 'unreadable',
-          ),
+        result = _DoneMessage.failure(
+          ImportErrorCode.unreadable,
+          e.osError?.message ?? 'unreadable',
         );
+        await closeFile();
+        finish(result);
         return;
       }
 
@@ -212,7 +220,9 @@ class StreamingFileHasher implements FileHasher {
       while (true) {
         if (cancelled) {
           input.close();
-          finish(_DoneMessage.cancelled());
+          result = _DoneMessage.cancelled();
+          await closeFile();
+          finish(result);
           return;
         }
         final List<int> chunk = await opened.read(req.chunkSize);
@@ -224,21 +234,17 @@ class StreamingFileHasher implements FileHasher {
         }
       }
       input.close();
-      finish(_DoneMessage.success(output.value!.toString()));
+      result = _DoneMessage.success(output.value!.toString());
     } on FileSystemException catch (e) {
-      finish(
-        _DoneMessage.failure(
-          ImportErrorCode.hashFailed,
-          e.osError?.message ?? 'read failed',
-        ),
+      result = _DoneMessage.failure(
+        ImportErrorCode.hashFailed,
+        e.osError?.message ?? 'read failed',
       );
     } catch (_) {
-      finish(
-        _DoneMessage.failure(ImportErrorCode.hashFailed, 'hashing failed'),
-      );
-    } finally {
-      await closeFile();
+      result = _DoneMessage.failure(ImportErrorCode.hashFailed, 'hashing failed');
     }
+    await closeFile();
+    finish(result);
   }
 }
 
