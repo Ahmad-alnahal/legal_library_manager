@@ -81,6 +81,12 @@ class _FakeRepo implements ManagedCopyRepository {
   }) async {}
 
   @override
+  Future<String?> loadExportRoot() async => null;
+
+  @override
+  Future<void> saveExportRoot(String path) async {}
+
+  @override
   Future<String> loadDatabaseRoot() async => databaseRoot;
 
   @override

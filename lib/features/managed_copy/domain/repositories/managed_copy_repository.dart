@@ -27,6 +27,12 @@ abstract class ManagedCopyRepository {
     required String backupRoot,
   }) => throw UnimplementedError('Copy-root persistence is not implemented.');
 
+  /// Loads the `export_root` setting, or null when it has not been set.
+  Future<String?> loadExportRoot();
+
+  /// Persists the `export_root` setting.
+  Future<void> saveExportRoot(String path);
+
   /// Returns the application-support directory path (where the SQLite DB lives).
   Future<String> loadDatabaseRoot();
 

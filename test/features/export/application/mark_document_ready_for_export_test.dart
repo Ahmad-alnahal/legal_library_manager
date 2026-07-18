@@ -6,7 +6,10 @@ import 'package:legal_library_manager/features/documents/domain/entities/documen
 import 'package:legal_library_manager/features/documents/domain/entities/normalized_draft.dart';
 import 'package:legal_library_manager/features/documents/domain/repositories/document_metadata_repository.dart';
 import 'package:legal_library_manager/features/export/application/use_cases/mark_document_ready_for_export.dart';
+import 'package:legal_library_manager/features/export/domain/entities/export_category_entry.dart';
+import 'package:legal_library_manager/features/export/domain/entities/export_document_metadata.dart';
 import 'package:legal_library_manager/features/export/domain/entities/export_eligibility_result.dart';
+import 'package:legal_library_manager/features/export/domain/entities/export_keywords_result.dart';
 import 'package:legal_library_manager/features/export/domain/entities/exportable_document_ref.dart';
 import 'package:legal_library_manager/features/export/domain/entities/mark_ready_for_export_result.dart';
 
@@ -55,6 +58,19 @@ class _FakeRepo implements DocumentMetadataRepository {
 
   @override
   Future<void> returnToInProgress(int documentId, {required DateTime now}) =>
+      throw UnimplementedError();
+
+  @override
+  Future<List<ExportDocumentMetadata>> loadExportMetadata(
+    List<int> documentIds,
+  ) => throw UnimplementedError();
+
+  @override
+  Future<List<ExportCategoryEntry>> loadExportCategories() =>
+      throw UnimplementedError();
+
+  @override
+  Future<ExportKeywordsResult> loadExportKeywords(List<int> documentIds) =>
       throw UnimplementedError();
 }
 

@@ -26,6 +26,7 @@ class DriftManagedCopyRepository implements ManagedCopyRepository {
 
   static const String _managedLibraryKey = 'managed_library_root';
   static const String _backupRootKey = 'database_backup_root';
+  static const String _exportRootKey = 'export_root';
   static const String _startupRecoveryStatusKey = 'startup_recovery_status';
   static const String _startupRecoveryArtifactCountKey =
       'startup_recovery_artifact_count';
@@ -93,6 +94,22 @@ class DriftManagedCopyRepository implements ManagedCopyRepository {
             );
       }
     });
+  }
+
+  @override
+  Future<String?> loadExportRoot() => _setting(_exportRootKey);
+
+  @override
+  Future<void> saveExportRoot(String path) async {
+    await _db
+        .into(_db.settings)
+        .insertOnConflictUpdate(
+          SettingsCompanion.insert(
+            key: _exportRootKey,
+            value: path,
+            updatedAt: _clock.nowUtc().toIso8601String(),
+          ),
+        );
   }
 
   @override

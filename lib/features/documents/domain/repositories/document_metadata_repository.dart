@@ -1,6 +1,9 @@
 // lib/features/documents/domain/repositories/document_metadata_repository.dart
 
+import '../../../export/domain/entities/export_category_entry.dart';
+import '../../../export/domain/entities/export_document_metadata.dart';
 import '../../../export/domain/entities/export_eligibility_result.dart';
+import '../../../export/domain/entities/export_keywords_result.dart';
 import '../../../export/domain/entities/exportable_document_ref.dart';
 import '../entities/document_aggregate.dart';
 import '../entities/normalized_draft.dart';
@@ -69,4 +72,20 @@ abstract class DocumentMetadataRepository {
   /// ordered by `ready_for_export_at` ascending. Used by P3.3 batch
   /// generation.
   Future<List<ExportableDocumentRef>> listReadyForExport();
+
+  /// Loads website-safe export metadata for [documentIds].
+  ///
+  /// Result order matches the order of [documentIds]; ids with no matching
+  /// document are silently skipped.
+  Future<List<ExportDocumentMetadata>> loadExportMetadata(
+    List<int> documentIds,
+  );
+
+  /// Loads all active main categories and their active subcategories,
+  /// ordered by sort_order.
+  Future<List<ExportCategoryEntry>> loadExportCategories();
+
+  /// Loads all keywords used by [documentIds] plus the document-keyword join
+  /// data, identified by document code.
+  Future<ExportKeywordsResult> loadExportKeywords(List<int> documentIds);
 }

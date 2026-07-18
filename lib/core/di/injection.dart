@@ -10,6 +10,10 @@ import '../../features/duplicates/data/repositories/drift_duplicate_review_repos
 import '../../features/duplicates/domain/repositories/duplicate_review_repository.dart';
 import '../../features/duplicates/presentation/bloc/duplicate_review_bloc.dart';
 import '../../features/export/application/use_cases/mark_document_ready_for_export.dart';
+import '../../features/export/data/repositories/drift_export_batch_repository.dart';
+import '../../features/export/data/services/windows_export_filesystem.dart';
+import '../../features/export/domain/repositories/export_batch_repository.dart';
+import '../../features/export/domain/services/export_filesystem.dart';
 import '../../features/import/application/folder_picker.dart';
 import '../../features/import/application/import_coordinator.dart';
 import '../../features/import/application/import_job_service.dart';
@@ -293,6 +297,12 @@ void configureDependencies() {
         repository: getIt<DocumentMetadataRepository>(),
         clock: getIt<Clock>(),
       ),
+    )
+    // P3.3.1 export batch generation foundation: filesystem boundary and
+    // batch repository. Not wired into UI yet (deferred to P3.4).
+    ..registerLazySingleton<ExportFilesystem>(WindowsExportFilesystem.new)
+    ..registerLazySingleton<ExportBatchRepository>(
+      () => DriftExportBatchRepository(getIt<AppDatabase>()),
     )
     ..registerFactory<ReviewBloc>(
       () => ReviewBloc(
