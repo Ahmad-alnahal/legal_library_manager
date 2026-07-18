@@ -3,6 +3,10 @@
 import 'package:drift/drift.dart';
 
 import '../../../../core/database/app_database.dart';
+import '../../../export/domain/entities/export_eligibility_input.dart';
+import '../../../export/domain/entities/export_eligibility_result.dart';
+import '../../../export/domain/entities/exportable_document_ref.dart';
+import '../../../export/domain/export_eligibility.dart' as export_eligibility;
 import '../../domain/entities/document_aggregate.dart';
 import '../../domain/entities/document_classification_input.dart';
 import '../../domain/entities/document_common_metadata.dart';
@@ -270,6 +274,100 @@ class DriftDocumentMetadataRepository implements DocumentMetadataRepository {
         ),
       );
     });
+  }
+
+  @override
+  Future<ExportEligibilityResult> checkExportEligibility(int documentId) async {
+    final Document? doc = await (_db.select(
+      _db.documents,
+    )..where((d) => d.id.equals(documentId))).getSingleOrNull();
+    if (doc == null) {
+      throw StateError('Document $documentId does not exist.');
+    }
+
+    final bool hasHealthyManagedCopy =
+        await (_db.select(_db.documentFiles)..where(
+              (f) =>
+                  f.documentId.equals(documentId) &
+                  f.fileRoleKey.equals('managed_copy') &
+                  f.fileHealthKey.equals('healthy'),
+            ))
+            .getSingleOrNull() !=
+        null;
+
+    bool? mainCategoryActive;
+    final int? mainCategoryId = doc.primaryMainCategoryId;
+    if (mainCategoryId != null) {
+      final MainCategory? mainCategory = await (_db.select(
+        _db.mainCategories,
+      )..where((m) => m.id.equals(mainCategoryId))).getSingleOrNull();
+      mainCategoryActive = mainCategory?.isActive;
+    }
+
+    bool? subCategoryActive;
+    final int? subCategoryId = doc.primarySubCategoryId;
+    if (subCategoryId != null) {
+      final SubCategory? subCategory = await (_db.select(
+        _db.subCategories,
+      )..where((s) => s.id.equals(subCategoryId))).getSingleOrNull();
+      subCategoryActive = subCategory?.isActive;
+    }
+
+    return export_eligibility.checkExportEligibility(
+      ExportEligibilityInput(
+        workflowStatusKey: doc.workflowStatusKey,
+        hasHealthyManagedCopy: hasHealthyManagedCopy,
+        primaryMainCategoryId: mainCategoryId,
+        primaryMainCategoryActive: mainCategoryActive,
+        primarySubCategoryId: subCategoryId,
+        primarySubCategoryActive: subCategoryActive,
+        metadataQualityKey: doc.metadataQualityKey,
+        usageRightsKey: doc.usageRightsKey,
+      ),
+    );
+  }
+
+  @override
+  Future<void> markReadyForExport(int documentId, {required DateTime now}) {
+    final String nowIso = now.toUtc().toIso8601String();
+    return _db.transaction(() async {
+      final int updatedRows =
+          await (_db.update(_db.documents)..where(
+                (d) =>
+                    d.id.equals(documentId) &
+                    d.workflowStatusKey.equals('copied_to_library'),
+              ))
+              .write(
+                DocumentsCompanion(
+                  workflowStatusKey: const Value('ready_for_export'),
+                  readyForExportAt: Value(nowIso),
+                  updatedAt: Value(nowIso),
+                ),
+              );
+      if (updatedRows != 1) {
+        throw StateError(
+          'Document $documentId is not currently copied_to_library.',
+        );
+      }
+    });
+  }
+
+  @override
+  Future<List<ExportableDocumentRef>> listReadyForExport() async {
+    final List<Document> rows =
+        await (_db.select(_db.documents)
+              ..where((d) => d.workflowStatusKey.equals('ready_for_export'))
+              ..orderBy([(d) => OrderingTerm.asc(d.readyForExportAt)]))
+            .get();
+    return rows
+        .map(
+          (d) => ExportableDocumentRef(
+            id: d.id,
+            documentCode: d.documentCode!,
+            readyForExportAt: DateTime.parse(d.readyForExportAt!),
+          ),
+        )
+        .toList(growable: false);
   }
 
   // --- internal helpers (all Drift types stay here) ---

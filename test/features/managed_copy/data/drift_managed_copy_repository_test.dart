@@ -235,7 +235,7 @@ void main() {
       expect(state!.hasManagedCopy, isTrue);
     });
 
-    Future<void> _insertManagedCopy(
+    Future<void> insertManagedCopy(
       AppDatabase db,
       int docId, {
       required String health,
@@ -259,7 +259,7 @@ void main() {
 
     test('hasHealthyManagedCopy is true when the row is healthy', () async {
       final docId = await _insertDocument(db);
-      await _insertManagedCopy(db, docId, health: 'healthy');
+      await insertManagedCopy(db, docId, health: 'healthy');
       final state = await repo.loadDocumentState(docId);
       expect(state!.hasHealthyManagedCopy, isTrue);
     });
@@ -267,7 +267,7 @@ void main() {
     test('hasHealthyManagedCopy is false when the only row is corrupted '
         '(bug 4: corrupted must not count as healthy)', () async {
       final docId = await _insertDocument(db);
-      await _insertManagedCopy(db, docId, health: 'corrupted');
+      await insertManagedCopy(db, docId, health: 'corrupted');
       final state = await repo.loadDocumentState(docId);
       expect(state!.hasHealthyManagedCopy, isFalse);
     });
@@ -276,7 +276,7 @@ void main() {
       'hasHealthyManagedCopy is false when the only row is missing',
       () async {
         final docId = await _insertDocument(db);
-        await _insertManagedCopy(db, docId, health: 'missing');
+        await insertManagedCopy(db, docId, health: 'missing');
         final state = await repo.loadDocumentState(docId);
         expect(state!.hasHealthyManagedCopy, isFalse);
       },

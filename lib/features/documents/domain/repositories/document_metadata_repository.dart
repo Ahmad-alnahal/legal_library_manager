@@ -1,5 +1,7 @@
 // lib/features/documents/domain/repositories/document_metadata_repository.dart
 
+import '../../../export/domain/entities/export_eligibility_result.dart';
+import '../../../export/domain/entities/exportable_document_ref.dart';
 import '../entities/document_aggregate.dart';
 import '../entities/normalized_draft.dart';
 
@@ -49,4 +51,22 @@ abstract class DocumentMetadataRepository {
   /// Throws [StateError] if the document is missing. The caller (use case)
   /// enforces the `classified -> in_progress` precondition.
   Future<void> returnToInProgress(int documentId, {required DateTime now});
+
+  /// Evaluates export eligibility for [documentId]
+  /// (workflow_and_validation_spec.md §10). Loads only the fields required by
+  /// the eligibility rules, not the full aggregate. Throws [StateError] if the
+  /// document does not exist.
+  Future<ExportEligibilityResult> checkExportEligibility(int documentId);
+
+  /// Transitions [documentId] from `copied_to_library` to `ready_for_export`
+  /// transactionally: sets `workflow_status_key = 'ready_for_export'`,
+  /// `ready_for_export_at = now`, and `updated_at = now`. Throws [StateError]
+  /// if the document is not currently `copied_to_library` (including a
+  /// concurrent-transition race).
+  Future<void> markReadyForExport(int documentId, {required DateTime now});
+
+  /// Returns every document with `workflow_status_key = 'ready_for_export'`,
+  /// ordered by `ready_for_export_at` ascending. Used by P3.3 batch
+  /// generation.
+  Future<List<ExportableDocumentRef>> listReadyForExport();
 }

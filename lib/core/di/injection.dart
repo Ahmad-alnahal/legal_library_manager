@@ -9,6 +9,7 @@ import '../../features/dashboard/presentation/bloc/dashboard_bloc.dart'
 import '../../features/duplicates/data/repositories/drift_duplicate_review_repository.dart';
 import '../../features/duplicates/domain/repositories/duplicate_review_repository.dart';
 import '../../features/duplicates/presentation/bloc/duplicate_review_bloc.dart';
+import '../../features/export/application/use_cases/mark_document_ready_for_export.dart';
 import '../../features/import/application/folder_picker.dart';
 import '../../features/import/application/import_coordinator.dart';
 import '../../features/import/application/import_job_service.dart';
@@ -281,6 +282,14 @@ void configureDependencies() {
     )
     ..registerLazySingleton<ReturnToInProgress>(
       () => ReturnToInProgress(
+        repository: getIt<DocumentMetadataRepository>(),
+        clock: getIt<Clock>(),
+      ),
+    )
+    // P3.1 export-eligibility foundation: transitions copied_to_library ->
+    // ready_for_export. Not wired into UI yet (deferred to P3.4).
+    ..registerLazySingleton<MarkDocumentReadyForExport>(
+      () => MarkDocumentReadyForExport(
         repository: getIt<DocumentMetadataRepository>(),
         clock: getIt<Clock>(),
       ),
