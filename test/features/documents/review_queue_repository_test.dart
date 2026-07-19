@@ -93,22 +93,31 @@ void main() {
       },
     );
 
-    test('classified scope returns classified and copied documents', () async {
-      await addDocument(status: 'imported');
-      final classified = await addDocument(status: 'classified');
-      final copied = await addDocument(status: 'copied_to_library');
+    test(
+      'classified scope returns classified, copied, and ready_for_export documents',
+      () async {
+        await addDocument(status: 'imported');
+        final classified = await addDocument(status: 'classified');
+        final copied = await addDocument(status: 'copied_to_library');
+        final readyForExport = await addDocument(status: 'ready_for_export');
 
-      final page = await repository.getQueue(
-        const ReviewQueueQuery(scope: ReviewQueueScope.classified),
-      );
+        final page = await repository.getQueue(
+          const ReviewQueueQuery(scope: ReviewQueueScope.classified),
+        );
 
-      expect(page.totalCount, 2);
-      expect(page.items.map((item) => item.id), [classified, copied]);
-      expect(page.items.map((item) => item.workflowStatusKey), [
-        'classified',
-        'copied_to_library',
-      ]);
-    });
+        expect(page.totalCount, 3);
+        expect(page.items.map((item) => item.id), [
+          classified,
+          copied,
+          readyForExport,
+        ]);
+        expect(page.items.map((item) => item.workflowStatusKey), [
+          'classified',
+          'copied_to_library',
+          'ready_for_export',
+        ]);
+      },
+    );
 
     test('pagination is stable and deterministic by id', () async {
       final ids = <int>[];

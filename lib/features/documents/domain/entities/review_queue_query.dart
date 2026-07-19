@@ -19,7 +19,11 @@ extension ReviewQueueScopeStatuses on ReviewQueueScope {
       'needs_review',
       'in_progress',
     ],
-    ReviewQueueScope.classified => const ['classified', 'copied_to_library'],
+    ReviewQueueScope.classified => const [
+      'classified',
+      'copied_to_library',
+      'ready_for_export',
+    ],
   };
 }
 

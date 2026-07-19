@@ -15,6 +15,7 @@ import '../../features/export/data/repositories/drift_export_batch_repository.da
 import '../../features/export/data/services/windows_export_filesystem.dart';
 import '../../features/export/domain/repositories/export_batch_repository.dart';
 import '../../features/export/domain/services/export_filesystem.dart';
+import '../../features/export/presentation/bloc/mark_ready_for_export_bloc.dart';
 import '../../features/import/application/folder_picker.dart';
 import '../../features/import/application/import_coordinator.dart';
 import '../../features/import/application/import_job_service.dart';
@@ -292,12 +293,16 @@ void configureDependencies() {
       ),
     )
     // P3.1 export-eligibility foundation: transitions copied_to_library ->
-    // ready_for_export. Not wired into UI yet (deferred to P3.4).
+    // ready_for_export.
     ..registerLazySingleton<MarkDocumentReadyForExport>(
       () => MarkDocumentReadyForExport(
         repository: getIt<DocumentMetadataRepository>(),
         clock: getIt<Clock>(),
       ),
+    )
+    // P3.4.1 Review-screen export-readiness action. A fresh instance per page.
+    ..registerFactory<MarkReadyForExportBloc>(
+      () => MarkReadyForExportBloc(getIt<MarkDocumentReadyForExport>()),
     )
     // P3.3.1 export batch generation foundation: filesystem boundary and
     // batch repository. Not wired into UI yet (deferred to P3.4).

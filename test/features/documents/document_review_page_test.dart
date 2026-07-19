@@ -26,6 +26,8 @@ import 'package:legal_library_manager/features/documents/domain/usecases/save_do
 import 'package:legal_library_manager/features/documents/domain/usecases/validate_classification.dart';
 import 'package:legal_library_manager/features/documents/presentation/bloc/review_bloc.dart';
 import 'package:legal_library_manager/features/documents/presentation/pages/document_review_page.dart';
+import 'package:legal_library_manager/features/export/domain/entities/mark_ready_for_export_result.dart';
+import 'package:legal_library_manager/features/export/presentation/bloc/mark_ready_for_export_bloc.dart';
 import 'package:legal_library_manager/features/file_open/application/open_file_use_case.dart';
 import 'package:legal_library_manager/features/file_open/domain/entities/open_file_result.dart';
 import 'package:legal_library_manager/features/file_open/domain/entities/open_target.dart';
@@ -116,6 +118,11 @@ void main() {
             error: ManagedCopyError.notClassified,
             safeMessage: 'blocked in widget test',
           ),
+        ),
+      )
+      ..registerFactory<MarkReadyForExportBloc>(
+        () => MarkReadyForExportBloc.executor(
+          (_) async => const MarkReadyForExportSuccess(),
         ),
       );
   });
@@ -617,6 +624,70 @@ void main() {
     expect(find.byKey(const Key('open_file_button_1')), findsNothing);
     expect(find.byKey(const Key('open_folder_button_1')), findsOneWidget);
   });
+
+  // ---------------------------------------------------------------------------
+  // P3.4.1 mark-ready-for-export action
+  // ---------------------------------------------------------------------------
+
+  testWidgets(
+    'shows the mark-ready-for-export button for a copied_to_library document',
+    (tester) async {
+      load.handler = (id) async => agg(id, status: 'copied_to_library');
+      await _pump(tester);
+      await tester.tap(find.byKey(const Key('review_queue_tile_1')));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.widgetWithText(OutlinedButton, 'تعيين جاهز للتصدير'),
+        findsOneWidget,
+      );
+    },
+  );
+
+  testWidgets(
+    'hides the mark-ready-for-export button for a ready_for_export document',
+    (tester) async {
+      load.handler = (id) async => agg(id, status: 'ready_for_export');
+      await _pump(tester);
+      await tester.tap(find.byKey(const Key('review_queue_tile_1')));
+      await tester.pumpAndSettle();
+
+      expect(
+        find.widgetWithText(OutlinedButton, 'تعيين جاهز للتصدير'),
+        findsNothing,
+      );
+      expect(find.text('جاهز للتصدير ✓'), findsOneWidget);
+      expect(
+        find.widgetWithText(OutlinedButton, 'نسخ إلى المكتبة المدارة'),
+        findsNothing,
+      );
+    },
+  );
+
+  testWidgets(
+    'disables the mark-ready-for-export button while ReviewBloc is busy',
+    (tester) async {
+      load.handler = (id) async => agg(id, status: 'copied_to_library');
+      save.handler = (_) async {
+        await Future<void>.delayed(const Duration(milliseconds: 50));
+        return const ValidationResult.valid();
+      };
+      await _pump(tester);
+      await tester.tap(find.byKey(const Key('review_queue_tile_1')));
+      await tester.pumpAndSettle();
+
+      await tester.tap(find.widgetWithText(FilledButton, 'حفظ كمسودة'));
+      await tester.pump();
+
+      final exportButton = tester.widget<OutlinedButton>(
+        find.widgetWithText(OutlinedButton, 'تعيين جاهز للتصدير'),
+      );
+      expect(exportButton.onPressed, isNull);
+
+      await tester.pumpAndSettle();
+      await _flushSnackBar(tester);
+    },
+  );
 }
 
 /// Advances past the SnackBar auto-dismiss timer so no timer outlives the test.

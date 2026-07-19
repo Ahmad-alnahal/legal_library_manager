@@ -13,6 +13,8 @@ import '../../../../core/widgets/empty_state.dart';
 import '../../../../core/widgets/page_header.dart';
 import '../../../../core/widgets/status_chip.dart';
 import '../../../categories/domain/repositories/category_management_repository.dart';
+import '../../../export/presentation/bloc/mark_ready_for_export_bloc.dart';
+import '../../../export/presentation/widgets/mark_ready_for_export_feedback.dart';
 import '../../../file_open/domain/entities/file_health_eligibility.dart';
 import '../../../file_open/presentation/bloc/file_open_bloc.dart';
 import '../../../file_open/presentation/widgets/file_open_feedback.dart';
@@ -53,16 +55,24 @@ class DocumentReviewPage extends StatelessWidget {
         ),
         BlocProvider<FileOpenBloc>(create: (_) => getIt<FileOpenBloc>()),
         BlocProvider<ManagedCopyBloc>(create: (_) => getIt<ManagedCopyBloc>()),
+        BlocProvider<MarkReadyForExportBloc>(
+          create: (_) => getIt<MarkReadyForExportBloc>(),
+        ),
       ],
       child: FileOpenFeedbackListener(
         child: Builder(
           builder: (context) => ManagedCopyFeedbackListener(
             onSuccess: () =>
                 context.read<ReviewBloc>().add(const ReviewRefreshRequested()),
-            child: _ReviewWorkspace(
-              references: getIt<ReferenceRepository>(),
-              categories: getIt<CategoryManagementRepository>(),
-              documents: getIt<DocumentListRepository>(),
+            child: MarkReadyForExportFeedbackListener(
+              onSuccess: () => context.read<ReviewBloc>().add(
+                const ReviewRefreshRequested(),
+              ),
+              child: _ReviewWorkspace(
+                references: getIt<ReferenceRepository>(),
+                categories: getIt<CategoryManagementRepository>(),
+                documents: getIt<DocumentListRepository>(),
+              ),
             ),
           ),
         ),
@@ -1892,6 +1902,7 @@ class _ActionBar extends StatelessWidget {
         final workflowStatus = state.aggregate?.workflowStatusKey;
         final isClassified = workflowStatus == 'classified';
         final isCopied = workflowStatus == 'copied_to_library';
+        final isReadyForExport = workflowStatus == 'ready_for_export';
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -1921,7 +1932,7 @@ class _ActionBar extends StatelessWidget {
                       ? () => bloc.add(const ReviewDraftSaved())
                       : null,
                 ),
-                if (!isClassified && !isCopied)
+                if (!isClassified && !isCopied && !isReadyForExport)
                   AppSecondaryButton(
                     label: 'اعتماد التصنيف',
                     icon: Icons.verified_outlined,
@@ -1937,7 +1948,7 @@ class _ActionBar extends StatelessWidget {
                         ? () => _confirmReturn(context, bloc)
                         : null,
                   ),
-                if (!isCopied)
+                if (!isCopied && !isReadyForExport)
                   BlocBuilder<ManagedCopyBloc, ManagedCopyState>(
                     builder: (context, copyState) => AppSecondaryButton(
                       label: copyState.isRunning
@@ -1954,6 +1965,28 @@ class _ActionBar extends StatelessWidget {
                                 _confirmCopy(context, state.selectedDocumentId!)
                           : null,
                     ),
+                  ),
+                if (isCopied)
+                  BlocBuilder<MarkReadyForExportBloc, MarkReadyForExportState>(
+                    builder: (context, exportState) => AppSecondaryButton(
+                      label: exportState.isRunning
+                          ? 'جارٍ التعيين...'
+                          : 'تعيين جاهز للتصدير',
+                      icon: Icons.outbox_outlined,
+                      onPressed:
+                          loaded && !busy && !dirty && !exportState.isRunning
+                          ? () => context.read<MarkReadyForExportBloc>().add(
+                              MarkReadyForExportRequested(
+                                state.selectedDocumentId!,
+                              ),
+                            )
+                          : null,
+                    ),
+                  ),
+                if (isReadyForExport)
+                  const StatusChip(
+                    label: 'جاهز للتصدير ✓',
+                    status: AppStatusColors.teal,
                   ),
               ],
             ),
