@@ -1,4 +1,4 @@
-enum CopyRootKind { managedLibrary, databaseBackup }
+enum CopyRootKind { managedLibrary, databaseBackup, exportRoot }
 
 abstract class CopyRootPicker {
   Future<String?> pick(CopyRootKind kind);

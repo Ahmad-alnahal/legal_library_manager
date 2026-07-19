@@ -15,6 +15,7 @@ import '../../features/export/data/repositories/drift_export_batch_repository.da
 import '../../features/export/data/services/windows_export_filesystem.dart';
 import '../../features/export/domain/repositories/export_batch_repository.dart';
 import '../../features/export/domain/services/export_filesystem.dart';
+import '../../features/export/presentation/bloc/export_batch_bloc.dart';
 import '../../features/export/presentation/bloc/mark_ready_for_export_bloc.dart';
 import '../../features/import/application/folder_picker.dart';
 import '../../features/import/application/import_coordinator.dart';
@@ -305,13 +306,12 @@ void configureDependencies() {
       () => MarkReadyForExportBloc(getIt<MarkDocumentReadyForExport>()),
     )
     // P3.3.1 export batch generation foundation: filesystem boundary and
-    // batch repository. Not wired into UI yet (deferred to P3.4).
+    // batch repository.
     ..registerLazySingleton<ExportFilesystem>(WindowsExportFilesystem.new)
     ..registerLazySingleton<ExportBatchRepository>(
       () => DriftExportBatchRepository(getIt<AppDatabase>()),
     )
-    // P3.3.2 export batch generation orchestration. Not wired into UI yet
-    // (deferred to P3.4).
+    // P3.3.2 export batch generation orchestration.
     ..registerLazySingleton<GenerateExportBatch>(
       () => GenerateExportBatch(
         metadataRepository: getIt<DocumentMetadataRepository>(),
@@ -321,6 +321,15 @@ void configureDependencies() {
         hasher: getIt<FileHasher>(),
         clock: getIt<Clock>(),
         documentsDirectoryResolver: getIt<DocumentsDirectoryResolver>(),
+      ),
+    )
+    // P3.4.2 Export screen. A fresh instance per page.
+    ..registerFactory<ExportBatchBloc>(
+      () => ExportBatchBloc(
+        managedCopyRepository: getIt<ManagedCopyRepository>(),
+        metadataRepository: getIt<DocumentMetadataRepository>(),
+        batchRepository: getIt<ExportBatchRepository>(),
+        generateExportBatch: getIt<GenerateExportBatch>(),
       ),
     )
     ..registerFactory<ReviewBloc>(

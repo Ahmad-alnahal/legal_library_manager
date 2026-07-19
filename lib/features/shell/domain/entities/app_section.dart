@@ -9,6 +9,7 @@ enum AppSection {
   review,
   categories,
   duplicates,
+  export,
   settings,
   administration,
 }

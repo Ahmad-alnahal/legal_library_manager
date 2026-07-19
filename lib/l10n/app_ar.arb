@@ -10,6 +10,7 @@
   "navReview": "المراجعة والتصنيف",
   "navCategories": "إدارة التصنيفات",
   "navDuplicates": "إدارة التكرارات",
+  "navExport": "التصدير",
   "navSettings": "الإعدادات",
 
   "navTooltipDashboard": "لوحة القيادة: ملخص حالة الأرشفة",
@@ -18,6 +19,7 @@
   "navTooltipReview": "المراجعة والتصنيف: تصنيف المستندات واعتمادها",
   "navTooltipCategories": "إدارة التصنيفات: الفئات الرئيسية والفرعية",
   "navTooltipDuplicates": "إدارة التكرارات: مراجعة الملفات المتطابقة",
+  "navTooltipExport": "التصدير: إنشاء حزم التصدير وعرض السجل",
   "navTooltipSettings": "الإعدادات: المسارات والنسخ الاحتياطي والسياسات",
   "navExpandTooltip": "توسيع قائمة التنقل",
   "navCollapseTooltip": "تصغير قائمة التنقل",

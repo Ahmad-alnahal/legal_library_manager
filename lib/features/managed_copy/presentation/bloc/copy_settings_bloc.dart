@@ -43,12 +43,23 @@ final class CopyRootsResetToDefaultRequested extends CopySettingsEvent {
   const CopyRootsResetToDefaultRequested();
 }
 
+/// Opens the folder picker to set the export root (P3.4.2).
+final class ExportRootSelectionRequested extends CopySettingsEvent {
+  const ExportRootSelectionRequested();
+}
+
+/// Clears the `export_root` setting, reverting to the runtime default.
+final class ExportRootClearedToDefault extends CopySettingsEvent {
+  const ExportRootClearedToDefault();
+}
+
 class CopySettingsState extends Equatable {
   const CopySettingsState({
     this.loading = true,
     this.busy = false,
     this.managedRoot,
     this.backupRoot,
+    this.exportRoot,
     this.managedStatus = CopyRootStatus.notConfigured,
     this.backupStatus = CopyRootStatus.notConfigured,
     this.requiresAttention = false,
@@ -62,6 +73,7 @@ class CopySettingsState extends Equatable {
   final bool busy;
   final String? managedRoot;
   final String? backupRoot;
+  final String? exportRoot;
   final CopyRootStatus managedStatus;
   final CopyRootStatus backupStatus;
   final bool requiresAttention;
@@ -76,6 +88,7 @@ class CopySettingsState extends Equatable {
     busy,
     managedRoot,
     backupRoot,
+    exportRoot,
     managedStatus,
     backupStatus,
     requiresAttention,
@@ -99,6 +112,8 @@ class CopySettingsBloc extends Bloc<CopySettingsEvent, CopySettingsState> {
     on<CopyRootSelectionRequested>(_onPick);
     on<CopyRootRepairRequested>(_onRepair);
     on<CopyRootsResetToDefaultRequested>(_onResetToDefault);
+    on<ExportRootSelectionRequested>(_onExportRootPick);
+    on<ExportRootClearedToDefault>(_onExportRootCleared);
   }
 
   final CopyRootPicker _picker;
@@ -116,6 +131,59 @@ class CopySettingsBloc extends Bloc<CopySettingsEvent, CopySettingsState> {
     // with safe defaults, and recreates missing default directories only.
     final report = await _initializeRoots();
     emit(await _fromReport(report));
+  }
+
+  Future<void> _onExportRootPick(
+    ExportRootSelectionRequested event,
+    Emitter<CopySettingsState> emit,
+  ) async {
+    if (state.busy) return;
+    emit(_copyOf(state, busy: true));
+    final selected = await _picker.pick(CopyRootKind.exportRoot);
+    if (selected == null) {
+      emit(_copyOf(state, busy: false));
+      return;
+    }
+    await _repository.saveExportRoot(selected);
+    emit(
+      CopySettingsState(
+        loading: false,
+        managedRoot: state.managedRoot,
+        backupRoot: state.backupRoot,
+        exportRoot: selected,
+        managedStatus: state.managedStatus,
+        backupStatus: state.backupStatus,
+        requiresAttention: state.requiresAttention,
+        startupRecoveryRequiresAttention:
+            state.startupRecoveryRequiresAttention,
+        startupRecoveryArtifactCount: state.startupRecoveryArtifactCount,
+        messageKey: 'saved',
+        sequence: state.sequence + 1,
+      ),
+    );
+  }
+
+  Future<void> _onExportRootCleared(
+    ExportRootClearedToDefault event,
+    Emitter<CopySettingsState> emit,
+  ) async {
+    if (state.busy) return;
+    await _repository.saveExportRoot('');
+    emit(
+      CopySettingsState(
+        loading: false,
+        managedRoot: state.managedRoot,
+        backupRoot: state.backupRoot,
+        managedStatus: state.managedStatus,
+        backupStatus: state.backupStatus,
+        requiresAttention: state.requiresAttention,
+        startupRecoveryRequiresAttention:
+            state.startupRecoveryRequiresAttention,
+        startupRecoveryArtifactCount: state.startupRecoveryArtifactCount,
+        messageKey: 'defaults_applied',
+        sequence: state.sequence + 1,
+      ),
+    );
   }
 
   Future<void> _onPick(
@@ -157,6 +225,7 @@ class CopySettingsBloc extends Bloc<CopySettingsEvent, CopySettingsState> {
         loading: false,
         managedRoot: keepSelection ? managed : state.managedRoot,
         backupRoot: keepSelection ? backup : state.backupRoot,
+        exportRoot: state.exportRoot,
         managedStatus: state.managedStatus,
         backupStatus: state.backupStatus,
         requiresAttention: state.requiresAttention,
@@ -200,6 +269,7 @@ class CopySettingsBloc extends Bloc<CopySettingsEvent, CopySettingsState> {
         loading: false,
         managedRoot: state.managedRoot,
         backupRoot: state.backupRoot,
+        exportRoot: state.exportRoot,
         managedStatus: state.managedStatus,
         backupStatus: state.backupStatus,
         requiresAttention: state.requiresAttention,
@@ -244,6 +314,7 @@ class CopySettingsBloc extends Bloc<CopySettingsEvent, CopySettingsState> {
         loading: false,
         managedRoot: state.managedRoot,
         backupRoot: state.backupRoot,
+        exportRoot: state.exportRoot,
         managedStatus: state.managedStatus,
         backupStatus: state.backupStatus,
         requiresAttention: state.requiresAttention,
@@ -262,10 +333,12 @@ class CopySettingsBloc extends Bloc<CopySettingsEvent, CopySettingsState> {
   }) async {
     final StartupRecoveryReport recovery = await _repository
         .loadStartupRecoveryReport();
+    final String? exportRoot = await _repository.loadExportRoot();
     return CopySettingsState(
       loading: false,
       managedRoot: report.managedRoot,
       backupRoot: report.backupRoot,
+      exportRoot: exportRoot,
       managedStatus: report.managedStatus,
       backupStatus: report.backupStatus,
       requiresAttention: report.requiresAttention,
@@ -282,6 +355,7 @@ class CopySettingsBloc extends Bloc<CopySettingsEvent, CopySettingsState> {
       busy: busy,
       managedRoot: source.managedRoot,
       backupRoot: source.backupRoot,
+      exportRoot: source.exportRoot,
       managedStatus: source.managedStatus,
       backupStatus: source.backupStatus,
       requiresAttention: source.requiresAttention,

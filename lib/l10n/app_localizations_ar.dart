@@ -33,6 +33,9 @@ class AppLocalizationsAr extends AppLocalizations {
   String get navDuplicates => 'إدارة التكرارات';
 
   @override
+  String get navExport => 'التصدير';
+
+  @override
   String get navSettings => 'الإعدادات';
 
   @override
@@ -54,6 +57,9 @@ class AppLocalizationsAr extends AppLocalizations {
   @override
   String get navTooltipDuplicates =>
       'إدارة التكرارات: مراجعة الملفات المتطابقة';
+
+  @override
+  String get navTooltipExport => 'التصدير: إنشاء حزم التصدير وعرض السجل';
 
   @override
   String get navTooltipSettings =>

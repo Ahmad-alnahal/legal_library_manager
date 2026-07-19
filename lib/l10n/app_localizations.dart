@@ -142,6 +142,12 @@ abstract class AppLocalizations {
   /// **'إدارة التكرارات'**
   String get navDuplicates;
 
+  /// No description provided for @navExport.
+  ///
+  /// In ar, this message translates to:
+  /// **'التصدير'**
+  String get navExport;
+
   /// No description provided for @navSettings.
   ///
   /// In ar, this message translates to:
@@ -183,6 +189,12 @@ abstract class AppLocalizations {
   /// In ar, this message translates to:
   /// **'إدارة التكرارات: مراجعة الملفات المتطابقة'**
   String get navTooltipDuplicates;
+
+  /// No description provided for @navTooltipExport.
+  ///
+  /// In ar, this message translates to:
+  /// **'التصدير: إنشاء حزم التصدير وعرض السجل'**
+  String get navTooltipExport;
 
   /// No description provided for @navTooltipSettings.
   ///

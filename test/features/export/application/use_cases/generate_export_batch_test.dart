@@ -200,8 +200,7 @@ class _FakeManagedCopyRepository implements ManagedCopyRepository {
   Future<List<String>> loadAllSourcePaths() => throw UnimplementedError();
 
   @override
-  Future<List<String>> loadManagedDocumentCodes() =>
-      throw UnimplementedError();
+  Future<List<String>> loadManagedDocumentCodes() => throw UnimplementedError();
 
   @override
   Future<void> saveStartupRecoveryReport(StartupRecoveryReport report) =>

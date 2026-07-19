@@ -88,6 +88,12 @@ class SideNavigation extends StatelessWidget {
         tooltip: l10n.navTooltipDuplicates,
       ),
       _Destination(
+        section: AppSection.export,
+        icon: Icons.outbox_outlined,
+        label: l10n.navExport,
+        tooltip: l10n.navTooltipExport,
+      ),
+      _Destination(
         section: AppSection.settings,
         icon: Icons.settings_outlined,
         label: l10n.navSettings,

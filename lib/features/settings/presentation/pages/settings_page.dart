@@ -398,6 +398,105 @@ class _CopyLocationsPanel extends StatelessWidget {
                 const SizedBox(height: AppSpacing.md),
                 const LinearProgressIndicator(),
               ],
+              const Divider(height: AppSpacing.xl),
+              _ExportRootRow(
+                exportRoot: state.exportRoot,
+                enabled: !state.busy,
+                isAdmin: isAdmin,
+                onChoose: () => bloc.add(const ExportRootSelectionRequested()),
+                onClearToDefault: () =>
+                    bloc.add(const ExportRootClearedToDefault()),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class _ExportRootRow extends StatelessWidget {
+  const _ExportRootRow({
+    required this.exportRoot,
+    required this.enabled,
+    required this.isAdmin,
+    required this.onChoose,
+    required this.onClearToDefault,
+  });
+
+  final String? exportRoot;
+  final bool enabled;
+  final bool isAdmin;
+  final VoidCallback onChoose;
+  final VoidCallback onClearToDefault;
+
+  static const String _defaultLabel = r'الافتراضي (<Documents>\MARJIY\Exports)';
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      label: 'مجلد التصدير',
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          final details = Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Icon(Icons.outbox_outlined, size: 20),
+              const SizedBox(width: AppSpacing.sm),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'مجلد التصدير',
+                      style: Theme.of(context).textTheme.labelLarge,
+                    ),
+                    const SizedBox(height: AppSpacing.xs),
+                    SelectableText(exportRoot ?? _defaultLabel),
+                  ],
+                ),
+              ),
+            ],
+          );
+
+          if (!isAdmin) return details;
+
+          final buttons = Wrap(
+            spacing: AppSpacing.sm,
+            runSpacing: AppSpacing.xs,
+            children: [
+              AppSecondaryButton(
+                label: 'تغيير',
+                icon: Icons.folder_open_outlined,
+                onPressed: enabled ? onChoose : null,
+              ),
+              if (exportRoot != null)
+                AppSecondaryButton(
+                  label: 'إعادة للافتراضي',
+                  icon: Icons.restore_outlined,
+                  onPressed: enabled ? onClearToDefault : null,
+                ),
+            ],
+          );
+          if (constraints.maxWidth < 420) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                details,
+                const SizedBox(height: AppSpacing.sm),
+                Align(
+                  alignment: AlignmentDirectional.centerStart,
+                  child: buttons,
+                ),
+              ],
+            );
+          }
+          return Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Expanded(child: details),
+              const SizedBox(width: AppSpacing.md),
+              buttons,
             ],
           );
         },

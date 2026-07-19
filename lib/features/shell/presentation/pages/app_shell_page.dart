@@ -7,6 +7,7 @@ import '../../../dashboard/presentation/pages/dashboard_page.dart';
 import '../../../documents/presentation/pages/document_review_page.dart';
 import '../../../documents/presentation/pages/documents_page.dart';
 import '../../../duplicates/presentation/pages/duplicate_review_page.dart';
+import '../../../export/presentation/pages/export_page.dart';
 import '../../../import/presentation/pages/import_page.dart';
 import '../../../import/presentation/widgets/import_status_banner.dart';
 import '../../../security/application/session_manager.dart';
@@ -95,6 +96,7 @@ class _SectionView extends StatelessWidget {
       AppSection.review => const DocumentReviewPage(),
       AppSection.categories => const CategoryManagementPage(),
       AppSection.duplicates => const DuplicateReviewPage(),
+      AppSection.export => const ExportPage(),
       AppSection.settings => const SettingsPage(),
       AppSection.administration => const AdministrationPage(),
     };
