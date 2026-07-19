@@ -241,7 +241,10 @@ class StreamingFileHasher implements FileHasher {
         e.osError?.message ?? 'read failed',
       );
     } catch (_) {
-      result = _DoneMessage.failure(ImportErrorCode.hashFailed, 'hashing failed');
+      result = _DoneMessage.failure(
+        ImportErrorCode.hashFailed,
+        'hashing failed',
+      );
     }
     await closeFile();
     finish(result);

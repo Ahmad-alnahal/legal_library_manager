@@ -471,6 +471,8 @@ class DriftManagedCopyRepository implements ManagedCopyRepository {
         ),
       );
 
+      await _db.updateDocumentFts(data.documentId);
+
       return managedFileId;
     });
   }

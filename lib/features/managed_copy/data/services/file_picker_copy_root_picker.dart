@@ -11,6 +11,7 @@ class FilePickerCopyRootPicker implements CopyRootPicker {
       dialogTitle: switch (kind) {
         CopyRootKind.managedLibrary => 'اختيار مجلد المكتبة المدارة',
         CopyRootKind.databaseBackup => 'اختيار مجلد النسخ الاحتياطي',
+        CopyRootKind.exportRoot => 'اختيار مجلد التصدير',
       },
       lockParentWindow: true,
     );

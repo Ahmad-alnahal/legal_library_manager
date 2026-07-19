@@ -171,42 +171,58 @@ void main() {
       },
     );
 
-    test(
-      'search covers metadata, keywords, file names, and literal wildcards',
-      () async {
-        final metadata = await addDocument(
-          title: 'القانون الدستوري',
-          summary: 'مرجع فلسطيني',
-          code: 'DOC-001',
-          updatedAt: now,
-        );
-        final keyword = await addDocument(title: 'بحث عام', updatedAt: now);
-        final file = await addDocument(title: 'وثيقة أخرى', updatedAt: now);
-        final literal = await addDocument(
-          title: 'نسبة 100%_مؤكدة',
-          updatedAt: now,
-        );
-        await addKeyword(keyword, 'عدالة');
-        await addFile(
-          file,
-          name: 'قرار-محكمة.pdf',
-          health: 'healthy',
-          path: r'C:\archive\قرار-محكمة.pdf',
-        );
+    test('FTS search covers metadata, keywords, and file names with AND '
+        'semantics across tokens', () async {
+      // No leading "ال" (definite article) on "عمل"/"أردني": FTS5's
+      // unicode61 tokenizer (per the P4 spec) does not strip Arabic
+      // definite-article prefixes, so a prefix match on "عمل*" would not
+      // find a token like "العمل".
+      final metadata = await addDocument(
+        title: 'قانون عمل أردني',
+        summary: 'مرجع فلسطيني',
+        code: 'DOC-001',
+        updatedAt: now,
+      );
+      final keyword = await addDocument(title: 'بحث عام', updatedAt: now);
+      final file = await addDocument(title: 'وثيقة أخرى', updatedAt: now);
+      await addKeyword(keyword, 'عدالة');
+      await addFile(
+        file,
+        name: 'قرار-محكمة.pdf',
+        health: 'healthy',
+        path: r'C:\archive\قرار-محكمة.pdf',
+      );
+      // These inserts bypass the write-path repositories that call
+      // updateDocumentFts, so the index is synced manually here.
+      for (final id in [metadata, keyword, file]) {
+        await db.updateDocumentFts(id);
+      }
 
-        Future<List<int>> search(String value) async =>
-            (await repository.getDocuments(
-              DocumentListQuery(filters: DocumentListFilters(search: value)),
-            )).items.map((e) => e.id).toList();
+      Future<List<int>> search(String value) async =>
+          (await repository.getDocuments(
+            DocumentListQuery(filters: DocumentListFilters(search: value)),
+          )).items.map((e) => e.id).toList();
 
-        expect(await search('دستوري'), [metadata]);
-        expect(await search('فلسطيني'), [metadata]);
-        expect(await search('DOC-001'), [metadata]);
-        expect(await search('عدالة'), [keyword]);
-        expect(await search('قرار-محكمة'), [file]);
-        expect(await search('100%_'), [literal]);
-      },
-    );
+      expect(await search('قانون'), [metadata]);
+      expect(await search('عمل'), [metadata]);
+      expect(await search('قانون عمل'), [metadata]);
+      expect(await search('فلسطيني'), [metadata]);
+      expect(await search('DOC-001'), [metadata]);
+      expect(await search('عدالة'), [keyword]);
+      expect(await search('قرار-محكمة'), [file]);
+      expect(await search('xyz_not_found'), isEmpty);
+
+      // Whitespace-only after special-character stripping yields no usable
+      // tokens, so the search clause is skipped entirely and every document
+      // is returned rather than none.
+      expect(await search('***'), containsAll([metadata, keyword, file]));
+
+      final all = await repository.getDocuments(const DocumentListQuery());
+      expect(
+        all.items.map((e) => e.id),
+        containsAll([metadata, keyword, file]),
+      );
+    });
 
     test('combined filters and derived indicators are accurate', () async {
       final matching = await addDocument(

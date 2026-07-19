@@ -98,7 +98,10 @@ class AppDatabase extends _$AppDatabase {
   factory AppDatabase.inMemory() =>
       AppDatabase.forExecutor(NativeDatabase.memory());
 
-  /// Schema version 7 adds `legislation_details.legislation_type_other` for
+  /// Schema version 8 adds the `documents_fts` FTS5 virtual table, replacing
+  /// the per-column LIKE search with a single indexed MATCH query.
+  ///
+  /// Version 7 adds `legislation_details.legislation_type_other` for
   /// typed custom labels when legislation_type_key is 'other'.
   ///
   /// Version 6 added the `legislation_relations` table and extended
@@ -111,7 +114,7 @@ class AppDatabase extends _$AppDatabase {
   /// Version 2 added normalized category-name columns (M6.4).
   /// Version 1 databases are migrated through all steps in sequence.
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -122,6 +125,7 @@ class AppDatabase extends _$AppDatabase {
       // category indexes are part of initial creation.
       await _createCategoryNormalizedIndexes();
       await _createLegislationRelationIndexes();
+      await _createDocumentsFtsTable();
     },
     onUpgrade: (Migrator m, int from, int to) async {
       if (from < 2) {
@@ -141,6 +145,9 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from < 7) {
         await _migrateV6ToV7();
+      }
+      if (from < 8) {
+        await _migrateV7ToV8();
       }
     },
     beforeOpen: (OpeningDetails details) async {
@@ -379,6 +386,121 @@ class AppDatabase extends _$AppDatabase {
     await customStatement(
       'ALTER TABLE legislation_details '
       'ADD COLUMN legislation_type_other TEXT',
+    );
+  }
+
+  /// Creates the `documents_fts` FTS5 virtual table used for metadata search.
+  ///
+  /// Contentless (`content=''`) so the index carries its own copy of the
+  /// aggregated text; rows are populated explicitly via
+  /// [rebuildFtsIndex]/[updateDocumentFts] rather than SQLite triggers.
+  ///
+  /// `contentless_delete=1` is required for row deletion to actually work: a
+  /// plain contentless table silently no-ops a `'delete'` command by rowid
+  /// (verified against this project's bundled sqlite3 3.53.1 — the row stays
+  /// matchable and a later re-insert with the same rowid duplicates terms
+  /// instead of replacing them). With `contentless_delete=1`, a normal
+  /// `DELETE FROM documents_fts WHERE rowid = ?` correctly removes the row.
+  Future<void> _createDocumentsFtsTable() async {
+    await customStatement('''
+      CREATE VIRTUAL TABLE IF NOT EXISTS documents_fts
+      USING fts5(
+        title,
+        document_code,
+        summary,
+        source_description,
+        keywords,
+        file_names,
+        content='',
+        contentless_delete=1,
+        tokenize='unicode61 remove_diacritics 1'
+      )
+    ''');
+  }
+
+  /// Migrates a v7 database to v8 (P4): adds the `documents_fts` table and
+  /// populates it from every existing document.
+  ///
+  /// The populate step is skipped when `documents` does not exist (possible
+  /// only in minimal test proxy databases that simulate a version number
+  /// without the full schema; real installations always have the table from
+  /// initial setup).
+  Future<void> _migrateV7ToV8() async {
+    await _createDocumentsFtsTable();
+    final List<QueryRow> tables = await customSelect(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name='documents';",
+    ).get();
+    if (tables.isEmpty) return;
+    await rebuildFtsIndex();
+  }
+
+  /// Rebuilds the entire FTS index from scratch.
+  ///
+  /// Deletes all existing FTS rows then re-inserts from the documents table.
+  /// Called during v7->v8 migration and can be triggered manually for
+  /// recovery.
+  Future<void> rebuildFtsIndex() async {
+    await customStatement("DELETE FROM documents_fts");
+    await customStatement("""
+      INSERT INTO documents_fts(rowid, title, document_code, summary,
+        source_description, keywords, file_names)
+      SELECT
+        d.id,
+        COALESCE(d.title, ''),
+        COALESCE(d.document_code, ''),
+        COALESCE(d.summary, ''),
+        COALESCE(d.source_description, ''),
+        COALESCE((
+          SELECT GROUP_CONCAT(k.display_value, ' ')
+          FROM document_keywords dk
+          JOIN keywords k ON k.id = dk.keyword_id
+          WHERE dk.document_id = d.id
+        ), ''),
+        COALESCE((
+          SELECT GROUP_CONCAT(df.file_name, ' ')
+          FROM document_files df
+          WHERE df.document_id = d.id
+            AND df.file_role_key = 'source_original'
+        ), '')
+      FROM documents d
+    """);
+  }
+
+  /// Updates (delete + re-insert) the FTS entry for a single document.
+  ///
+  /// Call this inside any repository transaction that modifies a document's
+  /// title, summary, source_description, document_code, keywords, or file
+  /// names.
+  Future<void> updateDocumentFts(int documentId) async {
+    await customStatement('DELETE FROM documents_fts WHERE rowid = ?', [
+      documentId,
+    ]);
+    await customStatement(
+      """
+      INSERT INTO documents_fts(rowid, title, document_code, summary,
+        source_description, keywords, file_names)
+      SELECT
+        d.id,
+        COALESCE(d.title, ''),
+        COALESCE(d.document_code, ''),
+        COALESCE(d.summary, ''),
+        COALESCE(d.source_description, ''),
+        COALESCE((
+          SELECT GROUP_CONCAT(k.display_value, ' ')
+          FROM document_keywords dk
+          JOIN keywords k ON k.id = dk.keyword_id
+          WHERE dk.document_id = d.id
+        ), ''),
+        COALESCE((
+          SELECT GROUP_CONCAT(df.file_name, ' ')
+          FROM document_files df
+          WHERE df.document_id = d.id
+            AND df.file_role_key = 'source_original'
+        ), '')
+      FROM documents d
+      WHERE d.id = ?
+    """,
+      [documentId],
     );
   }
 

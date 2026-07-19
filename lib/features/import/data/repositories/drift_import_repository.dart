@@ -508,6 +508,7 @@ class DriftImportRepository implements ImportRepository {
 
     // Unique content after retry: keep the file on its own (now real) document.
     if (others.isEmpty) {
+      await _db.updateDocumentFts(existing.documentId);
       await _insertEvent(
         documentId: existing.documentId,
         fileId: existing.id,
@@ -557,6 +558,7 @@ class DriftImportRepository implements ImportRepository {
     }
 
     await _ensureDuplicateGroupForHash(file.sha256, nowIso);
+    await _db.updateDocumentFts(canonicalDocId);
 
     // Placeholder cleanup or safe conflict.
     ImportError? conflict;
@@ -752,6 +754,7 @@ class DriftImportRepository implements ImportRepository {
   }) async {
     final int documentId = await _insertDocument(nowIso);
     final int fileId = await _insertSourceFile(documentId, file, nowIso);
+    await _db.updateDocumentFts(documentId);
 
     await _insertEvent(
       documentId: documentId,

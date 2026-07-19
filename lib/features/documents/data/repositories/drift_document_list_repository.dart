@@ -247,30 +247,12 @@ EXISTS(
 
     final search = filters.search;
     if (search != null) {
-      final pattern = '%${_escapeLike(search)}%';
-      clauses.add('''
-(
-  d.title LIKE ? ESCAPE '\\'
-  OR d.document_code LIKE ? ESCAPE '\\'
-  OR d.summary LIKE ? ESCAPE '\\'
-  OR d.source_description LIKE ? ESCAPE '\\'
-  OR EXISTS(
-    SELECT 1
-    FROM document_keywords dk
-    JOIN keywords k ON k.id = dk.keyword_id
-    WHERE dk.document_id = d.id
-      AND (k.display_value LIKE ? ESCAPE '\\'
-        OR k.normalized_value LIKE ? ESCAPE '\\')
-  )
-  OR EXISTS(
-    SELECT 1 FROM document_files df
-    WHERE df.document_id = d.id
-      AND (df.file_name LIKE ? ESCAPE '\\'
-        OR df.absolute_path LIKE ? ESCAPE '\\')
-  )
-)''');
-      for (var i = 0; i < 8; i++) {
-        variables.add(Variable<String>(pattern));
+      final matchExpr = _buildFtsMatchExpression(search);
+      if (matchExpr != null) {
+        clauses.add(
+          'd.id IN (SELECT rowid FROM documents_fts WHERE documents_fts MATCH ?)',
+        );
+        variables.add(Variable<String>(matchExpr));
       }
     }
 
@@ -325,10 +307,21 @@ EXISTS(
     };
   }
 
-  String _escapeLike(String value) => value
-      .replaceAll(r'\', r'\\')
-      .replaceAll('%', r'\%')
-      .replaceAll('_', r'\_');
+  /// Converts a user search string into an FTS5 MATCH expression.
+  ///
+  /// Returns null when the input has no usable tokens (empty after
+  /// stripping). Each whitespace-separated token becomes a prefix term
+  /// (token*). All tokens must match (AND semantics). Special FTS5
+  /// characters are stripped to prevent syntax errors.
+  String? _buildFtsMatchExpression(String query) {
+    final clean = query.replaceAll(RegExp(r'["\(\)\*\^\-]'), ' ');
+    final tokens = clean
+        .trim()
+        .split(RegExp(r'\s+'))
+        .where((t) => t.isNotEmpty);
+    if (tokens.isEmpty) return null;
+    return tokens.map((t) => '$t*').join(' AND ');
+  }
 
   static const String _duplicateExists = '''
 EXISTS(

@@ -64,8 +64,8 @@ app.*.map.json
 /samples/
 /test_data/private/
 
-# Local agent planning notes; keep implementation plans out of commits.
-/docs/superpowers/plans/
+# Local agent planning notes; keep implementation plans/specs out of commits.
+/docs/superpowers/
 
 # Optional app-managed LibreOffice converter pack.
 # This runtime is installed/copied locally and must not be committed.

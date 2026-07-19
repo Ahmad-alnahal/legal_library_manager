@@ -234,6 +234,7 @@ class DriftDocumentMetadataRepository implements DocumentMetadataRepository {
         nowIso,
       );
       await _replaceKeywords(draft.documentId, draft.keywords, nowIso);
+      await _db.updateDocumentFts(draft.documentId);
     });
   }
 
@@ -278,6 +279,7 @@ class DriftDocumentMetadataRepository implements DocumentMetadataRepository {
           updatedAt: Value(nowIso),
         ),
       );
+      await _db.updateDocumentFts(documentId);
     });
   }
 
