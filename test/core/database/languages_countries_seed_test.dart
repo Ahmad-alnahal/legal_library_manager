@@ -18,21 +18,26 @@ void main() {
       await db.close();
     });
 
-    test('only Arabic is seeded as a language', () async {
+    test('Arabic, English, and Other are seeded as languages', () async {
       await seeder.seedAll();
       final rows = await db.select(db.languages).get();
-      expect(rows.length, 1);
-      final ar = rows.single;
-      expect(ar.key, 'ar');
-      expect(ar.nameAr, 'العربية');
-      expect(ar.nameEn, 'Arabic');
-      expect(ar.isActive, isTrue);
+      expect(rows.length, 3);
+      final byKey = {for (final r in rows) r.key: r};
+      expect(byKey['ar']!.nameAr, 'العربية');
+      expect(byKey['ar']!.nameEn, 'Arabic');
+      expect(byKey['en']!.nameAr, 'الإنجليزية');
+      expect(byKey['en']!.nameEn, 'English');
+      expect(byKey['other']!.nameAr, 'أخرى');
+      expect(byKey['other']!.nameEn, 'Other');
+      for (final r in rows) {
+        expect(r.isActive, isTrue);
+      }
     });
 
-    test('re-running does not duplicate the language', () async {
+    test('re-running does not duplicate the languages', () async {
       await seeder.seedAll();
       await seeder.seedAll();
-      expect((await db.select(db.languages).get()).length, 1);
+      expect((await db.select(db.languages).get()).length, 3);
     });
 
     test('stale language row is restored to canonical state', () async {
@@ -45,7 +50,9 @@ void main() {
         ),
       );
       await seeder.seedAll();
-      final ar = (await db.select(db.languages).get()).single;
+      final ar = (await db.select(
+        db.languages,
+      ).get()).firstWhere((l) => l.key == 'ar');
       expect(ar.nameEn, 'Arabic');
       expect(ar.isActive, isTrue);
     });

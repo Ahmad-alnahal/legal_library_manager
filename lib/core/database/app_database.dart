@@ -98,7 +98,10 @@ class AppDatabase extends _$AppDatabase {
   factory AppDatabase.inMemory() =>
       AppDatabase.forExecutor(NativeDatabase.memory());
 
-  /// Schema version 8 adds the `documents_fts` FTS5 virtual table, replacing
+  /// Schema version 9 adds `documents.language_other`, a free-text column for
+  /// user-described languages when `language_key = 'other'`.
+  ///
+  /// Version 8 adds the `documents_fts` FTS5 virtual table, replacing
   /// the per-column LIKE search with a single indexed MATCH query.
   ///
   /// Version 7 adds `legislation_details.legislation_type_other` for
@@ -114,7 +117,7 @@ class AppDatabase extends _$AppDatabase {
   /// Version 2 added normalized category-name columns (M6.4).
   /// Version 1 databases are migrated through all steps in sequence.
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
@@ -148,6 +151,9 @@ class AppDatabase extends _$AppDatabase {
       }
       if (from < 8) {
         await _migrateV7ToV8();
+      }
+      if (from < 9) {
+        await _migrateV8ToV9();
       }
     },
     beforeOpen: (OpeningDetails details) async {
@@ -501,6 +507,26 @@ class AppDatabase extends _$AppDatabase {
       WHERE d.id = ?
     """,
       [documentId],
+    );
+  }
+
+  /// Adds the free-text `language_other` column to `documents` (v9).
+  ///
+  /// Nullable — only populated when `language_key = 'other'`. Existing rows
+  /// default to NULL. Guard skips if `documents` is absent (minimal test proxy).
+  Future<void> _migrateV8ToV9() async {
+    final List<QueryRow> tables = await customSelect(
+      "SELECT name FROM sqlite_master WHERE type='table' AND name='documents';",
+    ).get();
+    if (tables.isEmpty) return;
+
+    final Set<String> cols = (await customSelect(
+      'PRAGMA table_info(documents);',
+    ).get()).map((r) => r.read<String>('name')).toSet();
+    if (cols.contains('language_other')) return;
+
+    await customStatement(
+      'ALTER TABLE documents ADD COLUMN language_other TEXT',
     );
   }
 

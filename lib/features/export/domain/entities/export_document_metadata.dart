@@ -30,6 +30,7 @@ class ExportDocumentMetadata extends Equatable {
     required this.languageKey,
     required this.languageNameAr,
     required this.languageNameEn,
+    required this.languageOther,
     required this.trustLevelKey,
     required this.usageRightsKey,
     required this.isUsageRightsFlagged,
@@ -59,6 +60,7 @@ class ExportDocumentMetadata extends Equatable {
   final String? languageKey;
   final String? languageNameAr;
   final String? languageNameEn;
+  final String? languageOther;
   final String trustLevelKey;
   final String usageRightsKey;
   final bool isUsageRightsFlagged;
@@ -89,6 +91,7 @@ class ExportDocumentMetadata extends Equatable {
     languageKey,
     languageNameAr,
     languageNameEn,
+    languageOther,
     trustLevelKey,
     usageRightsKey,
     isUsageRightsFlagged,

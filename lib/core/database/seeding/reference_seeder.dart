@@ -302,10 +302,13 @@ class ReferenceSeeder {
 
   // --- Key-PK reference tables (upsert on the primary key). ---
 
-  /// Seeds the initially supported document languages. Arabic is the only
-  /// language seeded for now.
+  /// Seeds the initially supported document languages.
   Future<void> _seedLanguages() async {
-    const List<_Ref> data = [(key: 'ar', nameAr: 'العربية', nameEn: 'Arabic')];
+    const List<_Ref> data = [
+      (key: 'ar', nameAr: 'العربية', nameEn: 'Arabic'),
+      (key: 'en', nameAr: 'الإنجليزية', nameEn: 'English'),
+      (key: 'other', nameAr: 'أخرى', nameEn: 'Other'),
+    ];
     for (int i = 0; i < data.length; i++) {
       final _Ref r = data[i];
       await _db

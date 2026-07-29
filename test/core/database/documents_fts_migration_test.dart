@@ -12,7 +12,7 @@ void main() {
   const String now = '2026-07-19T10:00:00Z';
 
   test(
-    'a fresh database is created directly at version 8 with documents_fts',
+    'a fresh database is created directly at version 9 with documents_fts',
     () async {
       final AppDatabase db = AppDatabase.inMemory();
       addTearDown(db.close);
@@ -21,7 +21,7 @@ void main() {
           (await db.customSelect('PRAGMA user_version;').getSingle()).read<int>(
             'user_version',
           );
-      expect(version, 8);
+      expect(version, 9);
 
       final Set<String> tables =
           (await db
@@ -82,7 +82,7 @@ void main() {
         (await db.customSelect('PRAGMA user_version;').getSingle()).read<int>(
           'user_version',
         ),
-        8,
+        9,
       );
 
       final Set<String> tables =

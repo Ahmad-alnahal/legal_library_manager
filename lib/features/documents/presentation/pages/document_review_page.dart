@@ -1163,6 +1163,7 @@ class _FormFieldsState extends State<_FormFields> {
     final common = draft.common;
     _documentTypeId = common.documentTypeId;
     _languageKey = common.languageKey;
+    _c('languageOther').text = common.languageOther ?? '';
     _countryKey = common.countryKey;
     _trustLevelKey = common.trustLevelKey;
     _usageRightsKey = common.usageRightsKey;
@@ -1275,6 +1276,9 @@ class _FormFieldsState extends State<_FormFields> {
         documentTypeId: _documentTypeId,
         title: _textOrNull('title'),
         languageKey: _languageKey,
+        languageOther: _languageKey == 'other'
+            ? _textOrNull('languageOther')
+            : null,
         countryKey: _countryKey,
         publicationYear: int.tryParse(_c('publicationYear').text.trim()),
         summary: _textOrNull('summary'),
@@ -1392,10 +1396,19 @@ class _FormFieldsState extends State<_FormFields> {
                 for (final l in references.languages) _Option(l.key, l.nameAr),
               ],
               onChanged: (value) {
-                setState(() => _languageKey = value);
+                setState(() {
+                  _languageKey = value;
+                  if (value != 'other') _c('languageOther').clear();
+                });
                 _emit();
               },
             ),
+            if (_languageKey == 'other')
+              _LabeledField(
+                label: 'تفاصيل اللغة (اختياري)',
+                controller: _c('languageOther'),
+                onChanged: _emit,
+              ),
             _Dropdown<String>(
               label: 'الدولة',
               value: _countryKey,

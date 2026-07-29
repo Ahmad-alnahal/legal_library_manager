@@ -66,6 +66,7 @@ class Documents extends Table {
     #key,
     onDelete: KeyAction.restrict,
   )();
+  TextColumn get languageOther => text().nullable()();
   TextColumn get countryKey => text().nullable().references(
     Countries,
     #key,

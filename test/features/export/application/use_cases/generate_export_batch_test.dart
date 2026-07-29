@@ -394,6 +394,7 @@ void main() {
       languageKey: 'ar',
       languageNameAr: 'عربي',
       languageNameEn: 'Arabic',
+      languageOther: null,
       trustLevelKey: 'official',
       usageRightsKey: flagged ? 'personal_use_only' : 'public',
       isUsageRightsFlagged: flagged,

@@ -70,7 +70,7 @@ void main() {
     'ux_sub_categories_main_normalized_name_en',
   ];
 
-  test('a fresh database is created directly at version 8', () async {
+  test('a fresh database is created directly at version 9', () async {
     final AppDatabase db = AppDatabase.inMemory();
     addTearDown(db.close);
 
@@ -78,7 +78,7 @@ void main() {
         (await db.customSelect('PRAGMA user_version;').getSingle()).read<int>(
           'user_version',
         );
-    expect(version, 8);
+    expect(version, 9);
 
     final Set<String> indexes =
         (await db
@@ -100,16 +100,16 @@ void main() {
     // Trigger the open + migration.
     await db.customSelect('SELECT 1;').get();
 
-    // Schema version is now 8 (v1→v2 category migration, v2→v3 security
+    // Schema version is now 9 (v1→v2 category migration, v2→v3 security
     // tables, v3→v4 paired_count, v4→v5 related_file_candidates,
     // v5→v6 legislation_relations + extended legislation_details, v6→v7
-    // legislation_type_other, v7→v8 documents_fts) and the category indexes
-    // exist.
+    // legislation_type_other, v7→v8 documents_fts, v8→v9 language_other) and
+    // the category indexes exist.
     expect(
       (await db.customSelect('PRAGMA user_version;').getSingle()).read<int>(
         'user_version',
       ),
-      8,
+      9,
     );
     final Set<String> indexes =
         (await db

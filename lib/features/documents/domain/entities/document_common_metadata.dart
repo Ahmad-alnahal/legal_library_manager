@@ -13,6 +13,7 @@ class DocumentCommonMetadata extends Equatable {
     this.documentTypeId,
     this.title,
     this.languageKey,
+    this.languageOther,
     this.countryKey,
     this.publicationYear,
     this.summary,
@@ -26,6 +27,7 @@ class DocumentCommonMetadata extends Equatable {
   final int? documentTypeId;
   final String? title;
   final String? languageKey;
+  final String? languageOther;
   final String? countryKey;
   final int? publicationYear;
   final String? summary;
@@ -39,6 +41,7 @@ class DocumentCommonMetadata extends Equatable {
     int? documentTypeId,
     String? title,
     String? languageKey,
+    String? languageOther,
     String? countryKey,
     int? publicationYear,
     String? summary,
@@ -52,6 +55,7 @@ class DocumentCommonMetadata extends Equatable {
       documentTypeId: documentTypeId ?? this.documentTypeId,
       title: title ?? this.title,
       languageKey: languageKey ?? this.languageKey,
+      languageOther: languageOther ?? this.languageOther,
       countryKey: countryKey ?? this.countryKey,
       publicationYear: publicationYear ?? this.publicationYear,
       summary: summary ?? this.summary,
@@ -68,6 +72,7 @@ class DocumentCommonMetadata extends Equatable {
     documentTypeId,
     title,
     languageKey,
+    languageOther,
     countryKey,
     publicationYear,
     summary,

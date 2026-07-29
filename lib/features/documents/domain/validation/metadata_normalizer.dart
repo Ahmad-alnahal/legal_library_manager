@@ -29,6 +29,7 @@ abstract final class MetadataNormalizer {
       documentTypeId: c.documentTypeId,
       title: t(c.title),
       languageKey: t(c.languageKey),
+      languageOther: t(c.languageOther),
       countryKey: t(c.countryKey),
       publicationYear: c.publicationYear,
       summary: t(c.summary),

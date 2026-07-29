@@ -4482,6 +4482,17 @@ class $DocumentsTable extends Documents
       'REFERENCES languages ("key") ON DELETE RESTRICT',
     ),
   );
+  static const VerificationMeta _languageOtherMeta = const VerificationMeta(
+    'languageOther',
+  );
+  @override
+  late final GeneratedColumn<String> languageOther = GeneratedColumn<String>(
+    'language_other',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
   static const VerificationMeta _countryKeyMeta = const VerificationMeta(
     'countryKey',
   );
@@ -4679,6 +4690,7 @@ class $DocumentsTable extends Documents
     primaryMainCategoryId,
     primarySubCategoryId,
     languageKey,
+    languageOther,
     countryKey,
     publicationYear,
     summary,
@@ -4758,6 +4770,15 @@ class $DocumentsTable extends Documents
         languageKey.isAcceptableOrUnknown(
           data['language_key']!,
           _languageKeyMeta,
+        ),
+      );
+    }
+    if (data.containsKey('language_other')) {
+      context.handle(
+        _languageOtherMeta,
+        languageOther.isAcceptableOrUnknown(
+          data['language_other']!,
+          _languageOtherMeta,
         ),
       );
     }
@@ -4922,6 +4943,10 @@ class $DocumentsTable extends Documents
         DriftSqlType.string,
         data['${effectivePrefix}language_key'],
       ),
+      languageOther: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}language_other'],
+      ),
       countryKey: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}country_key'],
@@ -4999,6 +5024,7 @@ class Document extends DataClass implements Insertable<Document> {
   final int? primaryMainCategoryId;
   final int? primarySubCategoryId;
   final String? languageKey;
+  final String? languageOther;
   final String? countryKey;
   final int? publicationYear;
   final String? summary;
@@ -5022,6 +5048,7 @@ class Document extends DataClass implements Insertable<Document> {
     this.primaryMainCategoryId,
     this.primarySubCategoryId,
     this.languageKey,
+    this.languageOther,
     this.countryKey,
     this.publicationYear,
     this.summary,
@@ -5059,6 +5086,9 @@ class Document extends DataClass implements Insertable<Document> {
     }
     if (!nullToAbsent || languageKey != null) {
       map['language_key'] = Variable<String>(languageKey);
+    }
+    if (!nullToAbsent || languageOther != null) {
+      map['language_other'] = Variable<String>(languageOther);
     }
     if (!nullToAbsent || countryKey != null) {
       map['country_key'] = Variable<String>(countryKey);
@@ -5117,6 +5147,9 @@ class Document extends DataClass implements Insertable<Document> {
       languageKey: languageKey == null && nullToAbsent
           ? const Value.absent()
           : Value(languageKey),
+      languageOther: languageOther == null && nullToAbsent
+          ? const Value.absent()
+          : Value(languageOther),
       countryKey: countryKey == null && nullToAbsent
           ? const Value.absent()
           : Value(countryKey),
@@ -5170,6 +5203,7 @@ class Document extends DataClass implements Insertable<Document> {
         json['primarySubCategoryId'],
       ),
       languageKey: serializer.fromJson<String?>(json['languageKey']),
+      languageOther: serializer.fromJson<String?>(json['languageOther']),
       countryKey: serializer.fromJson<String?>(json['countryKey']),
       publicationYear: serializer.fromJson<int?>(json['publicationYear']),
       summary: serializer.fromJson<String?>(json['summary']),
@@ -5204,6 +5238,7 @@ class Document extends DataClass implements Insertable<Document> {
       'primaryMainCategoryId': serializer.toJson<int?>(primaryMainCategoryId),
       'primarySubCategoryId': serializer.toJson<int?>(primarySubCategoryId),
       'languageKey': serializer.toJson<String?>(languageKey),
+      'languageOther': serializer.toJson<String?>(languageOther),
       'countryKey': serializer.toJson<String?>(countryKey),
       'publicationYear': serializer.toJson<int?>(publicationYear),
       'summary': serializer.toJson<String?>(summary),
@@ -5230,6 +5265,7 @@ class Document extends DataClass implements Insertable<Document> {
     Value<int?> primaryMainCategoryId = const Value.absent(),
     Value<int?> primarySubCategoryId = const Value.absent(),
     Value<String?> languageKey = const Value.absent(),
+    Value<String?> languageOther = const Value.absent(),
     Value<String?> countryKey = const Value.absent(),
     Value<int?> publicationYear = const Value.absent(),
     Value<String?> summary = const Value.absent(),
@@ -5259,6 +5295,9 @@ class Document extends DataClass implements Insertable<Document> {
         ? primarySubCategoryId.value
         : this.primarySubCategoryId,
     languageKey: languageKey.present ? languageKey.value : this.languageKey,
+    languageOther: languageOther.present
+        ? languageOther.value
+        : this.languageOther,
     countryKey: countryKey.present ? countryKey.value : this.countryKey,
     publicationYear: publicationYear.present
         ? publicationYear.value
@@ -5302,6 +5341,9 @@ class Document extends DataClass implements Insertable<Document> {
       languageKey: data.languageKey.present
           ? data.languageKey.value
           : this.languageKey,
+      languageOther: data.languageOther.present
+          ? data.languageOther.value
+          : this.languageOther,
       countryKey: data.countryKey.present
           ? data.countryKey.value
           : this.countryKey,
@@ -5354,6 +5396,7 @@ class Document extends DataClass implements Insertable<Document> {
           ..write('primaryMainCategoryId: $primaryMainCategoryId, ')
           ..write('primarySubCategoryId: $primarySubCategoryId, ')
           ..write('languageKey: $languageKey, ')
+          ..write('languageOther: $languageOther, ')
           ..write('countryKey: $countryKey, ')
           ..write('publicationYear: $publicationYear, ')
           ..write('summary: $summary, ')
@@ -5382,6 +5425,7 @@ class Document extends DataClass implements Insertable<Document> {
     primaryMainCategoryId,
     primarySubCategoryId,
     languageKey,
+    languageOther,
     countryKey,
     publicationYear,
     summary,
@@ -5409,6 +5453,7 @@ class Document extends DataClass implements Insertable<Document> {
           other.primaryMainCategoryId == this.primaryMainCategoryId &&
           other.primarySubCategoryId == this.primarySubCategoryId &&
           other.languageKey == this.languageKey &&
+          other.languageOther == this.languageOther &&
           other.countryKey == this.countryKey &&
           other.publicationYear == this.publicationYear &&
           other.summary == this.summary &&
@@ -5434,6 +5479,7 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
   final Value<int?> primaryMainCategoryId;
   final Value<int?> primarySubCategoryId;
   final Value<String?> languageKey;
+  final Value<String?> languageOther;
   final Value<String?> countryKey;
   final Value<int?> publicationYear;
   final Value<String?> summary;
@@ -5457,6 +5503,7 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
     this.primaryMainCategoryId = const Value.absent(),
     this.primarySubCategoryId = const Value.absent(),
     this.languageKey = const Value.absent(),
+    this.languageOther = const Value.absent(),
     this.countryKey = const Value.absent(),
     this.publicationYear = const Value.absent(),
     this.summary = const Value.absent(),
@@ -5481,6 +5528,7 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
     this.primaryMainCategoryId = const Value.absent(),
     this.primarySubCategoryId = const Value.absent(),
     this.languageKey = const Value.absent(),
+    this.languageOther = const Value.absent(),
     this.countryKey = const Value.absent(),
     this.publicationYear = const Value.absent(),
     this.summary = const Value.absent(),
@@ -5506,6 +5554,7 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
     Expression<int>? primaryMainCategoryId,
     Expression<int>? primarySubCategoryId,
     Expression<String>? languageKey,
+    Expression<String>? languageOther,
     Expression<String>? countryKey,
     Expression<int>? publicationYear,
     Expression<String>? summary,
@@ -5532,6 +5581,7 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
       if (primarySubCategoryId != null)
         'primary_sub_category_id': primarySubCategoryId,
       if (languageKey != null) 'language_key': languageKey,
+      if (languageOther != null) 'language_other': languageOther,
       if (countryKey != null) 'country_key': countryKey,
       if (publicationYear != null) 'publication_year': publicationYear,
       if (summary != null) 'summary': summary,
@@ -5559,6 +5609,7 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
     Value<int?>? primaryMainCategoryId,
     Value<int?>? primarySubCategoryId,
     Value<String?>? languageKey,
+    Value<String?>? languageOther,
     Value<String?>? countryKey,
     Value<int?>? publicationYear,
     Value<String?>? summary,
@@ -5584,6 +5635,7 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
           primaryMainCategoryId ?? this.primaryMainCategoryId,
       primarySubCategoryId: primarySubCategoryId ?? this.primarySubCategoryId,
       languageKey: languageKey ?? this.languageKey,
+      languageOther: languageOther ?? this.languageOther,
       countryKey: countryKey ?? this.countryKey,
       publicationYear: publicationYear ?? this.publicationYear,
       summary: summary ?? this.summary,
@@ -5629,6 +5681,9 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
     }
     if (languageKey.present) {
       map['language_key'] = Variable<String>(languageKey.value);
+    }
+    if (languageOther.present) {
+      map['language_other'] = Variable<String>(languageOther.value);
     }
     if (countryKey.present) {
       map['country_key'] = Variable<String>(countryKey.value);
@@ -5688,6 +5743,7 @@ class DocumentsCompanion extends UpdateCompanion<Document> {
           ..write('primaryMainCategoryId: $primaryMainCategoryId, ')
           ..write('primarySubCategoryId: $primarySubCategoryId, ')
           ..write('languageKey: $languageKey, ')
+          ..write('languageOther: $languageOther, ')
           ..write('countryKey: $countryKey, ')
           ..write('publicationYear: $publicationYear, ')
           ..write('summary: $summary, ')
@@ -23415,6 +23471,7 @@ typedef $$DocumentsTableCreateCompanionBuilder =
       Value<int?> primaryMainCategoryId,
       Value<int?> primarySubCategoryId,
       Value<String?> languageKey,
+      Value<String?> languageOther,
       Value<String?> countryKey,
       Value<int?> publicationYear,
       Value<String?> summary,
@@ -23440,6 +23497,7 @@ typedef $$DocumentsTableUpdateCompanionBuilder =
       Value<int?> primaryMainCategoryId,
       Value<int?> primarySubCategoryId,
       Value<String?> languageKey,
+      Value<String?> languageOther,
       Value<String?> countryKey,
       Value<int?> publicationYear,
       Value<String?> summary,
@@ -23962,6 +24020,11 @@ class $$DocumentsTableFilterComposer
 
   ColumnFilters<String> get title => $composableBuilder(
     column: $table.title,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get languageOther => $composableBuilder(
+    column: $table.languageOther,
     builder: (column) => ColumnFilters(column),
   );
 
@@ -24573,6 +24636,11 @@ class $$DocumentsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get languageOther => $composableBuilder(
+    column: $table.languageOther,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<int> get publicationYear => $composableBuilder(
     column: $table.publicationYear,
     builder: (column) => ColumnOrderings(column),
@@ -24850,6 +24918,11 @@ class $$DocumentsTableAnnotationComposer
 
   GeneratedColumn<String> get title =>
       $composableBuilder(column: $table.title, builder: (column) => column);
+
+  GeneratedColumn<String> get languageOther => $composableBuilder(
+    column: $table.languageOther,
+    builder: (column) => column,
+  );
 
   GeneratedColumn<int> get publicationYear => $composableBuilder(
     column: $table.publicationYear,
@@ -25491,6 +25564,7 @@ class $$DocumentsTableTableManager
                 Value<int?> primaryMainCategoryId = const Value.absent(),
                 Value<int?> primarySubCategoryId = const Value.absent(),
                 Value<String?> languageKey = const Value.absent(),
+                Value<String?> languageOther = const Value.absent(),
                 Value<String?> countryKey = const Value.absent(),
                 Value<int?> publicationYear = const Value.absent(),
                 Value<String?> summary = const Value.absent(),
@@ -25514,6 +25588,7 @@ class $$DocumentsTableTableManager
                 primaryMainCategoryId: primaryMainCategoryId,
                 primarySubCategoryId: primarySubCategoryId,
                 languageKey: languageKey,
+                languageOther: languageOther,
                 countryKey: countryKey,
                 publicationYear: publicationYear,
                 summary: summary,
@@ -25539,6 +25614,7 @@ class $$DocumentsTableTableManager
                 Value<int?> primaryMainCategoryId = const Value.absent(),
                 Value<int?> primarySubCategoryId = const Value.absent(),
                 Value<String?> languageKey = const Value.absent(),
+                Value<String?> languageOther = const Value.absent(),
                 Value<String?> countryKey = const Value.absent(),
                 Value<int?> publicationYear = const Value.absent(),
                 Value<String?> summary = const Value.absent(),
@@ -25562,6 +25638,7 @@ class $$DocumentsTableTableManager
                 primaryMainCategoryId: primaryMainCategoryId,
                 primarySubCategoryId: primarySubCategoryId,
                 languageKey: languageKey,
+                languageOther: languageOther,
                 countryKey: countryKey,
                 publicationYear: publicationYear,
                 summary: summary,
