@@ -75,7 +75,12 @@ FROM documents d
 LEFT JOIN document_types dt ON dt.id = d.document_type_id
 WHERE d.workflow_status_key IN ($placeholders)
   AND $_reviewableFileExists
-ORDER BY d.id ASC
+ORDER BY
+  CASE d.workflow_status_key
+    WHEN 'ready_for_export' THEN 1
+    ELSE 0
+  END ASC,
+  d.id ASC
 LIMIT ? OFFSET ?
 ''',
           variables: [

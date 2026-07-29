@@ -26,8 +26,6 @@ class DocumentListBloc extends Bloc<DocumentListEvent, DocumentListState> {
     on<DocumentListFiltersChanged>(_onFiltersChanged);
     on<DocumentListSortChanged>(_onSortChanged);
     on<DocumentListNextPageRequested>(_onNextPage);
-    on<DocumentListSelectionToggled>(_onSelectionToggled);
-    on<DocumentListSelectionCleared>(_onSelectionCleared);
     on<DocumentListLoadRequested>(_onLoadRequested);
     on<DocumentListPageSucceeded>(_onPageSucceeded);
     on<DocumentListPageFailed>(_onPageFailed);
@@ -63,7 +61,7 @@ class DocumentListBloc extends Bloc<DocumentListEvent, DocumentListState> {
       search: value,
       clearSearch: value.isEmpty,
     );
-    emit(state.copyWith(filters: filters, selectedIds: const {}));
+    emit(state.copyWith(filters: filters));
 
     // Invalidate any in-flight response immediately, before the debounce fires.
     final version = ++_requestVersion;
@@ -77,12 +75,7 @@ class DocumentListBloc extends Bloc<DocumentListEvent, DocumentListState> {
     Emitter<DocumentListState> emit,
   ) {
     _searchTimer?.cancel();
-    emit(
-      state.copyWith(
-        filters: event.filters.normalized(),
-        selectedIds: const {},
-      ),
-    );
+    emit(state.copyWith(filters: event.filters.normalized()));
     _requestFirstPage();
   }
 
@@ -92,7 +85,7 @@ class DocumentListBloc extends Bloc<DocumentListEvent, DocumentListState> {
   ) {
     if (event.sort == state.sort) return;
     _searchTimer?.cancel();
-    emit(state.copyWith(sort: event.sort, selectedIds: const {}));
+    emit(state.copyWith(sort: event.sort));
     _requestFirstPage();
   }
 
@@ -197,23 +190,6 @@ class DocumentListBloc extends Bloc<DocumentListEvent, DocumentListState> {
         ),
       );
     }
-  }
-
-  void _onSelectionToggled(
-    DocumentListSelectionToggled event,
-    Emitter<DocumentListState> emit,
-  ) {
-    final selected = {...state.selectedIds};
-    if (!selected.add(event.documentId)) selected.remove(event.documentId);
-    emit(state.copyWith(selectedIds: selected));
-  }
-
-  void _onSelectionCleared(
-    DocumentListSelectionCleared event,
-    Emitter<DocumentListState> emit,
-  ) {
-    if (state.selectedIds.isEmpty) return;
-    emit(state.copyWith(selectedIds: const {}));
   }
 
   void _requestFirstPage() {

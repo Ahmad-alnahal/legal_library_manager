@@ -31,7 +31,7 @@ void main() {
       expect((await repo.getDocumentTypes()).length, 7);
       expect((await repo.getMainCategories()).length, 4);
       expect((await repo.getSubCategories()).length, 17);
-      expect((await repo.getLanguages()).length, 1);
+      expect((await repo.getLanguages()).length, 3);
       expect((await repo.getCountries()).length, 249);
       expect((await repo.getTrustLevels()).length, 3);
       expect((await repo.getUsageRights()).length, 5);
@@ -42,14 +42,14 @@ void main() {
     });
 
     test(
-      'countries are returned in stable order with Palestine first',
+      'countries are returned in Arabic alphabetical order with Palestine '
+      'first',
       () async {
         final countries = await repo.getCountries();
         expect(countries.first.key, 'ps');
-        expect(
-          isSortedBySortOrder(countries.map((c) => c.sortOrder).toList()),
-          isTrue,
-        );
+        final rest = countries.skip(1).map((c) => c.nameAr).toList();
+        final sorted = [...rest]..sort();
+        expect(rest, sorted);
       },
     );
 

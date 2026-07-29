@@ -37,8 +37,7 @@ void main() {
     );
     expect(result, isA<ExportIneligible>());
     expect((result as ExportIneligible).reasons, [
-      'Document must be copied_to_library before it can be marked '
-          'ready_for_export.',
+      'يجب نسخ المستند إلى المكتبة أولاً قبل تعيينه جاهزاً للتصدير.',
     ]);
   });
 
@@ -47,7 +46,9 @@ void main() {
       eligible(workflowStatusKey: 'archived'),
     );
     expect(result, isA<ExportIneligible>());
-    expect((result as ExportIneligible).reasons, ['Document is archived.']);
+    expect((result as ExportIneligible).reasons, [
+      'المستند محفوظ في الأرشيف.',
+    ]);
   });
 
   test('missing healthy managed copy is ineligible', () {
@@ -55,7 +56,7 @@ void main() {
       eligible(hasHealthyManagedCopy: false),
     );
     expect((result as ExportIneligible).reasons, [
-      'Document has no healthy managed-copy file.',
+      'لا توجد نسخة مُدارة سليمة للمستند.',
     ]);
   });
 
@@ -64,7 +65,7 @@ void main() {
       eligible(primaryMainCategoryId: null, primaryMainCategoryActive: null),
     );
     expect((result as ExportIneligible).reasons, [
-      'Document has no active primary classification.',
+      'المستند لا يحمل تصنيفاً رئيسياً نشطاً.',
     ]);
   });
 
@@ -73,7 +74,7 @@ void main() {
       eligible(primaryMainCategoryActive: false),
     );
     expect((result as ExportIneligible).reasons, [
-      'Document has no active primary classification.',
+      'المستند لا يحمل تصنيفاً رئيسياً نشطاً.',
     ]);
   });
 
@@ -82,7 +83,7 @@ void main() {
       eligible(primarySubCategoryId: 2, primarySubCategoryActive: false),
     );
     expect((result as ExportIneligible).reasons, [
-      'Document primary subcategory is not active.',
+      'التصنيف الفرعي الرئيسي للمستند غير نشط.',
     ]);
   });
 
@@ -93,15 +94,18 @@ void main() {
     expect(result, isA<ExportEligible>());
   });
 
-  test('metadata quality below high/verified is ineligible', () {
-    for (final quality in ['low', 'medium']) {
-      final result = checkExportEligibility(
-        eligible(metadataQualityKey: quality),
-      );
-      expect((result as ExportIneligible).reasons, [
-        'Metadata quality must be high or verified.',
-      ]);
-    }
+  test('low metadata quality is ineligible', () {
+    final result = checkExportEligibility(eligible(metadataQualityKey: 'low'));
+    expect((result as ExportIneligible).reasons, [
+      'جودة البيانات الوصفية منخفضة جداً — يُشترط مستوى متوسط على الأقل.',
+    ]);
+  });
+
+  test('medium metadata quality is accepted', () {
+    final result = checkExportEligibility(
+      eligible(metadataQualityKey: 'medium'),
+    );
+    expect(result, isA<ExportEligible>());
   });
 
   test('verified metadata quality is accepted', () {
@@ -114,14 +118,14 @@ void main() {
   test('null usage rights is ineligible', () {
     final result = checkExportEligibility(eligible(usageRightsKey: null));
     expect((result as ExportIneligible).reasons, [
-      'Usage rights must be explicitly reviewed.',
+      'يجب تحديد حقوق الاستخدام قبل التصدير.',
     ]);
   });
 
   test('unknown usage rights is ineligible', () {
     final result = checkExportEligibility(eligible(usageRightsKey: 'unknown'));
     expect((result as ExportIneligible).reasons, [
-      'Usage rights must be explicitly reviewed.',
+      'يجب تحديد حقوق الاستخدام قبل التصدير.',
     ]);
   });
 
@@ -143,11 +147,10 @@ void main() {
       ),
     );
     expect((result as ExportIneligible).reasons, [
-      'Document must be copied_to_library before it can be marked '
-          'ready_for_export.',
-      'Document has no healthy managed-copy file.',
-      'Metadata quality must be high or verified.',
-      'Usage rights must be explicitly reviewed.',
+      'يجب نسخ المستند إلى المكتبة أولاً قبل تعيينه جاهزاً للتصدير.',
+      'لا توجد نسخة مُدارة سليمة للمستند.',
+      'جودة البيانات الوصفية منخفضة جداً — يُشترط مستوى متوسط على الأقل.',
+      'يجب تحديد حقوق الاستخدام قبل التصدير.',
     ]);
   });
 }

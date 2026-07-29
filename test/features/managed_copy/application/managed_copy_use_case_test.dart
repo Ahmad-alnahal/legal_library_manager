@@ -596,15 +596,22 @@ void main() {
   });
 
   group('ManagedCopyUseCase — already copied', () {
-    test('blocks when document already has managed copy', () async {
-      final repo = _FakeRepo()..docState = _classifiedState(hasCopy: true);
-      final result = await _makeUseCase(repo: repo).execute(_kDocId);
-      expect(result, isA<ManagedCopyBlocked>());
-      expect(
-        (result as ManagedCopyBlocked).error,
-        ManagedCopyError.alreadyCopied,
-      );
-    });
+    test(
+      'does not block a classified document with a stale healthy managed '
+      'copy (P3.1-patch: alreadyCopied only applies to copied_to_library)',
+      () async {
+        final repo = _FakeRepo()..docState = _classifiedState(hasCopy: true);
+        final result = await _makeUseCase(repo: repo).execute(_kDocId);
+        // The document is classified with no eligible source configured, so
+        // it proceeds past the guard and is blocked further downstream — the
+        // point is that it is never alreadyCopied.
+        expect(result, isA<ManagedCopyBlocked>());
+        expect(
+          (result as ManagedCopyBlocked).error,
+          isNot(ManagedCopyError.alreadyCopied),
+        );
+      },
+    );
 
     test('keeps blocking when the managed copy exists physically', () async {
       final repo = _FakeRepo()

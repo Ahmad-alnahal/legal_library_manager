@@ -144,6 +144,14 @@ class DriftReferenceRepository implements ReferenceRepository {
                 (t) => OrderingTerm(expression: t.key),
               ]))
             .get();
+    // `sort_order` reflects English-alphabetical seeding order; dropdowns
+    // display `nameAr`, so re-sort here for Arabic readers. Palestine stays
+    // pinned first regardless of alphabetical position.
+    rows.sort((a, b) {
+      if (a.key == 'ps') return -1;
+      if (b.key == 'ps') return 1;
+      return a.nameAr.compareTo(b.nameAr);
+    });
     return rows
         .map(
           (r) => ReferenceItem(

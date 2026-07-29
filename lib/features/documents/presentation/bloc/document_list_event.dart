@@ -49,19 +49,6 @@ class DocumentListNextPageRequested extends DocumentListEvent {
   const DocumentListNextPageRequested();
 }
 
-class DocumentListSelectionToggled extends DocumentListEvent {
-  const DocumentListSelectionToggled(this.documentId);
-
-  final int documentId;
-
-  @override
-  List<Object?> get props => [documentId];
-}
-
-class DocumentListSelectionCleared extends DocumentListEvent {
-  const DocumentListSelectionCleared();
-}
-
 class DocumentListLoadRequested extends DocumentListEvent {
   const DocumentListLoadRequested(this.requestVersion);
 

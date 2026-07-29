@@ -353,37 +353,44 @@ class DriftManagedCopyRepository implements ManagedCopyRepository {
                     f.fileRoleKey.equals('managed_copy'),
               ))
               .get();
-      // Allow re-copy when all prior managed-copy rows are 'missing' or
-      // 'corrupted' (M8.6 / M11.4 reconciliation). Block only when a genuinely
-      // healthy copy exists — a corrupted row must never count as healthy.
-      final hasHealthyCopy = existingManaged.any(
-        (r) => r.fileHealthKey == 'healthy',
-      );
-      if (hasHealthyCopy) {
-        throw StateError(
-          'Pre-write validation failed: a healthy managed copy already exists.',
-        );
+
+      // Re-copy is allowed for a classified document even when a prior
+      // managed_copy row is still healthy (P3.1-patch): a document edited
+      // while copied_to_library, or returned from copied_to_library to
+      // classified, can leave a stale healthy managed_copy record behind.
+      // Mark every existing HEALTHY managed-copy row for this document as
+      // 'missing' before persisting the fresh one, so re-copying never leaves
+      // two rows both claiming to be the current healthy copy. Rows already
+      // 'missing' or 'corrupted' are left untouched — those health states are
+      // meaningful (M8.6/M11.4 reconciliation) and must not be collapsed into
+      // a generic 'missing'.
+      for (final row in existingManaged) {
+        if (row.fileHealthKey == 'healthy') {
+          await (_db.update(
+            _db.documentFiles,
+          )..where((f) => f.id.equals(row.id))).write(
+            const DocumentFilesCompanion(fileHealthKey: Value('missing')),
+          );
+        }
       }
 
+      // Any pre-existing row at this exact managed path is now safe to
+      // revive regardless of its original health: a healthy one was just
+      // marked missing above, and a missing/corrupted one already qualifies.
       final matchingRevivableRows = existingManaged
-          .where(
-            (r) =>
-                (r.fileHealthKey == 'missing' ||
-                    r.fileHealthKey == 'corrupted') &&
-                _samePath(r.absolutePath, data.managedFilePath),
-          )
+          .where((r) => _samePath(r.absolutePath, data.managedFilePath))
           .toList(growable: false);
       if (matchingRevivableRows.length > 1) {
         throw StateError(
-          'Pre-write validation failed: duplicate missing/corrupted managed '
-          'copy rows.',
+          'Pre-write validation failed: duplicate managed copy rows at the '
+          'same path.',
         );
       }
 
-      // 1. Insert a new managed_copy row, or revive the existing missing or
-      // corrupted row for this exact managed path. Reviving avoids the
-      // absolute_path UNIQUE collision after a user restores or re-copies a
-      // previously missing or corrupted file.
+      // 1. Insert a new managed_copy row, or revive the row already occupying
+      // this exact managed path (just marked 'missing' above, or previously
+      // missing/corrupted from M8.6/M11.4 reconciliation). Reviving avoids the
+      // absolute_path UNIQUE collision on re-copy.
       final int managedFileId;
       if (matchingRevivableRows.isEmpty) {
         managedFileId = await _db

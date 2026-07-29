@@ -13,7 +13,6 @@ class DocumentListState extends Equatable {
     this.filters = const DocumentListFilters(),
     this.sort = DocumentListSort.updatedNewest,
     this.isLoadingMore = false,
-    this.selectedIds = const {},
     this.errorMessage,
   });
 
@@ -23,7 +22,6 @@ class DocumentListState extends Equatable {
   final DocumentListFilters filters;
   final DocumentListSort sort;
   final bool isLoadingMore;
-  final Set<int> selectedIds;
   final String? errorMessage;
 
   bool get hasMore => items.length < totalCount;
@@ -36,7 +34,6 @@ class DocumentListState extends Equatable {
     DocumentListFilters? filters,
     DocumentListSort? sort,
     bool? isLoadingMore,
-    Set<int>? selectedIds,
     String? errorMessage,
     bool clearError = false,
   }) {
@@ -47,7 +44,6 @@ class DocumentListState extends Equatable {
       filters: filters ?? this.filters,
       sort: sort ?? this.sort,
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
-      selectedIds: selectedIds ?? this.selectedIds,
       errorMessage: clearError ? null : errorMessage ?? this.errorMessage,
     );
   }
@@ -60,7 +56,6 @@ class DocumentListState extends Equatable {
     filters,
     sort,
     isLoadingMore,
-    selectedIds,
     errorMessage,
   ];
 }

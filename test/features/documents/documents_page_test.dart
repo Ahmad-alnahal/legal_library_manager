@@ -196,12 +196,8 @@ void main() {
     await _flushSnackBar(tester);
   });
 
-  testWidgets('selection and pagination retain loaded rows', (tester) async {
+  testWidgets('pagination retains loaded rows', (tester) async {
     await pumpDocuments(tester);
-
-    await tester.tap(find.byType(Checkbox).first);
-    await tester.pumpAndSettle();
-    expect(find.text('تم تحديد 1 مستند'), findsOneWidget);
 
     await tester.tap(find.text('تحميل المزيد'));
     await tester.pumpAndSettle();

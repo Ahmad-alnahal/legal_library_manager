@@ -92,7 +92,8 @@ class ManagedCopyUseCase {
       }
     }
 
-    if (docState.hasHealthyManagedCopy) {
+    if (docState.hasHealthyManagedCopy &&
+        docState.workflowStatusKey == 'copied_to_library') {
       // Differentiate: file was just restored from disk by reconciliation above
       // (user moved it back) vs it was already healthy before this call.
       if (reconciliation.anyRestored) {

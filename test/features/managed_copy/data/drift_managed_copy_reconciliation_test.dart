@@ -673,7 +673,9 @@ void main() {
       );
     });
 
-    test('blocks re-copy when a healthy managed-copy already exists', () async {
+    test('marks a pre-existing healthy managed-copy missing and allows re-copy '
+        '(P3.1-patch: classified documents may re-copy over a stale healthy '
+        'record)', () async {
       final docId = await _insertDocument(
         db,
         status: 'classified',
@@ -681,26 +683,37 @@ void main() {
       );
       final srcId = await _insertSourceFile(db, docId);
       // A healthy managed copy already exists.
-      await _insertManagedCopyFile(db, docId, healthKey: 'healthy');
+      final staleId = await _insertManagedCopyFile(
+        db,
+        docId,
+        healthKey: 'healthy',
+      );
 
       final now = DateTime.utc(2026, 6, 17, 12, 0, 0);
-      await expectLater(
-        repo.persistManagedCopySuccess(
-          ManagedCopyPersistenceData(
-            documentId: docId,
-            documentCode: 'DOC-0000001',
-            operationId: 'op_blocked',
-            managedFilePath: r'C:\Library\files\DOC-0000001-dup.pdf',
-            managedFileName: 'DOC-0000001-dup.pdf',
-            sha256Hash: _kHash,
-            fileSizeBytes: 2048,
-            sourceFileId: srcId,
-            sourceFilePath: r'C:\Sources\doc.pdf',
-            nowUtc: now,
-          ),
+      final newId = await repo.persistManagedCopySuccess(
+        ManagedCopyPersistenceData(
+          documentId: docId,
+          documentCode: 'DOC-0000001',
+          operationId: 'op_recopy',
+          managedFilePath: r'C:\Library\files\DOC-0000001-dup.pdf',
+          managedFileName: 'DOC-0000001-dup.pdf',
+          sha256Hash: _kHash,
+          fileSizeBytes: 2048,
+          sourceFileId: srcId,
+          sourceFilePath: r'C:\Sources\doc.pdf',
+          nowUtc: now,
         ),
-        throwsA(isA<StateError>()),
       );
+
+      expect(newId, isNot(staleId));
+      final staleRow = await (db.select(
+        db.documentFiles,
+      )..where((f) => f.id.equals(staleId))).getSingle();
+      expect(staleRow.fileHealthKey, 'missing');
+      final newRow = await (db.select(
+        db.documentFiles,
+      )..where((f) => f.id.equals(newId))).getSingle();
+      expect(newRow.fileHealthKey, 'healthy');
     });
   });
 }

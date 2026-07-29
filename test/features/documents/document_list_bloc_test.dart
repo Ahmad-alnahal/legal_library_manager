@@ -145,10 +145,8 @@ void main() {
     await waitFor(bloc, (s) => repo.queries.length == 2);
     expect(repo.queries.last.sort, DocumentListSort.titleAscending);
 
-    bloc.add(const DocumentListSelectionToggled(1));
-    await waitFor(bloc, (s) => s.selectedIds.contains(1));
     bloc.add(const DocumentListSearchChanged('new query'));
-    await waitFor(bloc, (s) => s.selectedIds.isEmpty);
+    await waitFor(bloc, (s) => repo.queries.length == 3);
 
     fail = true;
     bloc.add(const DocumentListRefreshed());

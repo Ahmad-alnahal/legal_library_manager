@@ -11,7 +11,7 @@ import 'entities/export_eligibility_result.dart';
 ///   [ExportEligibilityInput.hasHealthyManagedCopy]);
 /// - classification remains valid (an active primary main category, and an
 ///   active primary subcategory when one is set);
-/// - metadata quality is `high` or `verified`;
+/// - metadata quality is not `low`;
 /// - usage rights is explicitly reviewed and not `unknown`;
 /// - the document is not archived.
 ///
@@ -21,33 +21,33 @@ ExportEligibilityResult checkExportEligibility(ExportEligibilityInput input) {
   final List<String> reasons = [];
 
   if (input.workflowStatusKey == 'archived') {
-    reasons.add('Document is archived.');
+    reasons.add('المستند محفوظ في الأرشيف.');
   } else if (input.workflowStatusKey != 'copied_to_library') {
     reasons.add(
-      'Document must be copied_to_library before it can be marked '
-      'ready_for_export.',
+      'يجب نسخ المستند إلى المكتبة أولاً قبل تعيينه جاهزاً للتصدير.',
     );
   }
 
   if (!input.hasHealthyManagedCopy) {
-    reasons.add('Document has no healthy managed-copy file.');
+    reasons.add('لا توجد نسخة مُدارة سليمة للمستند.');
   }
 
   if (input.primaryMainCategoryId == null ||
       input.primaryMainCategoryActive != true) {
-    reasons.add('Document has no active primary classification.');
+    reasons.add('المستند لا يحمل تصنيفاً رئيسياً نشطاً.');
   } else if (input.primarySubCategoryId != null &&
       input.primarySubCategoryActive != true) {
-    reasons.add('Document primary subcategory is not active.');
+    reasons.add('التصنيف الفرعي الرئيسي للمستند غير نشط.');
   }
 
-  if (input.metadataQualityKey != 'high' &&
-      input.metadataQualityKey != 'verified') {
-    reasons.add('Metadata quality must be high or verified.');
+  if (input.metadataQualityKey == 'low') {
+    reasons.add(
+      'جودة البيانات الوصفية منخفضة جداً — يُشترط مستوى متوسط على الأقل.',
+    );
   }
 
   if (input.usageRightsKey == null || input.usageRightsKey == 'unknown') {
-    reasons.add('Usage rights must be explicitly reviewed.');
+    reasons.add('يجب تحديد حقوق الاستخدام قبل التصدير.');
   }
 
   if (reasons.isEmpty) return const ExportEligible();

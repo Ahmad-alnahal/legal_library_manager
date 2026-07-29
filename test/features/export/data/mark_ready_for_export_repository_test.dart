@@ -70,8 +70,7 @@ void main() {
       expect(
         (result as ExportIneligible).reasons,
         contains(
-          'Document must be copied_to_library before it can be marked '
-          'ready_for_export.',
+          'يجب نسخ المستند إلى المكتبة أولاً قبل تعيينه جاهزاً للتصدير.',
         ),
       );
     });
@@ -81,7 +80,7 @@ void main() {
       final result = await repo.checkExportEligibility(id);
       expect(
         (result as ExportIneligible).reasons,
-        contains('Document has no healthy managed-copy file.'),
+        contains('لا توجد نسخة مُدارة سليمة للمستند.'),
       );
     });
 
@@ -95,7 +94,7 @@ void main() {
       final result = await repo.checkExportEligibility(id);
       expect(
         (result as ExportIneligible).reasons,
-        contains('Document has no active primary classification.'),
+        contains('المستند لا يحمل تصنيفاً رئيسياً نشطاً.'),
       );
     });
 
@@ -124,28 +123,33 @@ void main() {
       final result = await repo.checkExportEligibility(id);
       expect(
         (result as ExportIneligible).reasons,
-        contains('Document primary subcategory is not active.'),
+        contains('التصنيف الفرعي الرئيسي للمستند غير نشط.'),
       );
     });
 
-    test(
-      'metadata quality below high/verified is reported ineligible',
-      () async {
-        final id = await addEligibleDocument(metadataQualityKey: 'medium');
-        final result = await repo.checkExportEligibility(id);
-        expect(
-          (result as ExportIneligible).reasons,
-          contains('Metadata quality must be high or verified.'),
-        );
-      },
-    );
+    test('medium metadata quality is reported eligible', () async {
+      final id = await addEligibleDocument(metadataQualityKey: 'medium');
+      final result = await repo.checkExportEligibility(id);
+      expect(result, isA<ExportEligible>());
+    });
+
+    test('low metadata quality is reported ineligible', () async {
+      final id = await addEligibleDocument(metadataQualityKey: 'low');
+      final result = await repo.checkExportEligibility(id);
+      expect(
+        (result as ExportIneligible).reasons,
+        contains(
+          'جودة البيانات الوصفية منخفضة جداً — يُشترط مستوى متوسط على الأقل.',
+        ),
+      );
+    });
 
     test('unknown usage rights is reported ineligible', () async {
       final id = await addEligibleDocument(usageRightsKey: 'unknown');
       final result = await repo.checkExportEligibility(id);
       expect(
         (result as ExportIneligible).reasons,
-        contains('Usage rights must be explicitly reviewed.'),
+        contains('يجب تحديد حقوق الاستخدام قبل التصدير.'),
       );
     });
   });

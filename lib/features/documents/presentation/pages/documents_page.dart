@@ -149,10 +149,6 @@ class _DocumentsWorkspaceState extends State<_DocumentsWorkspace> {
                       const SizedBox(height: AppSpacing.md),
                       _ResultsSummary(state: state),
                       const SizedBox(height: AppSpacing.sm),
-                      if (state.selectedIds.isNotEmpty)
-                        _SelectionBar(count: state.selectedIds.length),
-                      if (state.selectedIds.isNotEmpty)
-                        const SizedBox(height: AppSpacing.sm),
                     ],
                   ),
                 ),
@@ -206,7 +202,6 @@ class _DocumentsWorkspaceState extends State<_DocumentsWorkspace> {
           separatorBuilder: (_, _) => const SizedBox(height: AppSpacing.sm),
           itemBuilder: (context, index) => _DocumentRow(
             item: state.items[index],
-            selected: state.selectedIds.contains(state.items[index].id),
             documents: widget.documents,
           ),
         ),
@@ -641,40 +636,10 @@ class _ResultsSummary extends StatelessWidget {
   }
 }
 
-class _SelectionBar extends StatelessWidget {
-  const _SelectionBar({required this.count});
-  final int count;
-
-  @override
-  Widget build(BuildContext context) {
-    return AppPanel(
-      borderColor: AppColors.accentTeal,
-      child: Row(
-        children: [
-          const Icon(Icons.checklist, color: AppColors.accentTeal),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(child: Text('تم تحديد $count مستند')),
-          TextButton(
-            onPressed: () => context.read<DocumentListBloc>().add(
-              const DocumentListSelectionCleared(),
-            ),
-            child: const Text('إلغاء التحديد'),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _DocumentRow extends StatefulWidget {
-  const _DocumentRow({
-    required this.item,
-    required this.selected,
-    required this.documents,
-  });
+  const _DocumentRow({required this.item, required this.documents});
 
   final DocumentListItem item;
-  final bool selected;
   final DocumentListRepository documents;
 
   @override
@@ -708,9 +673,7 @@ class _DocumentRowState extends State<_DocumentRow> {
       color: AppColors.surface,
       shape: RoundedRectangleBorder(
         borderRadius: BorderRadius.circular(8),
-        side: BorderSide(
-          color: widget.selected ? AppColors.accentTeal : AppColors.border,
-        ),
+        side: const BorderSide(color: AppColors.border),
       ),
       clipBehavior: Clip.antiAlias,
       child: ExpansionTile(
@@ -725,12 +688,6 @@ class _DocumentRowState extends State<_DocumentRow> {
           0,
           AppSpacing.md,
           AppSpacing.md,
-        ),
-        leading: Checkbox(
-          value: widget.selected,
-          onChanged: (_) => context.read<DocumentListBloc>().add(
-            DocumentListSelectionToggled(item.id),
-          ),
         ),
         title: Text(
           title,

@@ -551,16 +551,22 @@ void main() {
       'is transactional: constraint violation rolls back all changes',
       () async {
         final docId = await _insertDocument(db, code: 'DOC-0000001');
-        // Pre-insert a document_files row occupying the absolutePath that
-        // persistManagedCopySuccess will attempt to insert. The UNIQUE index on
-        // absolute_path is enforced by SQLite without requiring PRAGMA
-        // foreign_keys, so this reliably triggers a constraint failure inside
-        // the transaction without needing FK support to be on.
+        // Pre-insert a document_files row belonging to a DIFFERENT document,
+        // occupying the absolutePath that persistManagedCopySuccess will
+        // attempt to insert. A same-document conflict is now legitimately
+        // revived in place by the stale-copy cleanup (P3.1-patch), so this
+        // uses a cross-document row to still trigger a genuine UNIQUE
+        // constraint violation (absolute_path is unique across the whole
+        // table, not per document) — the UNIQUE index on absolute_path is
+        // enforced by SQLite without requiring PRAGMA foreign_keys, so this
+        // reliably triggers a constraint failure inside the transaction
+        // without needing FK support to be on.
+        final otherDocId = await _insertDocument(db, code: 'DOC-0000002');
         await db
             .into(db.documentFiles)
             .insert(
               DocumentFilesCompanion.insert(
-                documentId: docId,
+                documentId: otherDocId,
                 fileRoleKey: 'managed_copy',
                 fileName: 'DOC-0000001.pdf',
                 absolutePath: r'C:\Library\files\DOC-0000001.pdf',
@@ -597,6 +603,44 @@ void main() {
         expect(doc.workflowStatusKey, 'classified');
       },
     );
+
+    test('marks a prior managed_copy row missing and inserts the new one '
+        'healthy (P3.1-patch: re-copy stale-copy cleanup)', () async {
+      final docId = await _insertDocument(db, code: 'DOC-0000001');
+      final srcId = await _insertSourceFile(db, docId, hash: _kHash);
+      final staleId = await _insertManagedCopyFile(
+        db,
+        docId,
+        path: r'C:\Library\files\DOC-0000001-stale.pdf',
+        healthKey: 'healthy',
+      );
+      final now = DateTime.utc(2026, 6, 11, 10, 0, 0);
+
+      final newId = await repo.persistManagedCopySuccess(
+        ManagedCopyPersistenceData(
+          documentId: docId,
+          documentCode: 'DOC-0000001',
+          operationId: 'op_recopy',
+          managedFilePath: r'C:\Library\files\DOC-0000001.pdf',
+          managedFileName: 'DOC-0000001.pdf',
+          sha256Hash: _kHash,
+          fileSizeBytes: 1024,
+          sourceFileId: srcId,
+          sourceFilePath: r'C:\Sources\doc.pdf',
+          nowUtc: now,
+        ),
+      );
+
+      expect(newId, isNot(staleId));
+      final staleRow = await (db.select(
+        db.documentFiles,
+      )..where((f) => f.id.equals(staleId))).getSingle();
+      expect(staleRow.fileHealthKey, 'missing');
+      final newRow = await (db.select(
+        db.documentFiles,
+      )..where((f) => f.id.equals(newId))).getSingle();
+      expect(newRow.fileHealthKey, 'healthy');
+    });
 
     test('source file record is not modified by success persistence', () async {
       final docId = await _insertDocument(db, code: 'DOC-0000001');
@@ -706,32 +750,39 @@ void main() {
       },
     );
 
-    test(
-      'throws when a managed copy already exists for the document',
-      () async {
-        final docId = await _insertDocument(db, code: 'DOC-0000001');
-        // Race: insert a managed_copy row before the transaction.
-        await db
-            .into(db.documentFiles)
-            .insert(
-              DocumentFilesCompanion.insert(
-                documentId: docId,
-                fileRoleKey: 'managed_copy',
-                fileName: 'DOC-0000001.pdf',
-                absolutePath: r'C:\Library\files\DOC-0000001-existing.pdf',
-                extension: '.pdf',
-                fileSizeBytes: 512,
-                fileHealthKey: const Value('healthy'),
-                createdAt: DateTime.utc(2026, 1, 1).toIso8601String(),
-                updatedAt: DateTime.utc(2026, 1, 1).toIso8601String(),
-              ),
-            );
-        await expectLater(
-          repo.persistManagedCopySuccess(raceData(docId)),
-          throwsA(isA<StateError>()),
-        );
-      },
-    );
+    test('a pre-existing managed copy for the document is marked missing '
+        'rather than blocking the race retry (P3.1-patch)', () async {
+      final docId = await _insertDocument(db, code: 'DOC-0000001');
+      // Race: another operation inserted a managed_copy row before this
+      // transaction runs. This is no longer treated as a conflict to reject
+      // — it is cleaned up (marked missing) so the fresh row can persist.
+      final raceRowId = await db
+          .into(db.documentFiles)
+          .insert(
+            DocumentFilesCompanion.insert(
+              documentId: docId,
+              fileRoleKey: 'managed_copy',
+              fileName: 'DOC-0000001.pdf',
+              absolutePath: r'C:\Library\files\DOC-0000001-existing.pdf',
+              extension: '.pdf',
+              fileSizeBytes: 512,
+              fileHealthKey: const Value('healthy'),
+              createdAt: DateTime.utc(2026, 1, 1).toIso8601String(),
+              updatedAt: DateTime.utc(2026, 1, 1).toIso8601String(),
+            ),
+          );
+
+      final newId = await repo.persistManagedCopySuccess(raceData(docId));
+
+      final raceRow = await (db.select(
+        db.documentFiles,
+      )..where((f) => f.id.equals(raceRowId))).getSingle();
+      expect(raceRow.fileHealthKey, 'missing');
+      final newRow = await (db.select(
+        db.documentFiles,
+      )..where((f) => f.id.equals(newId))).getSingle();
+      expect(newRow.fileHealthKey, 'healthy');
+    });
 
     test('throws when document code does not match persistence data', () async {
       final docId = await _insertDocument(db, code: 'DOC-0000099');
