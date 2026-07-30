@@ -108,16 +108,16 @@ class GenerateExportBatch {
       createdAt: now,
     );
 
-    final String filesDir = _pathJoin(exportPath, 'files');
+    final String poolDir = _pathJoin(exportRoot, 'files');
     final String metadataDir = _pathJoin(exportPath, 'metadata');
 
-    final ExportFilesystemResult filesDirResult = await filesystem
-        .ensureDirectoryExists(filesDir);
+    final ExportFilesystemResult poolDirResult = await filesystem
+        .ensureDirectoryExists(poolDir);
+    if (poolDirResult is ExportFilesystemFailure) {
+      return _fail(batchId, batchCode, exportPath, poolDirResult.safeMessage);
+    }
     final ExportFilesystemResult metadataDirResult = await filesystem
         .ensureDirectoryExists(metadataDir);
-    if (filesDirResult is ExportFilesystemFailure) {
-      return _fail(batchId, batchCode, exportPath, filesDirResult.safeMessage);
-    }
     if (metadataDirResult is ExportFilesystemFailure) {
       return _fail(
         batchId,
@@ -127,55 +127,71 @@ class GenerateExportBatch {
       );
     }
 
-    final List<_VerifiedDocument> copied = [];
-    for (final _VerifiedDocument doc in verified) {
-      final String dest = _pathJoin(filesDir, '${doc.documentCode}.pdf');
-      final ExportFilesystemResult copyResult = await filesystem.copyFile(
-        doc.managedPath,
-        dest,
-      );
-      if (copyResult is ExportFilesystemFailure) {
-        skipped.add(
-          ExportSkipEntry(
-            documentCode: doc.documentCode,
-            reason: copyResult.safeMessage,
-          ),
-        );
-        continue;
-      }
-      copied.add(doc);
-    }
-    if (copied.isEmpty) {
-      return _fail(
-        batchId,
-        batchCode,
-        exportPath,
-        'No documents could be copied to the export folder.',
-      );
-    }
-
     final List<_VerifiedDocument> successList = [];
-    for (final _VerifiedDocument doc in copied) {
-      final String copyPath = _pathJoin(filesDir, '${doc.documentCode}.pdf');
-      final Sha256Result hashResult = await _hash(copyPath);
-      if (!hashResult.isSuccess ||
-          hashResult.hash != doc.managedFileRef.sha256Hash) {
+    int unchangedCount = 0;
+
+    for (final _VerifiedDocument doc in verified) {
+      final String poolPath = _pathJoin(poolDir, '${doc.documentCode}.pdf');
+      final String expectedHash = doc.managedFileRef.sha256Hash!;
+
+      if (filesystem.isExistingFile(poolPath)) {
+        final Sha256Result existingHash = await _hash(poolPath);
+        if (existingHash.isSuccess && existingHash.hash == expectedHash) {
+          // Pool file is current — no copy needed.
+          unchangedCount++;
+          successList.add(doc);
+          continue;
+        }
+        // Pool file exists but is stale (document was re-exported with a new
+        // managed copy). Replace it.
+        final ExportFilesystemResult replaceResult = await filesystem
+            .copyFileReplacing(doc.managedPath, poolPath);
+        if (replaceResult is ExportFilesystemFailure) {
+          skipped.add(
+            ExportSkipEntry(
+              documentCode: doc.documentCode,
+              reason: replaceResult.safeMessage,
+            ),
+          );
+          continue;
+        }
+      } else {
+        // New document — copy to pool for the first time.
+        final ExportFilesystemResult copyResult = await filesystem.copyFile(
+          doc.managedPath,
+          poolPath,
+        );
+        if (copyResult is ExportFilesystemFailure) {
+          skipped.add(
+            ExportSkipEntry(
+              documentCode: doc.documentCode,
+              reason: copyResult.safeMessage,
+            ),
+          );
+          continue;
+        }
+      }
+
+      // Verify the pool file hash (applies to both new copies and replacements).
+      final Sha256Result verifyHash = await _hash(poolPath);
+      if (!verifyHash.isSuccess || verifyHash.hash != expectedHash) {
         skipped.add(
           ExportSkipEntry(
             documentCode: doc.documentCode,
-            reason: 'export copy hash mismatch',
+            reason: 'export pool copy hash mismatch',
           ),
         );
         continue;
       }
       successList.add(doc);
     }
+
     if (successList.isEmpty) {
       return _fail(
         batchId,
         batchCode,
         exportPath,
-        'No copied files could be verified.',
+        'No documents could be verified in the export pool.',
       );
     }
 
@@ -241,7 +257,7 @@ class GenerateExportBatch {
     int totalSizeBytes = 0;
     for (final _VerifiedDocument doc in successList) {
       final int? size = await filesystem.fileSize(
-        _pathJoin(filesDir, '${doc.documentCode}.pdf'),
+        _pathJoin(poolDir, '${doc.documentCode}.pdf'),
       );
       totalSizeBytes += size ?? 0;
     }
@@ -252,6 +268,7 @@ class GenerateExportBatch {
       'documentCount': successList.length,
       'totalSizeBytes': totalSizeBytes,
       'checksumAlgorithm': 'SHA-256',
+      'filesLocation': 'files/',
       'documents': successList
           .map(
             (doc) => {
@@ -270,11 +287,6 @@ class GenerateExportBatch {
     }
 
     final List<_ChecksumEntry> checksumEntries = [
-      for (final doc in successList)
-        _ChecksumEntry(
-          relativePath: 'files/${doc.documentCode}.pdf',
-          fullPath: _pathJoin(filesDir, '${doc.documentCode}.pdf'),
-        ),
       _ChecksumEntry(
         relativePath: 'metadata/documents.json',
         fullPath: _pathJoin(metadataDir, 'documents.json'),
@@ -347,6 +359,8 @@ class GenerateExportBatch {
       'batchCode': batchCode,
       'generatedAt': now.toIso8601String(),
       'includedCount': successList.length,
+      'newFilesCount': successList.length - unchangedCount,
+      'unchangedFilesCount': unchangedCount,
       'skippedCount': skipped.length,
       'skipped': skipped
           .map((s) => {'documentCode': s.documentCode, 'reason': s.reason})

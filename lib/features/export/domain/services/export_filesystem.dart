@@ -13,6 +13,14 @@ abstract class ExportFilesystem {
   /// exists.
   Future<ExportFilesystemResult> copyFile(String sourcePath, String destPath);
 
+  /// Copies bytes from [sourcePath] to [destPath], replacing any existing file.
+  /// Used when a pool file exists but its hash no longer matches — the managed
+  /// copy was re-exported with a newer version.
+  Future<ExportFilesystemResult> copyFileReplacing(
+    String sourcePath,
+    String destPath,
+  );
+
   /// Writes [content] as UTF-8 to [filePath]. Never overwrites an existing
   /// [filePath]; returns [ExportFilesystemFailure] when it already exists.
   Future<ExportFilesystemResult> writeTextFile(String filePath, String content);

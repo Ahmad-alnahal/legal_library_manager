@@ -48,6 +48,23 @@ class WindowsExportFilesystem implements ExportFilesystem {
   }
 
   @override
+  Future<ExportFilesystemResult> copyFileReplacing(
+    String sourcePath,
+    String destPath,
+  ) async {
+    try {
+      await File(sourcePath)
+          .openRead()
+          .pipe(File(destPath).openWrite(mode: FileMode.writeOnly));
+      return const ExportFilesystemSuccess();
+    } on FileSystemException {
+      return const ExportFilesystemFailure(
+        safeMessage: 'File replace failed.',
+      );
+    }
+  }
+
+  @override
   Future<ExportFilesystemResult> writeTextFile(
     String filePath,
     String content,

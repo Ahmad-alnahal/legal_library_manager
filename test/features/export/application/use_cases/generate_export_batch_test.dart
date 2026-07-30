@@ -310,6 +310,19 @@ class _FakeExportFilesystem implements ExportFilesystem {
   }
 
   @override
+  Future<ExportFilesystemResult> copyFileReplacing(
+    String sourcePath,
+    String destPath,
+  ) async {
+    if (failCopyDestPaths.contains(destPath)) {
+      return const ExportFilesystemFailure(safeMessage: 'File copy failed.');
+    }
+    copiedDestPaths.add(destPath);
+    existingFiles.add(destPath);
+    return const ExportFilesystemSuccess();
+  }
+
+  @override
   Future<ExportFilesystemResult> writeTextFile(
     String filePath,
     String content,
@@ -359,7 +372,7 @@ void main() {
   const String exportRoot = r'C:\Export';
   const String batchCode = 'EXP-2026-07-18-001';
   const String exportPath = r'C:\Export\export_batch_2026_07_18_001';
-  const String filesDir = '$exportPath\\files';
+  const String poolDir = '$exportRoot\\files';
   const String metadataDir = '$exportPath\\metadata';
 
   late _FakeMetadataRepository metadataRepository;
@@ -413,7 +426,7 @@ void main() {
   }) {
     final String hash = _hex(documentCode);
     final String managedPath = '$managedRoot\\files\\$documentCode.pdf';
-    final String copyPath = '$filesDir\\$documentCode.pdf';
+    final String copyPath = '$poolDir\\$documentCode.pdf';
 
     copyRepository.managedFilesByDocId[documentId] = [
       ManagedFileRef(
@@ -538,8 +551,8 @@ void main() {
     expect(batchRepository.finalizeBatchCalls.single['documentCount'], 2);
 
     expect(filesystem.copiedDestPaths, [
-      '$filesDir\\DOC-0000001.pdf',
-      '$filesDir\\DOC-0000002.pdf',
+      '$poolDir\\DOC-0000001.pdf',
+      '$poolDir\\DOC-0000002.pdf',
     ]);
     expect(
       filesystem.writtenFiles.containsKey('$metadataDir\\documents.json'),
@@ -580,8 +593,72 @@ void main() {
         jsonDecode(filesystem.writtenFiles['$exportPath\\manifest.json']!)
             as Map<String, dynamic>;
     expect(manifest['documentCount'], 2);
+    expect(manifest['filesLocation'], 'files/');
     expect((manifest['documents'] as List).length, 2);
+    expect(
+      (manifest['documents'] as List).map((d) => d['file']),
+      ['files/DOC-0000001.pdf', 'files/DOC-0000002.pdf'],
+    );
+
+    final checksumsContent =
+        filesystem.writtenFiles['$exportPath\\checksums.sha256']!;
+    expect(checksumsContent, isNot(contains('files/DOC-0000001.pdf')));
+    expect(checksumsContent, isNot(contains('files/DOC-0000002.pdf')));
+    expect(checksumsContent, contains('metadata/documents.json'));
+    expect(checksumsContent, contains('manifest.json'));
+
+    final report =
+        jsonDecode(filesystem.writtenFiles['$exportPath\\export_report.json']!)
+            as Map<String, dynamic>;
+    expect(report['newFilesCount'], 2);
+    expect(report['unchangedFilesCount'], 0);
   });
+
+  test(
+    'second export with same documents skips all copies (pool reuse)',
+    () async {
+      metadataRepository.readyDocs = [
+        ExportableDocumentRef(
+          id: 1,
+          documentCode: 'DOC-0000001',
+          readyForExportAt: DateTime.utc(2026, 7, 17),
+        ),
+        ExportableDocumentRef(
+          id: 2,
+          documentCode: 'DOC-0000002',
+          readyForExportAt: DateTime.utc(2026, 7, 17),
+        ),
+      ];
+      setUpHealthyDocument(documentId: 1, documentCode: 'DOC-0000001');
+      setUpHealthyDocument(documentId: 2, documentCode: 'DOC-0000002');
+      // Simulate a pool already populated by a prior export: the pool file
+      // already exists and its hash matches the managed copy's hash.
+      filesystem.existingFiles.add('$poolDir\\DOC-0000001.pdf');
+      filesystem.existingFiles.add('$poolDir\\DOC-0000002.pdf');
+      metadataRepository.metadataToReturn = [
+        metadataFor('DOC-0000001'),
+        metadataFor('DOC-0000002'),
+      ];
+
+      final result = await useCase.call();
+
+      expect(result, isA<GenerateExportBatchSuccess>());
+      final success = result as GenerateExportBatchSuccess;
+      expect(success.includedCount, 2);
+      expect(success.skippedCount, 0);
+
+      // No copy calls at all — the pool already had current files.
+      expect(filesystem.copiedDestPaths, isEmpty);
+
+      final report =
+          jsonDecode(
+                filesystem.writtenFiles['$exportPath\\export_report.json']!,
+              )
+              as Map<String, dynamic>;
+      expect(report['unchangedFilesCount'], 2);
+      expect(report['newFilesCount'], 0);
+    },
+  );
 
   test('partialSkip: one document copies, one fails copy', () async {
     metadataRepository.readyDocs = [
@@ -598,7 +675,7 @@ void main() {
     ];
     setUpHealthyDocument(documentId: 1, documentCode: 'DOC-0000001');
     setUpHealthyDocument(documentId: 2, documentCode: 'DOC-0000002');
-    filesystem.failCopyDestPaths.add('$filesDir\\DOC-0000002.pdf');
+    filesystem.failCopyDestPaths.add('$poolDir\\DOC-0000002.pdf');
     metadataRepository.metadataToReturn = [metadataFor('DOC-0000001')];
 
     final result = await useCase.call();
