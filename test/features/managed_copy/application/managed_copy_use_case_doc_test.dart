@@ -1,6 +1,7 @@
 // test/features/managed_copy/application/managed_copy_use_case_doc_test.dart
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:legal_library_manager/core/constants/domain_keys.dart';
 import 'package:legal_library_manager/core/time/clock.dart';
 import 'package:legal_library_manager/features/import/domain/entities/import_error.dart';
 import 'package:legal_library_manager/features/import/domain/entities/sha256_result.dart';
@@ -46,7 +47,7 @@ class _FakeClock extends Clock {
 class _FakeRepo implements ManagedCopyRepository {
   DocumentCopyState? docState = DocumentCopyState(
     documentId: _kDocId,
-    workflowStatusKey: 'classified',
+    workflowStatusKey: WorkflowStatusKey.classified,
     existingDocumentCode: null,
     hasManagedCopy: false,
     hasHealthyManagedCopy: false,
@@ -372,7 +373,7 @@ class _FakeWordConverter implements WordDocumentConverter {
 
 SourceFileCandidate _docCandidate({
   String path = _kDocPath,
-  String health = 'healthy',
+  String health = FileHealthKey.healthy,
   bool isPreferred = true,
 }) => SourceFileCandidate(
   fileId: 11,
@@ -386,7 +387,7 @@ SourceFileCandidate _docCandidate({
 
 SourceFileCandidate _pdfCandidate({
   String path = r'C:\Sources\report.pdf',
-  String health = 'healthy',
+  String health = FileHealthKey.healthy,
   bool isPreferred = true,
   String? hash = _kPdfHash,
 }) => SourceFileCandidate(
@@ -677,7 +678,7 @@ void main() {
   group('ManagedCopyUseCase — .doc source: unhealthy/ineligible cases', () {
     test('unhealthy .doc source is not eligible', () async {
       final repo = _FakeRepo()
-        ..candidates = [_docCandidate(health: 'unreadable')];
+        ..candidates = [_docCandidate(health: FileHealthKey.unreadable)];
       final result = await _makeUseCase(repo: repo).execute(_kDocId);
       expect(result, isA<ManagedCopyBlocked>());
       expect(
@@ -700,7 +701,7 @@ void main() {
       final repo = _FakeRepo()
         ..docState = DocumentCopyState(
           documentId: _kDocId,
-          workflowStatusKey: 'in_progress',
+          workflowStatusKey: WorkflowStatusKey.inProgress,
           existingDocumentCode: null,
           hasManagedCopy: false,
           hasHealthyManagedCopy: false,

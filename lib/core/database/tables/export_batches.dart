@@ -3,6 +3,8 @@
 // ignore_for_file: recursive_getters
 import 'package:drift/drift.dart';
 
+import '../../constants/domain_keys.dart';
+
 /// Local export-batch records (spec §10.1).
 ///
 /// `status_key` is constrained to the documented statuses (`uploaded` is
@@ -20,11 +22,11 @@ class ExportBatches extends Table {
   // CHECK status_key IN ('preparing','completed','failed','verified','uploaded').
   TextColumn get statusKey => text().check(
     statusKey.isIn(const [
-      'preparing',
-      'completed',
-      'failed',
-      'verified',
-      'uploaded',
+      ExportBatchStatusKey.preparing,
+      ExportBatchStatusKey.completed,
+      ExportBatchStatusKey.failed,
+      ExportBatchStatusKey.verified,
+      ExportBatchStatusKey.uploaded,
     ]),
   )();
   IntColumn get documentCount => integer()

@@ -1,6 +1,7 @@
 // test/features/managed_copy/application/check_managed_copy_health_test.dart
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:legal_library_manager/core/constants/domain_keys.dart';
 import 'package:legal_library_manager/core/time/clock.dart';
 import 'package:legal_library_manager/features/import/domain/entities/import_error.dart';
 import 'package:legal_library_manager/features/import/domain/entities/sha256_result.dart';
@@ -135,7 +136,7 @@ void main() {
   ManagedFileRef ref({
     int fileId = 1,
     String path = kPath,
-    String health = 'healthy',
+    String health = FileHealthKey.healthy,
     int size = 2048,
     String? hash = kHash,
   }) => ManagedFileRef(
@@ -163,7 +164,7 @@ void main() {
         fileId: 1,
         documentId: kDocId,
         absolutePath: kPath,
-        fileHealthKey: 'healthy',
+        fileHealthKey: FileHealthKey.healthy,
       );
       final repo = _StubRepository([ref]);
       final fs = _StubFilesystem({kPath}); // file IS on disk
@@ -181,7 +182,7 @@ void main() {
         fileId: 7,
         documentId: kDocId,
         absolutePath: kPath,
-        fileHealthKey: 'healthy',
+        fileHealthKey: FileHealthKey.healthy,
       );
       final repo = _StubRepository([ref]);
       final fs = _StubFilesystem({}); // file NOT on disk
@@ -200,7 +201,7 @@ void main() {
         fileId: 3,
         documentId: kDocId,
         absolutePath: kPath,
-        fileHealthKey: 'missing', // already marked
+        fileHealthKey: FileHealthKey.missing, // already marked
       );
       final repo = _StubRepository([ref]);
       final fs = _StubFilesystem({}); // irrelevant — never checked
@@ -214,7 +215,7 @@ void main() {
   test(
     'restores a missing row when the physical file matches stored metadata',
     () async {
-      final missing = ref(fileId: 13, health: 'missing');
+      final missing = ref(fileId: 13, health: FileHealthKey.missing);
       final repo = _StubRepository([missing]);
       final fs = _StubFilesystem({kPath}, sizes: {kPath: 2048});
 
@@ -235,14 +236,14 @@ void main() {
         fileId: 11,
         documentId: kDocId,
         absolutePath: kPath,
-        fileHealthKey: 'healthy',
+        fileHealthKey: FileHealthKey.healthy,
       );
       const missingPath = r'C:\Library\files\DOC-0000001-old.pdf';
       final gone = ManagedFileRef(
         fileId: 12,
         documentId: kDocId,
         absolutePath: missingPath,
-        fileHealthKey: 'healthy',
+        fileHealthKey: FileHealthKey.healthy,
       );
       final repo = _StubRepository([present, gone]);
       final fs = _StubFilesystem({kPath});
@@ -261,14 +262,14 @@ void main() {
         fileId: 1,
         documentId: kDocId,
         absolutePath: r'C:\Library\files\OLD.pdf',
-        fileHealthKey: 'missing',
+        fileHealthKey: FileHealthKey.missing,
       );
       const newPath = r'C:\Library\files\DOC-0000001-v2.pdf';
       final healthyButGone = ManagedFileRef(
         fileId: 2,
         documentId: kDocId,
         absolutePath: newPath,
-        fileHealthKey: 'healthy',
+        fileHealthKey: FileHealthKey.healthy,
       );
       final repo = _StubRepository([alreadyMissing, healthyButGone]);
       final fs = _StubFilesystem({}); // neither file on disk
@@ -286,7 +287,7 @@ void main() {
       fileId: 5,
       documentId: kDocId,
       absolutePath: kPath,
-      fileHealthKey: 'healthy',
+      fileHealthKey: FileHealthKey.healthy,
     );
     final repo = _StubRepository([ref])..throwOnMark = true;
     final fs = _StubFilesystem({}); // file NOT on disk
@@ -299,7 +300,7 @@ void main() {
       fileId: 9,
       documentId: kDocId,
       absolutePath: kPath,
-      fileHealthKey: 'healthy',
+      fileHealthKey: FileHealthKey.healthy,
     );
     final repo = _StubRepository([ref]);
     final fs = _StubFilesystem({kPath}); // file IS on disk

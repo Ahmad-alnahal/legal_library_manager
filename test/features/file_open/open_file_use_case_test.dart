@@ -1,6 +1,7 @@
 // test/features/file_open/open_file_use_case_test.dart
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:legal_library_manager/core/constants/domain_keys.dart';
 import 'package:legal_library_manager/features/file_open/application/open_file_use_case.dart';
 import 'package:legal_library_manager/features/file_open/domain/entities/file_open_record.dart';
 import 'package:legal_library_manager/features/file_open/domain/entities/open_file_result.dart';
@@ -81,7 +82,7 @@ const _kRecord = FileOpenRecord(
   documentId: 10,
   absolutePath: _kPath,
   extension: '.pdf',
-  fileHealthKey: 'healthy',
+  fileHealthKey: FileHealthKey.healthy,
 );
 
 OpenFileUseCase _makeUseCase({
@@ -149,7 +150,7 @@ void main() {
           documentId: 10,
           absolutePath: '   ',
           extension: '.pdf',
-          fileHealthKey: 'healthy',
+          fileHealthKey: FileHealthKey.healthy,
         );
       final opener = _FakeOpener();
       final uc = OpenFileUseCase(
@@ -214,7 +215,7 @@ void main() {
           documentId: 10,
           absolutePath: r'C:\Library\doc.docx',
           extension: '.docx',
-          fileHealthKey: 'healthy',
+          fileHealthKey: FileHealthKey.healthy,
         );
       final opener = _FakeOpener();
       final uc = OpenFileUseCase(
@@ -240,7 +241,7 @@ void main() {
           documentId: 10,
           absolutePath: r'C:\Library\doc.doc',
           extension: '.doc',
-          fileHealthKey: 'healthy',
+          fileHealthKey: FileHealthKey.healthy,
         );
       final opener = _FakeOpener();
       final uc = OpenFileUseCase(
@@ -263,7 +264,7 @@ void main() {
           documentId: 10,
           absolutePath: r'C:\Library\doc.docx',
           extension: '.docx',
-          fileHealthKey: 'healthy',
+          fileHealthKey: FileHealthKey.healthy,
         );
       final opener = _FakeOpener();
       final uc = OpenFileUseCase(
@@ -289,7 +290,7 @@ void main() {
           documentId: 10,
           absolutePath: r'C:\Library\doc.pdf.exe',
           extension: '.exe',
-          fileHealthKey: 'healthy',
+          fileHealthKey: FileHealthKey.healthy,
         );
       final opener = _FakeOpener();
       final uc = OpenFileUseCase(
@@ -317,7 +318,7 @@ void main() {
             documentId: 10,
             absolutePath: r'C:\Library\REPORT.PDF',
             extension: '.PDF',
-            fileHealthKey: 'healthy',
+            fileHealthKey: FileHealthKey.healthy,
           );
         final opener = _FakeOpener();
         final uc = OpenFileUseCase(
@@ -348,7 +349,7 @@ void main() {
           documentId: 10,
           absolutePath: r'C:\Library\file.exe',
           extension: '.pdf',
-          fileHealthKey: 'healthy',
+          fileHealthKey: FileHealthKey.healthy,
         );
       final opener = _FakeOpener();
       final uc = OpenFileUseCase(
@@ -375,7 +376,7 @@ void main() {
           documentId: 10,
           absolutePath: r'C:\Library\file.pdf',
           extension: '.exe',
-          fileHealthKey: 'healthy',
+          fileHealthKey: FileHealthKey.healthy,
         );
       final opener = _FakeOpener();
       final uc = OpenFileUseCase(
@@ -401,7 +402,7 @@ void main() {
           documentId: 10,
           absolutePath: r'C:\Library\file.pdf.exe',
           extension: '.pdf',
-          fileHealthKey: 'healthy',
+          fileHealthKey: FileHealthKey.healthy,
         );
       final opener = _FakeOpener();
       final uc = OpenFileUseCase(
@@ -429,7 +430,7 @@ void main() {
             documentId: 10,
             absolutePath: r'C:\Library\REPORT.PDF',
             extension: '.PDF',
-            fileHealthKey: 'healthy',
+            fileHealthKey: FileHealthKey.healthy,
           );
         final opener = _FakeOpener();
         final uc = OpenFileUseCase(
@@ -690,7 +691,7 @@ void main() {
             documentId: 10,
             absolutePath: _kPath,
             extension: '.pdf',
-            fileHealthKey: 'corrupted',
+            fileHealthKey: FileHealthKey.corrupted,
           );
         final opener = _FakeOpener();
         final uc = OpenFileUseCase(
@@ -716,7 +717,7 @@ void main() {
             documentId: 10,
             absolutePath: _kPath,
             extension: '.pdf',
-            fileHealthKey: 'unreadable',
+            fileHealthKey: FileHealthKey.unreadable,
           );
         final opener = _FakeOpener();
         final uc = OpenFileUseCase(
@@ -740,7 +741,7 @@ void main() {
           documentId: 10,
           absolutePath: _kPath,
           extension: '.pdf',
-          fileHealthKey: 'missing',
+          fileHealthKey: FileHealthKey.missing,
         );
       final opener = _FakeOpener();
       final uc = OpenFileUseCase(
@@ -763,7 +764,7 @@ void main() {
           documentId: 10,
           absolutePath: _kPath,
           extension: '.pdf',
-          fileHealthKey: 'unknown',
+          fileHealthKey: FileHealthKey.unknown,
         );
       final opener = _FakeOpener();
       final uc = OpenFileUseCase(
@@ -786,7 +787,7 @@ void main() {
           documentId: 10,
           absolutePath: _kPath,
           extension: '.pdf',
-          fileHealthKey: 'corrupted',
+          fileHealthKey: FileHealthKey.corrupted,
         );
       final opener = _FakeOpener();
       final uc = OpenFileUseCase(
@@ -809,7 +810,7 @@ void main() {
           documentId: 10,
           absolutePath: _kPath,
           extension: '.pdf',
-          fileHealthKey: 'unreadable',
+          fileHealthKey: FileHealthKey.unreadable,
         );
       final opener = _FakeOpener();
       final uc = OpenFileUseCase(
@@ -832,7 +833,7 @@ void main() {
           documentId: 10,
           absolutePath: _kPath,
           extension: '.pdf',
-          fileHealthKey: 'corrupted',
+          fileHealthKey: FileHealthKey.corrupted,
         );
       final uc = OpenFileUseCase(
         repository: repo,

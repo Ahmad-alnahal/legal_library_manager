@@ -1,6 +1,7 @@
 // test/features/duplicates/duplicate_review_bloc_test.dart
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:legal_library_manager/core/constants/domain_keys.dart';
 import 'package:legal_library_manager/features/duplicates/domain/entities/duplicate_group_details.dart';
 import 'package:legal_library_manager/features/duplicates/domain/entities/duplicate_group_file_item.dart';
 import 'package:legal_library_manager/features/duplicates/domain/entities/duplicate_group_summary.dart';
@@ -95,10 +96,10 @@ DuplicateGroupFileItem _makeMember({int fileId = 10, bool preferred = false}) =>
       documentId: 1,
       fileName: 'file-$fileId.pdf',
       absolutePath: '/tmp/file-$fileId.pdf',
-      fileRoleKey: 'source_original',
-      fileHealthKey: 'healthy',
+      fileRoleKey: FileRoleKey.sourceOriginal,
+      fileHealthKey: FileHealthKey.healthy,
       fileSizeBytes: 1024,
-      workflowStatusKey: 'imported',
+      workflowStatusKey: WorkflowStatusKey.imported,
       isHiddenFromSearch: false,
       isPreferred: preferred,
       addedAt: '2026-06-20T10:00:00.000Z',

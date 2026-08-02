@@ -3,12 +3,11 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../documents/domain/repositories/document_metadata_repository.dart';
-import '../../../managed_copy/domain/repositories/managed_copy_repository.dart';
 import '../../application/use_cases/generate_export_batch.dart';
+import '../../application/use_cases/load_export_screen_data.dart';
 import '../../domain/entities/export_batch_summary.dart';
+import '../../domain/entities/export_screen_data.dart';
 import '../../domain/entities/generate_export_batch_result.dart';
-import '../../domain/repositories/export_batch_repository.dart';
 
 sealed class ExportBatchEvent extends Equatable {
   const ExportBatchEvent();
@@ -96,33 +95,23 @@ class ExportBatchState extends Equatable {
 /// [GenerateExportBatch].
 class ExportBatchBloc extends Bloc<ExportBatchEvent, ExportBatchState> {
   ExportBatchBloc({
-    required ManagedCopyRepository managedCopyRepository,
-    required DocumentMetadataRepository metadataRepository,
-    required ExportBatchRepository batchRepository,
+    required LoadExportScreenData loadExportScreenData,
     required GenerateExportBatch generateExportBatch,
   }) : this.executor(
-         managedCopyRepository: managedCopyRepository,
-         metadataRepository: metadataRepository,
-         batchRepository: batchRepository,
+         load: loadExportScreenData.call,
          generate: generateExportBatch.call,
        );
 
-  /// Testable presentation boundary that still depends on the repositories
-  /// directly, but accepts the generation step as a plain function.
-  ExportBatchBloc.executor({
-    required this.managedCopyRepository,
-    required this.metadataRepository,
-    required this.batchRepository,
-    required this._generate,
-  }) : super(const ExportBatchState()) {
+  /// Testable presentation boundary that accepts both the load and generate
+  /// steps as plain functions.
+  ExportBatchBloc.executor({required this._load, required this._generate})
+    : super(const ExportBatchState()) {
     on<ExportBatchScreenStarted>(_onStarted);
     on<ExportBatchGenerateRequested>(_onGenerate);
     on<ExportBatchHistoryRefreshRequested>(_onHistoryRefresh);
   }
 
-  final ManagedCopyRepository managedCopyRepository;
-  final DocumentMetadataRepository metadataRepository;
-  final ExportBatchRepository batchRepository;
+  final Future<ExportScreenData> Function() _load;
   final Future<GenerateExportBatchResult> Function() _generate;
   bool _inFlight = false;
 
@@ -132,18 +121,14 @@ class ExportBatchBloc extends Bloc<ExportBatchEvent, ExportBatchState> {
   ) async {
     emit(state.copyWith(loadStatus: ExportBatchLoadStatus.loading));
     try {
-      final List<dynamic> results = await Future.wait<dynamic>([
-        managedCopyRepository.loadExportRoot(),
-        metadataRepository.listReadyForExport(),
-        batchRepository.listBatches(),
-      ]);
+      final data = await _load();
       if (emit.isDone) return;
       emit(
         state.copyWith(
           loadStatus: ExportBatchLoadStatus.ready,
-          exportRoot: results[0] as String?,
-          readyForExportCount: (results[1] as List).length,
-          batches: results[2] as List<ExportBatchSummary>,
+          exportRoot: data.exportRoot,
+          readyForExportCount: data.readyForExportCount,
+          batches: data.batches,
         ),
       );
     } catch (_) {
@@ -204,9 +189,9 @@ class ExportBatchBloc extends Bloc<ExportBatchEvent, ExportBatchState> {
     Emitter<ExportBatchState> emit,
   ) async {
     try {
-      final batches = await batchRepository.listBatches();
+      final data = await _load();
       if (emit.isDone) return;
-      emit(state.copyWith(batches: batches));
+      emit(state.copyWith(batches: data.batches));
     } catch (_) {
       // History refresh is best-effort; the existing list is kept on failure.
     }
@@ -214,11 +199,13 @@ class ExportBatchBloc extends Bloc<ExportBatchEvent, ExportBatchState> {
 
   Future<void> _reloadHistoryAndCount(Emitter<ExportBatchState> emit) async {
     try {
-      final readyDocs = await metadataRepository.listReadyForExport();
-      final batches = await batchRepository.listBatches();
+      final data = await _load();
       if (emit.isDone) return;
       emit(
-        state.copyWith(readyForExportCount: readyDocs.length, batches: batches),
+        state.copyWith(
+          readyForExportCount: data.readyForExportCount,
+          batches: data.batches,
+        ),
       );
     } catch (_) {
       // Best-effort refresh; the generate result already emitted above.

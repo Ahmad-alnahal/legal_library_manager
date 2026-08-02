@@ -1,5 +1,6 @@
 // lib/features/managed_copy/application/check_managed_copy_health.dart
 
+import '../../../core/constants/domain_keys.dart';
 import '../../../core/time/clock.dart';
 import '../../import/domain/services/file_hasher.dart';
 import '../domain/entities/managed_file_ref.dart';
@@ -56,12 +57,12 @@ class CheckManagedCopyHealth {
     if (managedFiles.isEmpty) return CheckManagedCopyHealthResult.notApplicable;
 
     final nonMissing = managedFiles
-        .where((file) => file.fileHealthKey != 'missing')
+        .where((file) => file.fileHealthKey != FileHealthKey.missing)
         .toList();
 
     var anyRestored = false;
     for (final missing in managedFiles.where(
-      (file) => file.fileHealthKey == 'missing',
+      (file) => file.fileHealthKey == FileHealthKey.missing,
     )) {
       final restored = await _tryRestoreMissingFile(
         documentId: documentId,

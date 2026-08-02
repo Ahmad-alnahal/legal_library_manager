@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/constants/domain_keys.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radii.dart';
@@ -759,7 +760,6 @@ class _SourceFilesViewState extends State<_SourceFilesView> {
         );
     } catch (e) {
       if (!mounted) return;
-      debugPrint('setPreferredSourceFile failed: $e');
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
@@ -773,14 +773,16 @@ class _SourceFilesViewState extends State<_SourceFilesView> {
     final text = Theme.of(context).textTheme;
     final aggregate = widget.aggregate;
     final convertedHealthy = aggregate.files.where(
-      (f) => f.fileRoleKey == 'converted_pdf',
+      (f) => f.fileRoleKey == FileRoleKey.convertedPdf,
     );
     final hasMissingManagedCopy = aggregate.files.any(
-      (f) => f.fileRoleKey == 'managed_copy' && f.fileHealthKey == 'missing',
+      (f) =>
+          f.fileRoleKey == FileRoleKey.managedCopy &&
+          f.fileHealthKey == FileHealthKey.missing,
     );
     final hasHealthyManagedCopy = aggregate.files.any(
       (f) =>
-          f.fileRoleKey == 'managed_copy' &&
+          f.fileRoleKey == FileRoleKey.managedCopy &&
           canOpenFileDirectly(f.fileHealthKey),
     );
     return Column(
@@ -1913,9 +1915,10 @@ class _ActionBar extends StatelessWidget {
         final busy = state.isBusy;
         final dirty = state.isDirty;
         final workflowStatus = state.aggregate?.workflowStatusKey;
-        final isClassified = workflowStatus == 'classified';
-        final isCopied = workflowStatus == 'copied_to_library';
-        final isReadyForExport = workflowStatus == 'ready_for_export';
+        final isClassified = workflowStatus == WorkflowStatusKey.classified;
+        final isCopied = workflowStatus == WorkflowStatusKey.copiedToLibrary;
+        final isReadyForExport =
+            workflowStatus == WorkflowStatusKey.readyForExport;
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -2302,10 +2305,11 @@ String _queueTitle(ReviewQueueItem item) {
 }
 
 StatusColor _workflowColor(String key) => switch (key) {
-  'classified' || 'copied_to_library' => AppStatusColors.success,
-  'needs_review' => AppStatusColors.warning,
-  'in_progress' => AppStatusColors.info,
-  'ready_for_export' => AppStatusColors.teal,
+  WorkflowStatusKey.classified ||
+  WorkflowStatusKey.copiedToLibrary => AppStatusColors.success,
+  WorkflowStatusKey.needsReview => AppStatusColors.warning,
+  WorkflowStatusKey.inProgress => AppStatusColors.info,
+  WorkflowStatusKey.readyForExport => AppStatusColors.teal,
   _ => AppStatusColors.neutral,
 };
 

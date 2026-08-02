@@ -2,6 +2,7 @@
 
 import 'package:drift/drift.dart';
 
+import '../../../../core/constants/domain_keys.dart';
 import '../../../../core/database/app_database.dart';
 import '../../domain/entities/duplicate_group_details.dart';
 import '../../domain/entities/duplicate_group_file_item.dart';
@@ -221,8 +222,8 @@ ORDER BY is_preferred DESC, d.document_code ASC, df.id ASC
           await (_db.select(_db.documentFiles)..where(
                 (f) =>
                     f.id.equals(fileId) &
-                    f.fileRoleKey.equals('source_original') &
-                    f.fileHealthKey.equals('healthy') &
+                    f.fileRoleKey.equals(FileRoleKey.sourceOriginal) &
+                    f.fileHealthKey.equals(FileHealthKey.healthy) &
                     f.extension.lower().equals('.pdf'),
               ))
               .getSingleOrNull();
@@ -230,7 +231,7 @@ ORDER BY is_preferred DESC, d.document_code ASC, df.id ASC
         await (_db.update(_db.documentFiles)..where(
               (f) =>
                   f.documentId.equals(qualified.documentId) &
-                  f.fileRoleKey.equals('source_original'),
+                  f.fileRoleKey.equals(FileRoleKey.sourceOriginal),
             ))
             .write(const DocumentFilesCompanion(isPreferred: Value(false)));
         await (_db.update(_db.documentFiles)..where((f) => f.id.equals(fileId)))

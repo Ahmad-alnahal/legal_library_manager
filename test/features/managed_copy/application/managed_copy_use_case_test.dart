@@ -1,6 +1,7 @@
 // test/features/managed_copy/application/managed_copy_use_case_test.dart
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:legal_library_manager/core/constants/domain_keys.dart';
 import 'package:legal_library_manager/core/time/clock.dart';
 import 'package:legal_library_manager/features/import/domain/entities/import_error.dart';
 import 'package:legal_library_manager/features/import/domain/entities/sha256_result.dart';
@@ -164,7 +165,7 @@ class _FakeRepo implements ManagedCopyRepository {
                   fileId: file.fileId,
                   documentId: file.documentId,
                   absolutePath: file.absolutePath,
-                  fileHealthKey: 'missing',
+                  fileHealthKey: FileHealthKey.missing,
                   fileSizeBytes: file.fileSizeBytes,
                   sha256Hash: file.sha256Hash,
                 )
@@ -188,7 +189,7 @@ class _FakeRepo implements ManagedCopyRepository {
                   fileId: file.fileId,
                   documentId: file.documentId,
                   absolutePath: file.absolutePath,
-                  fileHealthKey: 'healthy',
+                  fileHealthKey: FileHealthKey.healthy,
                   fileSizeBytes: file.fileSizeBytes,
                   sha256Hash: file.sha256Hash,
                 )
@@ -199,7 +200,7 @@ class _FakeRepo implements ManagedCopyRepository {
     if (current == null) return;
     docState = DocumentCopyState(
       documentId: current.documentId,
-      workflowStatusKey: 'copied_to_library',
+      workflowStatusKey: WorkflowStatusKey.copiedToLibrary,
       existingDocumentCode: current.existingDocumentCode,
       hasManagedCopy: current.hasManagedCopy,
       hasHealthyManagedCopy: true,
@@ -216,11 +217,11 @@ class _FakeRepo implements ManagedCopyRepository {
     if (current == null) return;
     docState = DocumentCopyState(
       documentId: current.documentId,
-      workflowStatusKey: 'classified',
+      workflowStatusKey: WorkflowStatusKey.classified,
       existingDocumentCode: current.existingDocumentCode,
       hasManagedCopy: current.hasManagedCopy,
       hasHealthyManagedCopy: managedFiles.any(
-        (file) => file.fileHealthKey != 'missing',
+        (file) => file.fileHealthKey != FileHealthKey.missing,
       ),
     );
   }
@@ -430,7 +431,7 @@ DocumentCopyState _classifiedState({
   bool? hasHealthyCopy,
 }) => DocumentCopyState(
   documentId: _kDocId,
-  workflowStatusKey: 'classified',
+  workflowStatusKey: WorkflowStatusKey.classified,
   existingDocumentCode: code,
   hasManagedCopy: hasCopy,
   hasHealthyManagedCopy: hasHealthyCopy ?? hasCopy,
@@ -440,7 +441,7 @@ SourceFileCandidate _sourceCandidate({
   bool isPreferred = false,
   String? hash,
   String path = _kSourcePath,
-  String health = 'healthy',
+  String health = FileHealthKey.healthy,
   String ext = '.pdf',
 }) => SourceFileCandidate(
   fileId: 10,
@@ -565,7 +566,7 @@ void main() {
       final repo = _FakeRepo()
         ..docState = DocumentCopyState(
           documentId: _kDocId,
-          workflowStatusKey: 'imported',
+          workflowStatusKey: WorkflowStatusKey.imported,
           existingDocumentCode: null,
           hasManagedCopy: false,
           hasHealthyManagedCopy: false,
@@ -582,7 +583,7 @@ void main() {
       final repo = _FakeRepo()
         ..docState = DocumentCopyState(
           documentId: _kDocId,
-          workflowStatusKey: 'in_progress',
+          workflowStatusKey: WorkflowStatusKey.inProgress,
           existingDocumentCode: null,
           hasManagedCopy: false,
           hasHealthyManagedCopy: false,
@@ -617,7 +618,7 @@ void main() {
       final repo = _FakeRepo()
         ..docState = DocumentCopyState(
           documentId: _kDocId,
-          workflowStatusKey: 'copied_to_library',
+          workflowStatusKey: WorkflowStatusKey.copiedToLibrary,
           existingDocumentCode: 'DOC-0000005',
           hasManagedCopy: true,
           hasHealthyManagedCopy: true,
@@ -627,7 +628,7 @@ void main() {
             fileId: 99,
             documentId: _kDocId,
             absolutePath: r'C:\Library\files\DOC-0000005.pdf',
-            fileHealthKey: 'healthy',
+            fileHealthKey: FileHealthKey.healthy,
           ),
         ];
       final fs = _FakeFilesystem()..finalFileExists = true;
@@ -647,7 +648,7 @@ void main() {
       final repo = _FakeRepo()
         ..docState = DocumentCopyState(
           documentId: _kDocId,
-          workflowStatusKey: 'copied_to_library',
+          workflowStatusKey: WorkflowStatusKey.copiedToLibrary,
           existingDocumentCode: 'DOC-0000005',
           hasManagedCopy: true,
           hasHealthyManagedCopy: true,
@@ -659,7 +660,7 @@ void main() {
             fileId: 99,
             documentId: _kDocId,
             absolutePath: r'C:\Library\files\DOC-0000005.pdf',
-            fileHealthKey: 'healthy',
+            fileHealthKey: FileHealthKey.healthy,
           ),
         ];
 
@@ -677,7 +678,7 @@ void main() {
         final repo = _FakeRepo()
           ..docState = DocumentCopyState(
             documentId: _kDocId,
-            workflowStatusKey: 'classified',
+            workflowStatusKey: WorkflowStatusKey.classified,
             existingDocumentCode: 'DOC-0000007',
             hasManagedCopy: true,
             hasHealthyManagedCopy: false,
@@ -689,7 +690,7 @@ void main() {
               fileId: 107,
               documentId: _kDocId,
               absolutePath: r'C:\Library\files\DOC-0000007.pdf',
-              fileHealthKey: 'missing',
+              fileHealthKey: FileHealthKey.missing,
               fileSizeBytes: 12345,
               sha256Hash: _kHash,
             ),
@@ -717,7 +718,7 @@ void main() {
       final repo = _FakeRepo()
         ..docState = DocumentCopyState(
           documentId: _kDocId,
-          workflowStatusKey: 'classified',
+          workflowStatusKey: WorkflowStatusKey.classified,
           existingDocumentCode: 'DOC-0000009',
           hasManagedCopy: true,
           hasHealthyManagedCopy: false,
@@ -729,7 +730,7 @@ void main() {
             fileId: 200,
             documentId: _kDocId,
             absolutePath: r'C:\Library\files\DOC-0000009.pdf',
-            fileHealthKey: 'corrupted',
+            fileHealthKey: FileHealthKey.corrupted,
             fileSizeBytes: 12345,
             sha256Hash: _kHash,
           ),
@@ -946,7 +947,7 @@ void main() {
     test('blocks when only source has unhealthy status', () async {
       final repo = _FakeRepo()
         ..docState = _classifiedState()
-        ..candidates = [_sourceCandidate(health: 'corrupted')];
+        ..candidates = [_sourceCandidate(health: FileHealthKey.corrupted)];
       final result = await _makeUseCase(repo: repo).execute(_kDocId);
       expect(
         (result as ManagedCopyBlocked).error,
@@ -1024,7 +1025,7 @@ void main() {
             documentId: _kDocId,
             absolutePath: r'C:\Sources\doc.pdf.exe',
             storedExtension: '.pdf',
-            fileHealthKey: 'healthy',
+            fileHealthKey: FileHealthKey.healthy,
             isPreferred: false,
           ),
         ];
@@ -1156,7 +1157,7 @@ void main() {
               fileId: 77,
               documentId: _kDocId,
               absolutePath: r'C:\Library\files\DOC-0000001.pdf',
-              fileHealthKey: 'missing',
+              fileHealthKey: FileHealthKey.missing,
               fileSizeBytes: 12345,
               sha256Hash: _kHash,
             ),

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:legal_library_manager/core/constants/domain_keys.dart';
 import 'package:legal_library_manager/features/documents/domain/entities/document_list_item.dart';
 import 'package:legal_library_manager/features/documents/domain/entities/document_list_query.dart';
 import 'package:legal_library_manager/features/documents/domain/repositories/document_list_repository.dart';
@@ -11,9 +12,9 @@ import 'package:legal_library_manager/features/documents/presentation/bloc/docum
 void main() {
   DocumentListItem item(int id) => DocumentListItem(
     id: id,
-    workflowStatusKey: 'imported',
-    trustLevelKey: 'unverified',
-    metadataQualityKey: 'low',
+    workflowStatusKey: WorkflowStatusKey.imported,
+    trustLevelKey: TrustLevelKey.unverified,
+    metadataQualityKey: MetadataQualityKey.low,
     fileCount: 1,
     hasDuplicate: false,
     hasCorruptedFile: false,
@@ -135,11 +136,14 @@ void main() {
 
     bloc.add(
       const DocumentListFiltersChanged(
-        DocumentListFilters(workflowStatusKey: 'classified'),
+        DocumentListFilters(workflowStatusKey: WorkflowStatusKey.classified),
       ),
     );
     await waitFor(bloc, (s) => s.status == DocumentListStatus.success);
-    expect(repo.queries.last.filters.workflowStatusKey, 'classified');
+    expect(
+      repo.queries.last.filters.workflowStatusKey,
+      WorkflowStatusKey.classified,
+    );
 
     bloc.add(const DocumentListSortChanged(DocumentListSort.titleAscending));
     await waitFor(bloc, (s) => repo.queries.length == 2);

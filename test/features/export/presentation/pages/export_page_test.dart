@@ -4,45 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:legal_library_manager/core/di/injection.dart';
-import 'package:legal_library_manager/features/documents/domain/repositories/document_metadata_repository.dart';
+import 'package:legal_library_manager/features/export/domain/entities/export_screen_data.dart';
 import 'package:legal_library_manager/features/export/domain/entities/exportable_document_ref.dart';
 import 'package:legal_library_manager/features/export/domain/entities/generate_export_batch_result.dart';
-import 'package:legal_library_manager/features/export/domain/repositories/export_batch_repository.dart';
-import 'package:legal_library_manager/features/export/domain/entities/export_batch_summary.dart';
 import 'package:legal_library_manager/features/export/presentation/bloc/export_batch_bloc.dart';
 import 'package:legal_library_manager/features/export/presentation/pages/export_page.dart';
-import 'package:legal_library_manager/features/managed_copy/domain/repositories/managed_copy_repository.dart';
 import 'package:legal_library_manager/l10n/app_localizations.dart';
-
-class _FakeManagedCopyRepository implements ManagedCopyRepository {
-  @override
-  Future<String?> loadExportRoot() async => null;
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) =>
-      throw UnimplementedError('not used');
-}
-
-class _FakeMetadataRepository implements DocumentMetadataRepository {
-  _FakeMetadataRepository(this.readyDocs);
-  final List<ExportableDocumentRef> readyDocs;
-
-  @override
-  Future<List<ExportableDocumentRef>> listReadyForExport() async => readyDocs;
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) =>
-      throw UnimplementedError('not used');
-}
-
-class _FakeBatchRepository implements ExportBatchRepository {
-  @override
-  Future<List<ExportBatchSummary>> listBatches() async => const [];
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) =>
-      throw UnimplementedError('not used');
-}
 
 void main() {
   setUp(() => getIt.reset());
@@ -55,9 +22,11 @@ void main() {
   }) async {
     getIt.registerFactory<ExportBatchBloc>(
       () => ExportBatchBloc.executor(
-        managedCopyRepository: _FakeManagedCopyRepository(),
-        metadataRepository: _FakeMetadataRepository(readyDocs),
-        batchRepository: _FakeBatchRepository(),
+        load: () async => ExportScreenData(
+          exportRoot: null,
+          readyForExportCount: readyDocs.length,
+          batches: const [],
+        ),
         generate:
             generate ?? () async => const GenerateExportBatchNothingToExport(),
       ),

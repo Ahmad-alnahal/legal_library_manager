@@ -1,61 +1,17 @@
 // test/features/export/presentation/bloc/export_batch_bloc_test.dart
 
 import 'package:flutter_test/flutter_test.dart';
-import 'package:legal_library_manager/features/documents/domain/repositories/document_metadata_repository.dart';
+import 'package:legal_library_manager/core/constants/domain_keys.dart';
 import 'package:legal_library_manager/features/export/domain/entities/export_batch_summary.dart';
-import 'package:legal_library_manager/features/export/domain/entities/exportable_document_ref.dart';
+import 'package:legal_library_manager/features/export/domain/entities/export_screen_data.dart';
 import 'package:legal_library_manager/features/export/domain/entities/generate_export_batch_result.dart';
-import 'package:legal_library_manager/features/export/domain/repositories/export_batch_repository.dart';
 import 'package:legal_library_manager/features/export/presentation/bloc/export_batch_bloc.dart';
-import 'package:legal_library_manager/features/managed_copy/domain/repositories/managed_copy_repository.dart';
-
-class _FakeManagedCopyRepository implements ManagedCopyRepository {
-  _FakeManagedCopyRepository({this.exportRoot});
-  final String? exportRoot;
-
-  @override
-  Future<String?> loadExportRoot() async => exportRoot;
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) =>
-      throw UnimplementedError('not used by ExportBatchBloc tests');
-}
-
-class _FakeMetadataRepository implements DocumentMetadataRepository {
-  _FakeMetadataRepository(this.readyDocs);
-  List<ExportableDocumentRef> readyDocs;
-
-  @override
-  Future<List<ExportableDocumentRef>> listReadyForExport() async => readyDocs;
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) =>
-      throw UnimplementedError('not used by ExportBatchBloc tests');
-}
-
-class _FakeBatchRepository implements ExportBatchRepository {
-  _FakeBatchRepository(this.batches);
-  List<ExportBatchSummary> batches;
-
-  @override
-  Future<List<ExportBatchSummary>> listBatches() async => batches;
-
-  @override
-  dynamic noSuchMethod(Invocation invocation) =>
-      throw UnimplementedError('not used by ExportBatchBloc tests');
-}
-
-ExportableDocumentRef _ref(int id) => ExportableDocumentRef(
-  id: id,
-  documentCode: 'DOC-000$id',
-  readyForExportAt: DateTime.utc(2026, 6, 1),
-);
 
 ExportBatchSummary _batch(String code) => ExportBatchSummary(
   id: 1,
   batchCode: code,
   exportPath: r'D:\Exports\batch',
-  statusKey: 'verified',
+  statusKey: ExportBatchStatusKey.verified,
   documentCount: 1,
   totalSizeBytes: 1024,
   createdAt: DateTime.utc(2026, 6, 1),
@@ -66,11 +22,11 @@ void main() {
   group('ExportBatchBloc', () {
     test('screen started loads root, count, and history', () async {
       final bloc = ExportBatchBloc.executor(
-        managedCopyRepository: _FakeManagedCopyRepository(
+        load: () async => ExportScreenData(
           exportRoot: r'D:\Exports',
+          readyForExportCount: 2,
+          batches: [_batch('EXP-2026-06-01-001')],
         ),
-        metadataRepository: _FakeMetadataRepository([_ref(1), _ref(2)]),
-        batchRepository: _FakeBatchRepository([_batch('EXP-2026-06-01-001')]),
         generate: () async => const GenerateExportBatchNothingToExport(),
       );
 
@@ -92,8 +48,6 @@ void main() {
     test(
       'generate success emits running then success and reloads history/count',
       () async {
-        final metadata = _FakeMetadataRepository([_ref(1)]);
-        final batchRepo = _FakeBatchRepository([]);
         const result = GenerateExportBatchSuccess(
           batchCode: 'EXP-2026-06-01-001',
           exportPath: r'D:\Exports\batch',
@@ -102,14 +56,20 @@ void main() {
           skippedReasons: [],
           flaggedUsageRights: [],
         );
+        var currentData = const ExportScreenData(
+          exportRoot: null,
+          readyForExportCount: 1,
+          batches: [],
+        );
         final bloc = ExportBatchBloc.executor(
-          managedCopyRepository: _FakeManagedCopyRepository(),
-          metadataRepository: metadata,
-          batchRepository: batchRepo,
+          load: () async => currentData,
           generate: () async {
             // Simulate generation reducing the ready count and adding history.
-            metadata.readyDocs = [];
-            batchRepo.batches = [_batch('EXP-2026-06-01-001')];
+            currentData = ExportScreenData(
+              exportRoot: null,
+              readyForExportCount: 0,
+              batches: [_batch('EXP-2026-06-01-001')],
+            );
             return result;
           },
         );
@@ -138,9 +98,11 @@ void main() {
 
     test('generate nothingToExport emits the correct status', () async {
       final bloc = ExportBatchBloc.executor(
-        managedCopyRepository: _FakeManagedCopyRepository(),
-        metadataRepository: _FakeMetadataRepository([]),
-        batchRepository: _FakeBatchRepository([]),
+        load: () async => const ExportScreenData(
+          exportRoot: null,
+          readyForExportCount: 0,
+          batches: [],
+        ),
         generate: () async => const GenerateExportBatchNothingToExport(),
       );
 
@@ -164,9 +126,11 @@ void main() {
     test('overlapping guard ignores a second generate while running', () async {
       var callCount = 0;
       final bloc = ExportBatchBloc.executor(
-        managedCopyRepository: _FakeManagedCopyRepository(),
-        metadataRepository: _FakeMetadataRepository([]),
-        batchRepository: _FakeBatchRepository([]),
+        load: () async => const ExportScreenData(
+          exportRoot: null,
+          readyForExportCount: 0,
+          batches: [],
+        ),
         generate: () async {
           callCount++;
           await Future<void>.delayed(const Duration(milliseconds: 50));

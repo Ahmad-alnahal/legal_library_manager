@@ -2,6 +2,8 @@
 
 import 'package:equatable/equatable.dart';
 
+import '../../../../core/constants/domain_keys.dart';
+
 /// Which slice of the library the review queue exposes.
 ///
 /// - [reviewQueue] is the default working set of documents that still need
@@ -15,14 +17,14 @@ extension ReviewQueueScopeStatuses on ReviewQueueScope {
   /// so the BLoC, repository, and tests share one source of truth.
   List<String> get statusKeys => switch (this) {
     ReviewQueueScope.reviewQueue => const [
-      'imported',
-      'needs_review',
-      'in_progress',
+      WorkflowStatusKey.imported,
+      WorkflowStatusKey.needsReview,
+      WorkflowStatusKey.inProgress,
     ],
     ReviewQueueScope.classified => const [
-      'classified',
-      'copied_to_library',
-      'ready_for_export',
+      WorkflowStatusKey.classified,
+      WorkflowStatusKey.copiedToLibrary,
+      WorkflowStatusKey.readyForExport,
     ],
   };
 }

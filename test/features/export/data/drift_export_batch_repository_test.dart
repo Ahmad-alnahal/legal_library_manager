@@ -1,6 +1,7 @@
 // test/features/export/data/drift_export_batch_repository_test.dart
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:legal_library_manager/core/constants/domain_keys.dart';
 import 'package:legal_library_manager/core/database/app_database.dart';
 import 'package:legal_library_manager/core/database/seeding/reference_seeder.dart';
 import 'package:legal_library_manager/features/export/data/repositories/drift_export_batch_repository.dart';
@@ -60,7 +61,7 @@ void main() {
       final row = await (db.select(
         db.exportBatches,
       )..where((b) => b.id.equals(id))).getSingle();
-      expect(row.statusKey, 'preparing');
+      expect(row.statusKey, ExportBatchStatusKey.preparing);
       expect(row.documentCount, 0);
       expect(row.totalSizeBytes, 0);
     });
@@ -78,14 +79,14 @@ void main() {
       final file1 = await addFile(
         db,
         doc1,
-        role: 'managed_copy',
-        health: 'healthy',
+        role: FileRoleKey.managedCopy,
+        health: FileHealthKey.healthy,
       );
       final file2 = await addFile(
         db,
         doc2,
-        role: 'managed_copy',
-        health: 'healthy',
+        role: FileRoleKey.managedCopy,
+        health: FileHealthKey.healthy,
       );
 
       await repo.insertBatchDocuments([
@@ -122,7 +123,7 @@ void main() {
 
       await repo.finalizeBatch(
         batchId: batchId,
-        statusKey: 'verified',
+        statusKey: ExportBatchStatusKey.verified,
         documentCount: 2,
         totalSizeBytes: 2048,
         completedAt: DateTime.utc(2026, 7, 18, 10),
@@ -131,7 +132,7 @@ void main() {
       final row = await (db.select(
         db.exportBatches,
       )..where((b) => b.id.equals(batchId))).getSingle();
-      expect(row.statusKey, 'verified');
+      expect(row.statusKey, ExportBatchStatusKey.verified);
       expect(row.documentCount, 2);
       expect(row.totalSizeBytes, 2048);
       expect(row.completedAt, '2026-07-18T10:00:00.000Z');

@@ -3,6 +3,7 @@
 // ignore_for_file: recursive_getters
 import 'package:drift/drift.dart';
 
+import '../../constants/domain_keys.dart';
 import 'document_types.dart';
 import 'main_categories.dart';
 import 'reference_tables.dart';
@@ -80,16 +81,16 @@ class Documents extends Table {
   TextColumn get sourceDescription => text().nullable()();
   TextColumn get trustLevelKey => text()
       .references(TrustLevels, #key, onDelete: KeyAction.restrict)
-      .withDefault(const Constant('unverified'))();
+      .withDefault(const Constant(TrustLevelKey.unverified))();
   TextColumn get usageRightsKey => text()
       .references(UsageRights, #key, onDelete: KeyAction.restrict)
-      .withDefault(const Constant('unknown'))();
+      .withDefault(const Constant(UsageRightsKey.unknown))();
   TextColumn get metadataQualityKey => text()
       .references(MetadataQualities, #key, onDelete: KeyAction.restrict)
-      .withDefault(const Constant('low'))();
+      .withDefault(const Constant(MetadataQualityKey.low))();
   TextColumn get workflowStatusKey => text()
       .references(WorkflowStatuses, #key, onDelete: KeyAction.restrict)
-      .withDefault(const Constant('imported'))();
+      .withDefault(const Constant(WorkflowStatusKey.imported))();
   TextColumn get reviewNotes => text().nullable()();
   TextColumn get classifiedAt => text().nullable()();
   TextColumn get copiedToLibraryAt => text().nullable()();

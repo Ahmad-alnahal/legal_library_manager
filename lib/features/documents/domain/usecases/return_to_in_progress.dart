@@ -1,5 +1,6 @@
 // lib/features/documents/domain/usecases/return_to_in_progress.dart
 
+import '../../../../core/constants/domain_keys.dart';
 import '../../../../core/time/clock.dart';
 import '../../../../core/validation/validation_error.dart';
 import '../../../../core/validation/validation_result.dart';
@@ -34,7 +35,7 @@ class ReturnToInProgress {
         ),
       ]);
     }
-    if (agg.workflowStatusKey != 'classified') {
+    if (agg.workflowStatusKey != WorkflowStatusKey.classified) {
       return ValidationResult([
         ValidationError(
           field: 'workflowStatus',

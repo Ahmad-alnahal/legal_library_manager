@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 
+import '../../../../core/constants/domain_keys.dart';
 import '../../../../core/database/app_database.dart';
 import '../../domain/entities/document_list_item.dart';
 import '../../domain/entities/document_list_query.dart';
@@ -37,7 +38,7 @@ SELECT
     SELECT src.file_name
     FROM document_files src
     WHERE src.document_id = d.id
-      AND src.file_role_key = 'source_original'
+      AND src.file_role_key = '${FileRoleKey.sourceOriginal}'
       AND NOT EXISTS (
         SELECT 1 FROM duplicate_group_members h
         WHERE h.file_id = src.id AND h.is_hidden_from_search = 1
@@ -77,12 +78,12 @@ SELECT
   ) AS has_duplicate,
   EXISTS(
     SELECT 1 FROM document_files df
-    WHERE df.document_id = d.id AND df.file_health_key = 'corrupted'
+    WHERE df.document_id = d.id AND df.file_health_key = '${FileHealthKey.corrupted}'
   ) AS has_corrupted_file,
   EXISTS(
     SELECT 1 FROM document_files df
     WHERE df.document_id = d.id
-      AND df.file_health_key IN ('unreadable', 'missing')
+      AND df.file_health_key IN ('${FileHealthKey.unreadable}', '${FileHealthKey.missing}')
   ) AS has_unreadable_file
 FROM documents d
 LEFT JOIN document_types dt ON dt.id = d.document_type_id
@@ -133,7 +134,7 @@ SELECT
   df.is_preferred
 FROM document_files df
 WHERE df.document_id = ?
-  AND df.file_role_key = 'source_original'
+  AND df.file_role_key = '${FileRoleKey.sourceOriginal}'
   AND NOT EXISTS (
     SELECT 1
     FROM duplicate_group_members dgm
@@ -183,8 +184,8 @@ ORDER BY df.is_preferred DESC,
                 (f) =>
                     f.id.equals(fileId) &
                     f.documentId.equals(documentId) &
-                    f.fileRoleKey.equals('source_original') &
-                    f.fileHealthKey.equals('healthy') &
+                    f.fileRoleKey.equals(FileRoleKey.sourceOriginal) &
+                    f.fileHealthKey.equals(FileHealthKey.healthy) &
                     f.extension.lower().equals('.pdf'),
               ))
               .getSingleOrNull();
@@ -195,7 +196,7 @@ ORDER BY df.is_preferred DESC,
       await (_db.update(_db.documentFiles)..where(
             (f) =>
                 f.documentId.equals(documentId) &
-                f.fileRoleKey.equals('source_original'),
+                f.fileRoleKey.equals(FileRoleKey.sourceOriginal),
           ))
           .write(const DocumentFilesCompanion(isPreferred: Value(false)));
       await (_db.update(_db.documentFiles)..where((f) => f.id.equals(fileId)))

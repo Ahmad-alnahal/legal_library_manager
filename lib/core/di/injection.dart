@@ -10,6 +10,7 @@ import '../../features/duplicates/data/repositories/drift_duplicate_review_repos
 import '../../features/duplicates/domain/repositories/duplicate_review_repository.dart';
 import '../../features/duplicates/presentation/bloc/duplicate_review_bloc.dart';
 import '../../features/export/application/use_cases/generate_export_batch.dart';
+import '../../features/export/application/use_cases/load_export_screen_data.dart';
 import '../../features/export/application/use_cases/mark_document_ready_for_export.dart';
 import '../../features/export/data/repositories/drift_export_batch_repository.dart';
 import '../../features/export/data/services/windows_export_filesystem.dart';
@@ -324,11 +325,16 @@ void configureDependencies() {
       ),
     )
     // P3.4.2 Export screen. A fresh instance per page.
-    ..registerFactory<ExportBatchBloc>(
-      () => ExportBatchBloc(
+    ..registerLazySingleton<LoadExportScreenData>(
+      () => LoadExportScreenData(
         managedCopyRepository: getIt<ManagedCopyRepository>(),
         metadataRepository: getIt<DocumentMetadataRepository>(),
         batchRepository: getIt<ExportBatchRepository>(),
+      ),
+    )
+    ..registerFactory<ExportBatchBloc>(
+      () => ExportBatchBloc(
+        loadExportScreenData: getIt<LoadExportScreenData>(),
         generateExportBatch: getIt<GenerateExportBatch>(),
       ),
     )

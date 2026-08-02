@@ -1,6 +1,7 @@
 // test/features/file_open/drift_file_open_repository_test.dart
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:legal_library_manager/core/constants/domain_keys.dart';
 import 'package:legal_library_manager/core/database/app_database.dart';
 import 'package:legal_library_manager/core/database/seeding/reference_seeder.dart';
 import 'package:legal_library_manager/core/time/clock.dart';
@@ -43,7 +44,7 @@ Future<int> _insertFile(
     .insert(
       DocumentFilesCompanion.insert(
         documentId: documentId,
-        fileRoleKey: 'source_original',
+        fileRoleKey: FileRoleKey.sourceOriginal,
         fileName: 'sample.pdf',
         absolutePath: path,
         extension: extension,
@@ -93,7 +94,7 @@ void main() {
         expect(record.absolutePath, r'C:\Library\doc.pdf');
         expect(record.extension, '.pdf');
         // Column has DB default 'unknown' when not supplied during insert.
-        expect(record.fileHealthKey, 'unknown');
+        expect(record.fileHealthKey, FileHealthKey.unknown);
       });
 
       test('returns null after the file is for a different ID', () async {

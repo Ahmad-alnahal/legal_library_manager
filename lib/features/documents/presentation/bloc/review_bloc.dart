@@ -1,5 +1,6 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/constants/domain_keys.dart';
 import '../../../../core/validation/validation_result.dart';
 import '../../../managed_copy/application/check_managed_copy_health.dart';
 import '../../domain/entities/document_aggregate.dart';
@@ -199,11 +200,12 @@ class ReviewBloc extends Bloc<ReviewEvent, ReviewState> {
         // and would emit a loading spinner that discards unsaved edits.
         final needsHealthCheck =
             checkManagedCopyHealth != null &&
-            (state.aggregate?.workflowStatusKey == 'copied_to_library' ||
+            (state.aggregate?.workflowStatusKey ==
+                    WorkflowStatusKey.copiedToLibrary ||
                 (state.aggregate?.files.any(
                       (f) =>
-                          f.fileRoleKey == 'managed_copy' &&
-                          f.fileHealthKey == 'missing',
+                          f.fileRoleKey == FileRoleKey.managedCopy &&
+                          f.fileHealthKey == FileHealthKey.missing,
                     ) ??
                     false));
         if (needsHealthCheck && !state.isDirty) await _loadDocument(id, emit);
@@ -265,10 +267,10 @@ class ReviewBloc extends Bloc<ReviewEvent, ReviewState> {
       // reflect the updated state before emitting.
       final hasMissingManagedCopy = agg.files.any(
         (file) =>
-            file.fileRoleKey == 'managed_copy' &&
-            file.fileHealthKey == 'missing',
+            file.fileRoleKey == FileRoleKey.managedCopy &&
+            file.fileHealthKey == FileHealthKey.missing,
       );
-      if ((agg.workflowStatusKey == 'copied_to_library' ||
+      if ((agg.workflowStatusKey == WorkflowStatusKey.copiedToLibrary ||
               hasMissingManagedCopy) &&
           checkManagedCopyHealth != null) {
         final healthResult = await checkManagedCopyHealth!.call(id);

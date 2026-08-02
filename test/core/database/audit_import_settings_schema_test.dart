@@ -1,6 +1,7 @@
 // `isNull` is exported by both drift and matcher; keep matcher's for tests.
 import 'package:drift/drift.dart' hide isNull;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:legal_library_manager/core/constants/domain_keys.dart';
 import 'package:legal_library_manager/core/database/app_database.dart';
 import 'package:legal_library_manager/core/database/seeding/reference_seeder.dart';
 import 'package:sqlite3/common.dart';
@@ -30,7 +31,7 @@ void main() {
         .insert(
           DocumentFilesCompanion.insert(
             documentId: documentId,
-            fileRoleKey: 'source_original',
+            fileRoleKey: FileRoleKey.sourceOriginal,
             fileName: 'a.pdf',
             absolutePath: path,
             extension: '.pdf',

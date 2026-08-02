@@ -1,5 +1,6 @@
 // lib/features/documents/domain/usecases/save_document_draft.dart
 
+import '../../../../core/constants/domain_keys.dart';
 import '../../../../core/time/clock.dart';
 import '../../../../core/validation/validation_error.dart';
 import '../../../../core/validation/validation_result.dart';
@@ -85,10 +86,10 @@ class SaveDocumentDraft {
     // keep their workflow state across metadata-only edits when the prospective
     // aggregate still passes full approval rules; everything else becomes
     // in_progress.
-    String workflowStatusKey = 'in_progress';
+    String workflowStatusKey = WorkflowStatusKey.inProgress;
     bool clearClassifiedAt = true;
-    if (existing.workflowStatusKey == 'classified' ||
-        existing.workflowStatusKey == 'copied_to_library') {
+    if (existing.workflowStatusKey == WorkflowStatusKey.classified ||
+        existing.workflowStatusKey == WorkflowStatusKey.copiedToLibrary) {
       final ValidationResult approval = await classificationValidator(
         _prospectiveAggregate(draft, existing),
       );

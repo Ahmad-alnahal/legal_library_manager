@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:legal_library_manager/core/constants/domain_keys.dart';
 import 'package:legal_library_manager/core/database/app_database.dart';
 import 'package:legal_library_manager/core/database/seeding/reference_seeder.dart';
 import 'package:legal_library_manager/features/documents/data/repositories/drift_document_list_repository.dart';
@@ -35,9 +36,9 @@ void main() {
     Future<int> addDocument({
       String? title,
       required String updatedAt,
-      String status = 'imported',
+      String status = WorkflowStatusKey.imported,
       String country = 'ps',
-      String trust = 'unverified',
+      String trust = TrustLevelKey.unverified,
       int? typeId,
       int? mainId,
       int? subId,
@@ -77,7 +78,7 @@ void main() {
           .insert(
             DocumentFilesCompanion.insert(
               documentId: documentId,
-              fileRoleKey: 'source_original',
+              fileRoleKey: FileRoleKey.sourceOriginal,
               fileName: name,
               absolutePath: path,
               extension: '.pdf',
@@ -189,7 +190,7 @@ void main() {
       await addFile(
         file,
         name: 'قرار-محكمة.pdf',
-        health: 'healthy',
+        health: FileHealthKey.healthy,
         path: r'C:\archive\قرار-محكمة.pdf',
       );
       // These inserts bypass the write-path repositories that call
@@ -228,8 +229,8 @@ void main() {
       final matching = await addDocument(
         title: 'المطابق',
         updatedAt: now,
-        status: 'classified',
-        trust: 'trusted',
+        status: WorkflowStatusKey.classified,
+        trust: TrustLevelKey.trusted,
         typeId: bookTypeId,
         mainId: publicLawId,
         subId: constitutionalId,
@@ -238,27 +239,27 @@ void main() {
       final duplicateFile = await addFile(
         matching,
         name: 'matching.pdf',
-        health: 'corrupted',
+        health: FileHealthKey.corrupted,
         path: r'C:\src\matching.pdf',
       );
       await markDuplicate(duplicateFile);
       await addDocument(
         title: 'غير مطابق',
         updatedAt: '2026-06-08T12:00:00.000Z',
-        status: 'imported',
+        status: WorkflowStatusKey.imported,
       );
 
       final page = await repository.getDocuments(
         DocumentListQuery(
           filters: DocumentListFilters(
-            workflowStatusKey: 'classified',
+            workflowStatusKey: WorkflowStatusKey.classified,
             documentTypeId: bookTypeId,
             mainCategoryId: publicLawId,
             subCategoryId: constitutionalId,
             countryKey: 'ps',
             languageKey: 'ar',
-            trustLevelKey: 'trusted',
-            fileHealthKey: 'corrupted',
+            trustLevelKey: TrustLevelKey.trusted,
+            fileHealthKey: FileHealthKey.corrupted,
             duplicateFilter: DuplicateFilter.duplicatesOnly,
           ),
         ),
@@ -284,13 +285,13 @@ void main() {
       await addFile(
         plain,
         name: 'plain.pdf',
-        health: 'healthy',
+        health: FileHealthKey.healthy,
         path: r'C:\src\plain.pdf',
       );
       final duplicateFile = await addFile(
         duplicate,
         name: 'duplicate.pdf',
-        health: 'unreadable',
+        health: FileHealthKey.unreadable,
         path: r'C:\src\duplicate.pdf',
       );
       await markDuplicate(duplicateFile);
@@ -315,13 +316,13 @@ void main() {
       final first = await addFile(
         documentId,
         name: 'first.pdf',
-        health: 'healthy',
+        health: FileHealthKey.healthy,
         path: r'C:\src\first.pdf',
       );
       final second = await addFile(
         documentId,
         name: 'second.pdf',
-        health: 'healthy',
+        health: FileHealthKey.healthy,
         path: r'C:\src\second.pdf',
       );
 
@@ -339,13 +340,13 @@ void main() {
       final hidden = await addFile(
         documentId,
         name: 'hidden.pdf',
-        health: 'healthy',
+        health: FileHealthKey.healthy,
         path: r'C:\src\hidden.pdf',
       );
       final visible = await addFile(
         documentId,
         name: 'visible.pdf',
-        health: 'healthy',
+        health: FileHealthKey.healthy,
         path: r'C:\src\visible.pdf',
       );
       await markDuplicate(hidden, hiddenFromSearch: true);
@@ -364,13 +365,13 @@ void main() {
         final healthy = await addFile(
           documentId,
           name: 'healthy.pdf',
-          health: 'healthy',
+          health: FileHealthKey.healthy,
           path: r'C:\src\healthy.pdf',
         );
         final corrupted = await addFile(
           documentId,
           name: 'corrupted.pdf',
-          health: 'corrupted',
+          health: FileHealthKey.corrupted,
           path: r'C:\src\corrupted.pdf',
         );
         await repository.setPreferredSourceFile(documentId, healthy);
@@ -392,7 +393,7 @@ void main() {
         await addFile(
           documentId,
           name: 'المرجع القانوني الأصلي.pdf',
-          health: 'healthy',
+          health: FileHealthKey.healthy,
           path: r'C:\src\original.pdf',
         );
 
@@ -412,13 +413,13 @@ void main() {
         final fileA = await addFile(
           documentId,
           name: 'a.pdf',
-          health: 'healthy',
+          health: FileHealthKey.healthy,
           path: r'C:\src\pref-a.pdf',
         );
         final fileB = await addFile(
           documentId,
           name: 'b.pdf',
-          health: 'healthy',
+          health: FileHealthKey.healthy,
           path: r'C:\src\pref-b.pdf',
         );
 
@@ -473,13 +474,13 @@ void main() {
         final fileA = await addFile(
           documentId,
           name: 'a.pdf',
-          health: 'healthy',
+          health: FileHealthKey.healthy,
           path: r'C:\src\legacy-a.pdf',
         );
         final fileB = await addFile(
           documentId,
           name: 'b.pdf',
-          health: 'healthy',
+          health: FileHealthKey.healthy,
           path: r'C:\src\legacy-b.pdf',
         );
 
@@ -528,13 +529,13 @@ void main() {
         final hidden = await addFile(
           documentId,
           name: 'aaa-hidden.pdf',
-          health: 'healthy',
+          health: FileHealthKey.healthy,
           path: r'C:\src\aaa-hidden.pdf',
         );
         await addFile(
           documentId,
           name: 'zzz-visible.pdf',
-          health: 'healthy',
+          health: FileHealthKey.healthy,
           path: r'C:\src\zzz-visible.pdf',
         );
         await markDuplicate(hidden, hiddenFromSearch: true);
@@ -551,13 +552,13 @@ void main() {
         await addFile(
           documentId,
           name: 'a.pdf',
-          health: 'healthy',
+          health: FileHealthKey.healthy,
           path: r'C:\src\list-a.pdf',
         );
         final fileB = await addFile(
           documentId,
           name: 'b.pdf',
-          health: 'healthy',
+          health: FileHealthKey.healthy,
           path: r'C:\src\list-b.pdf',
         );
 

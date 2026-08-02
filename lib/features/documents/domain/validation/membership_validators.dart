@@ -1,5 +1,6 @@
 // lib/features/documents/domain/validation/membership_validators.dart
 
+import '../../../../core/constants/domain_keys.dart';
 import '../../../reference/domain/entities/sub_category_ref.dart';
 
 /// Pure, reusable cross-table membership checks required by finalized schema
@@ -37,5 +38,7 @@ abstract final class MembershipValidators {
     required int snapshotDocumentId,
     required int fileDocumentId,
     required String fileRoleKey,
-  }) => fileDocumentId == snapshotDocumentId && fileRoleKey == 'managed_copy';
+  }) =>
+      fileDocumentId == snapshotDocumentId &&
+      fileRoleKey == FileRoleKey.managedCopy;
 }

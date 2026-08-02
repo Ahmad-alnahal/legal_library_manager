@@ -2,6 +2,7 @@
 
 import 'package:drift/drift.dart';
 
+import '../../../../core/constants/domain_keys.dart';
 import '../../../../core/database/app_database.dart';
 import '../../domain/entities/import_batch_record.dart';
 import '../../domain/entities/import_batch_report.dart';
@@ -21,7 +22,7 @@ class DriftImportRepository implements ImportRepository {
 
   final AppDatabase _db;
 
-  static const String _sourceRole = 'source_original';
+  static const String _sourceRole = FileRoleKey.sourceOriginal;
 
   /// `settings` keys for the durable, monotonic code allocators.
   static const String _seqImportBatch = 'seq.import_batch';
@@ -642,11 +643,11 @@ class DriftImportRepository implements ImportRepository {
         doc.copiedToLibraryAt != null ||
         doc.readyForExportAt != null ||
         doc.archivedAt != null ||
-        doc.workflowStatusKey != 'imported' ||
+        doc.workflowStatusKey != WorkflowStatusKey.imported ||
         // Reference values changed from their schema defaults are meaningful.
-        doc.trustLevelKey != 'unverified' ||
-        doc.usageRightsKey != 'unknown' ||
-        doc.metadataQualityKey != 'low';
+        doc.trustLevelKey != TrustLevelKey.unverified ||
+        doc.usageRightsKey != UsageRightsKey.unknown ||
+        doc.metadataQualityKey != MetadataQualityKey.low;
     if (meaningfulFields) return true;
 
     final bool hasClassifications = (await (_db.select(

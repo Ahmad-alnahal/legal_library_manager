@@ -2,6 +2,7 @@
 
 import 'package:drift/drift.dart';
 
+import '../../../../core/constants/domain_keys.dart';
 import '../../../../core/database/app_database.dart';
 import '../../domain/entities/export_batch_document_entry.dart';
 import '../../domain/entities/export_batch_summary.dart';
@@ -52,7 +53,7 @@ class DriftExportBatchRepository implements ExportBatchRepository {
           ExportBatchesCompanion.insert(
             batchCode: batchCode,
             exportPath: exportPath,
-            statusKey: 'preparing',
+            statusKey: ExportBatchStatusKey.preparing,
             createdAt: createdAt.toIso8601String(),
           ),
         );

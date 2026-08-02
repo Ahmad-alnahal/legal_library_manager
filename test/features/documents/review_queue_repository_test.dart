@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:legal_library_manager/core/constants/domain_keys.dart';
 import 'package:legal_library_manager/core/database/app_database.dart';
 import 'package:legal_library_manager/core/database/seeding/reference_seeder.dart';
 import 'package:legal_library_manager/features/documents/data/repositories/drift_review_queue_repository.dart';
@@ -31,7 +32,7 @@ void main() {
           .insert(
             DocumentFilesCompanion.insert(
               documentId: documentId,
-              fileRoleKey: 'source_original',
+              fileRoleKey: FileRoleKey.sourceOriginal,
               fileName: 'file_$n.pdf',
               absolutePath: 'C:\\src\\file_$n.pdf',
               extension: '.pdf',
@@ -50,7 +51,7 @@ void main() {
       required String status,
       String? title,
       String updatedAt = now,
-      List<String> fileHealths = const ['healthy'],
+      List<String> fileHealths = const [FileHealthKey.healthy],
     }) async {
       final id = await db
           .into(db.documents)
@@ -71,11 +72,11 @@ void main() {
     test(
       'default queue includes imported, needs_review, in_progress',
       () async {
-        final imported = await addDocument(status: 'imported');
-        final needsReview = await addDocument(status: 'needs_review');
-        final inProgress = await addDocument(status: 'in_progress');
-        await addDocument(status: 'classified');
-        await addDocument(status: 'copied_to_library');
+        final imported = await addDocument(status: WorkflowStatusKey.imported);
+        final needsReview = await addDocument(status: WorkflowStatusKey.needsReview);
+        final inProgress = await addDocument(status: WorkflowStatusKey.inProgress);
+        await addDocument(status: WorkflowStatusKey.classified);
+        await addDocument(status: WorkflowStatusKey.copiedToLibrary);
 
         final page = await repository.getQueue(const ReviewQueueQuery());
 
@@ -86,9 +87,9 @@ void main() {
           inProgress,
         ]);
         expect(page.items.map((e) => e.workflowStatusKey), [
-          'imported',
-          'needs_review',
-          'in_progress',
+          WorkflowStatusKey.imported,
+          WorkflowStatusKey.needsReview,
+          WorkflowStatusKey.inProgress,
         ]);
       },
     );
@@ -96,10 +97,10 @@ void main() {
     test(
       'classified scope returns classified, copied, and ready_for_export documents',
       () async {
-        await addDocument(status: 'imported');
-        final classified = await addDocument(status: 'classified');
-        final copied = await addDocument(status: 'copied_to_library');
-        final readyForExport = await addDocument(status: 'ready_for_export');
+        await addDocument(status: WorkflowStatusKey.imported);
+        final classified = await addDocument(status: WorkflowStatusKey.classified);
+        final copied = await addDocument(status: WorkflowStatusKey.copiedToLibrary);
+        final readyForExport = await addDocument(status: WorkflowStatusKey.readyForExport);
 
         final page = await repository.getQueue(
           const ReviewQueueQuery(scope: ReviewQueueScope.classified),
@@ -112,9 +113,9 @@ void main() {
           readyForExport,
         ]);
         expect(page.items.map((item) => item.workflowStatusKey), [
-          'classified',
-          'copied_to_library',
-          'ready_for_export',
+          WorkflowStatusKey.classified,
+          WorkflowStatusKey.copiedToLibrary,
+          WorkflowStatusKey.readyForExport,
         ]);
       },
     );
@@ -122,7 +123,7 @@ void main() {
     test('pagination is stable and deterministic by id', () async {
       final ids = <int>[];
       for (var i = 0; i < 7; i++) {
-        ids.add(await addDocument(status: 'imported', title: 'وثيقة $i'));
+        ids.add(await addDocument(status: WorkflowStatusKey.imported, title: 'وثيقة $i'));
       }
 
       final first = await repository.getQueue(const ReviewQueueQuery(limit: 3));
@@ -150,7 +151,7 @@ void main() {
           .insert(
             DocumentsCompanion.insert(
               documentTypeId: Value(bookTypeId),
-              workflowStatusKey: const Value('imported'),
+              workflowStatusKey: const Value(WorkflowStatusKey.imported),
               createdAt: now,
               updatedAt: now,
             ),
@@ -160,7 +161,7 @@ void main() {
           .insert(
             DocumentFilesCompanion.insert(
               documentId: id,
-              fileRoleKey: 'source_original',
+              fileRoleKey: FileRoleKey.sourceOriginal,
               fileName: 'الأصل.pdf',
               absolutePath: r'C:\src\original.pdf',
               extension: '.pdf',
@@ -178,18 +179,25 @@ void main() {
 
     group('broken-file eligibility', () {
       test('a document with only broken files is excluded', () async {
-        await addDocument(status: 'imported', fileHealths: const ['corrupted']);
         await addDocument(
-          status: 'needs_review',
-          fileHealths: const ['unreadable'],
+          status: WorkflowStatusKey.imported,
+          fileHealths: const [FileHealthKey.corrupted],
         );
         await addDocument(
-          status: 'in_progress',
-          fileHealths: const ['missing'],
+          status: WorkflowStatusKey.needsReview,
+          fileHealths: const [FileHealthKey.unreadable],
         );
         await addDocument(
-          status: 'imported',
-          fileHealths: const ['corrupted', 'missing', 'unreadable'],
+          status: WorkflowStatusKey.inProgress,
+          fileHealths: const [FileHealthKey.missing],
+        );
+        await addDocument(
+          status: WorkflowStatusKey.imported,
+          fileHealths: const [
+            FileHealthKey.corrupted,
+            FileHealthKey.missing,
+            FileHealthKey.unreadable,
+          ],
         );
 
         final page = await repository.getQueue(const ReviewQueueQuery());
@@ -199,7 +207,7 @@ void main() {
       });
 
       test('a document with zero files is excluded', () async {
-        await addDocument(status: 'imported', fileHealths: const []);
+        await addDocument(status: WorkflowStatusKey.imported, fileHealths: const []);
 
         final page = await repository.getQueue(const ReviewQueueQuery());
 
@@ -209,12 +217,12 @@ void main() {
 
       test('healthy and unknown documents are included', () async {
         final healthy = await addDocument(
-          status: 'imported',
-          fileHealths: const ['healthy'],
+          status: WorkflowStatusKey.imported,
+          fileHealths: const [FileHealthKey.healthy],
         );
         final unknown = await addDocument(
-          status: 'in_progress',
-          fileHealths: const ['unknown'],
+          status: WorkflowStatusKey.inProgress,
+          fileHealths: const [FileHealthKey.unknown],
         );
 
         final page = await repository.getQueue(const ReviewQueueQuery());
@@ -227,8 +235,8 @@ void main() {
         'a document with both broken and reviewable files is included',
         () async {
           final mixed = await addDocument(
-            status: 'imported',
-            fileHealths: const ['corrupted', 'healthy'],
+            status: WorkflowStatusKey.imported,
+            fileHealths: const [FileHealthKey.corrupted, FileHealthKey.healthy],
           );
 
           final page = await repository.getQueue(const ReviewQueueQuery());
@@ -240,14 +248,14 @@ void main() {
 
       test('classified scope also excludes broken-only documents', () async {
         final ok = await addDocument(
-          status: 'classified',
-          fileHealths: const ['healthy'],
+          status: WorkflowStatusKey.classified,
+          fileHealths: const [FileHealthKey.healthy],
         );
         await addDocument(
-          status: 'classified',
-          fileHealths: const ['corrupted'],
+          status: WorkflowStatusKey.classified,
+          fileHealths: const [FileHealthKey.corrupted],
         );
-        await addDocument(status: 'classified', fileHealths: const []);
+        await addDocument(status: WorkflowStatusKey.classified, fileHealths: const []);
 
         final page = await repository.getQueue(
           const ReviewQueueQuery(scope: ReviewQueueScope.classified),
@@ -264,12 +272,12 @@ void main() {
           for (var i = 0; i < 5; i++) {
             // Interleave an excluded broken-only document between eligible ones.
             eligible.add(
-              await addDocument(status: 'imported', title: 'سليم $i'),
+              await addDocument(status: WorkflowStatusKey.imported, title: 'سليم $i'),
             );
             await addDocument(
-              status: 'imported',
+              status: WorkflowStatusKey.imported,
               title: 'تالف $i',
-              fileHealths: const ['corrupted'],
+              fileHealths: const [FileHealthKey.corrupted],
             );
           }
 
@@ -293,8 +301,8 @@ void main() {
 
       test('broken document/file records are not modified', () async {
         final id = await addDocument(
-          status: 'imported',
-          fileHealths: const ['corrupted'],
+          status: WorkflowStatusKey.imported,
+          fileHealths: const [FileHealthKey.corrupted],
         );
 
         await repository.getQueue(const ReviewQueueQuery());
@@ -302,11 +310,11 @@ void main() {
         final doc = await (db.select(
           db.documents,
         )..where((d) => d.id.equals(id))).getSingle();
-        expect(doc.workflowStatusKey, 'imported');
+        expect(doc.workflowStatusKey, WorkflowStatusKey.imported);
         final files = await (db.select(
           db.documentFiles,
         )..where((f) => f.documentId.equals(id))).get();
-        expect(files.single.fileHealthKey, 'corrupted');
+        expect(files.single.fileHealthKey, FileHealthKey.corrupted);
       });
     });
 
@@ -325,7 +333,7 @@ void main() {
       test('imported PDF has null document_code in review queue', () async {
         // A plain PDF import never calls allocateDocumentCode, so
         // document_code must remain null during the review stage.
-        final id = await addDocument(status: 'imported');
+        final id = await addDocument(status: WorkflowStatusKey.imported);
 
         final page = await repository.getQueue(const ReviewQueueQuery());
 
@@ -347,7 +355,7 @@ void main() {
               .into(db.documents)
               .insert(
                 DocumentsCompanion.insert(
-                  workflowStatusKey: const Value('imported'),
+                  workflowStatusKey: const Value(WorkflowStatusKey.imported),
                   createdAt: now,
                   updatedAt: now,
                   // documentCode is left unset (null) — no premature allocation.
@@ -358,12 +366,12 @@ void main() {
               .insert(
                 DocumentFilesCompanion.insert(
                   documentId: id,
-                  fileRoleKey: 'source_original',
+                  fileRoleKey: FileRoleKey.sourceOriginal,
                   fileName: 'contract.doc',
                   absolutePath: r'C:\src\contract.doc',
                   extension: '.doc',
                   fileSizeBytes: 2048,
-                  fileHealthKey: const Value('healthy'),
+                  fileHealthKey: const Value(FileHealthKey.healthy),
                   createdAt: now,
                   updatedAt: now,
                 ),
@@ -384,7 +392,7 @@ void main() {
       test(
         'review queue projects sourceFileName so the UI can display it when document_code is null',
         () async {
-          final id = await addDocument(status: 'needs_review');
+          final id = await addDocument(status: WorkflowStatusKey.needsReview);
 
           final page = await repository.getQueue(const ReviewQueueQuery());
 

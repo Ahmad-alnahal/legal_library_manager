@@ -3,6 +3,7 @@
 import 'package:drift/drift.dart';
 import 'package:path_provider/path_provider.dart';
 
+import '../../../../core/constants/domain_keys.dart';
 import '../../../../core/database/app_database.dart';
 import '../../../../core/time/clock.dart';
 import '../../domain/entities/copy_roots.dart';
@@ -45,7 +46,7 @@ class DriftManagedCopyRepository implements ManagedCopyRepository {
         await (_db.select(_db.documentFiles)..where(
               (f) =>
                   f.documentId.equals(documentId) &
-                  f.fileRoleKey.equals('managed_copy'),
+                  f.fileRoleKey.equals(FileRoleKey.managedCopy),
             ))
             .get();
 
@@ -55,7 +56,7 @@ class DriftManagedCopyRepository implements ManagedCopyRepository {
       existingDocumentCode: doc.documentCode,
       hasManagedCopy: managedCopyRows.isNotEmpty,
       hasHealthyManagedCopy: managedCopyRows.any(
-        (r) => r.fileHealthKey == 'healthy',
+        (r) => r.fileHealthKey == FileHealthKey.healthy,
       ),
     );
   }
@@ -140,7 +141,7 @@ class DriftManagedCopyRepository implements ManagedCopyRepository {
         await (_db.select(_db.documentFiles)..where(
               (f) =>
                   f.documentId.equals(documentId) &
-                  f.fileRoleKey.equals('source_original'),
+                  f.fileRoleKey.equals(FileRoleKey.sourceOriginal),
             ))
             .get();
     return rows.map((r) => r.absolutePath).toList(growable: false);
@@ -150,7 +151,7 @@ class DriftManagedCopyRepository implements ManagedCopyRepository {
   Future<List<String>> loadAllSourcePaths() async {
     final rows = await (_db.select(
       _db.documentFiles,
-    )..where((f) => f.fileRoleKey.equals('source_original'))).get();
+    )..where((f) => f.fileRoleKey.equals(FileRoleKey.sourceOriginal))).get();
     return rows.map((row) => row.absolutePath).toList(growable: false);
   }
 
@@ -214,8 +215,8 @@ class DriftManagedCopyRepository implements ManagedCopyRepository {
         await (_db.select(_db.documentFiles)..where(
               (f) =>
                   f.documentId.equals(documentId) &
-                  (f.fileRoleKey.equals('source_original') |
-                      f.fileRoleKey.equals('converted_pdf')),
+                  (f.fileRoleKey.equals(FileRoleKey.sourceOriginal) |
+                      f.fileRoleKey.equals(FileRoleKey.convertedPdf)),
             ))
             .get();
     return rows
@@ -227,7 +228,8 @@ class DriftManagedCopyRepository implements ManagedCopyRepository {
             storedExtension: r.extension,
             fileHealthKey: r.fileHealthKey,
             // converted_pdf files are never preferred over a source_original PDF.
-            isPreferred: r.fileRoleKey == 'source_original' && r.isPreferred,
+            isPreferred:
+                r.fileRoleKey == FileRoleKey.sourceOriginal && r.isPreferred,
             sha256Hash: r.sha256Hash,
           ),
         )
@@ -336,7 +338,7 @@ class DriftManagedCopyRepository implements ManagedCopyRepository {
         throw StateError('Pre-write validation failed: document not found.');
       }
       final doc = docRows.first;
-      if (doc.workflowStatusKey != 'classified') {
+      if (doc.workflowStatusKey != WorkflowStatusKey.classified) {
         throw StateError(
           'Pre-write validation failed: workflow status is not classified.',
         );
@@ -350,7 +352,7 @@ class DriftManagedCopyRepository implements ManagedCopyRepository {
           await (_db.select(_db.documentFiles)..where(
                 (f) =>
                     f.documentId.equals(data.documentId) &
-                    f.fileRoleKey.equals('managed_copy'),
+                    f.fileRoleKey.equals(FileRoleKey.managedCopy),
               ))
               .get();
 
@@ -365,11 +367,13 @@ class DriftManagedCopyRepository implements ManagedCopyRepository {
       // meaningful (M8.6/M11.4 reconciliation) and must not be collapsed into
       // a generic 'missing'.
       for (final row in existingManaged) {
-        if (row.fileHealthKey == 'healthy') {
+        if (row.fileHealthKey == FileHealthKey.healthy) {
           await (_db.update(
             _db.documentFiles,
           )..where((f) => f.id.equals(row.id))).write(
-            const DocumentFilesCompanion(fileHealthKey: Value('missing')),
+            const DocumentFilesCompanion(
+              fileHealthKey: Value(FileHealthKey.missing),
+            ),
           );
         }
       }
@@ -398,13 +402,13 @@ class DriftManagedCopyRepository implements ManagedCopyRepository {
             .insert(
               DocumentFilesCompanion.insert(
                 documentId: data.documentId,
-                fileRoleKey: 'managed_copy',
+                fileRoleKey: FileRoleKey.managedCopy,
                 fileName: data.managedFileName,
                 absolutePath: data.managedFilePath,
                 extension: '.pdf',
                 fileSizeBytes: data.fileSizeBytes,
                 sha256Hash: Value(data.sha256Hash),
-                fileHealthKey: const Value('healthy'),
+                fileHealthKey: const Value(FileHealthKey.healthy),
                 isReadOnlySource: const Value(false),
                 // is_preferred stays false; source preference is not displaced.
                 isPreferred: const Value(false),
@@ -425,7 +429,7 @@ class DriftManagedCopyRepository implements ManagedCopyRepository {
             extension: const Value('.pdf'),
             fileSizeBytes: Value(data.fileSizeBytes),
             sha256Hash: Value(data.sha256Hash),
-            fileHealthKey: const Value('healthy'),
+            fileHealthKey: const Value(FileHealthKey.healthy),
             isReadOnlySource: const Value(false),
             isPreferred: const Value(false),
             importedAt: Value(ts),
@@ -472,7 +476,7 @@ class DriftManagedCopyRepository implements ManagedCopyRepository {
         _db.documents,
       )..where((d) => d.id.equals(data.documentId))).write(
         DocumentsCompanion(
-          workflowStatusKey: const Value('copied_to_library'),
+          workflowStatusKey: const Value(WorkflowStatusKey.copiedToLibrary),
           copiedToLibraryAt: Value(ts),
           updatedAt: Value(ts),
         ),
@@ -492,7 +496,7 @@ class DriftManagedCopyRepository implements ManagedCopyRepository {
         await (_db.select(_db.documentFiles)..where(
               (f) =>
                   f.documentId.equals(documentId) &
-                  f.fileRoleKey.equals('managed_copy'),
+                  f.fileRoleKey.equals(FileRoleKey.managedCopy),
             ))
             .get();
     return rows
@@ -521,7 +525,7 @@ class DriftManagedCopyRepository implements ManagedCopyRepository {
       _db.documentFiles,
     )..where((f) => f.id.equals(fileId))).write(
       DocumentFilesCompanion(
-        fileHealthKey: const Value('missing'),
+        fileHealthKey: const Value(FileHealthKey.missing),
         updatedAt: Value(ts),
       ),
     );
@@ -552,11 +556,11 @@ class DriftManagedCopyRepository implements ManagedCopyRepository {
             (f) =>
                 f.id.equals(fileId) &
                 f.documentId.equals(documentId) &
-                f.fileRoleKey.equals('managed_copy'),
+                f.fileRoleKey.equals(FileRoleKey.managedCopy),
           ))
           .write(
             DocumentFilesCompanion(
-              fileHealthKey: const Value('healthy'),
+              fileHealthKey: const Value(FileHealthKey.healthy),
               updatedAt: Value(ts),
             ),
           );
@@ -581,7 +585,7 @@ class DriftManagedCopyRepository implements ManagedCopyRepository {
         _db.documents,
       )..where((d) => d.id.equals(documentId))).write(
         DocumentsCompanion(
-          workflowStatusKey: const Value('copied_to_library'),
+          workflowStatusKey: const Value(WorkflowStatusKey.copiedToLibrary),
           copiedToLibraryAt: Value(ts),
           updatedAt: Value(ts),
         ),
@@ -598,12 +602,12 @@ class DriftManagedCopyRepository implements ManagedCopyRepository {
     await (_db.update(_db.documents)..where(
           (d) =>
               d.id.equals(documentId) &
-              (d.workflowStatusKey.equals('copied_to_library') |
-                  d.workflowStatusKey.equals('ready_for_export')),
+              (d.workflowStatusKey.equals(WorkflowStatusKey.copiedToLibrary) |
+                  d.workflowStatusKey.equals(WorkflowStatusKey.readyForExport)),
         ))
         .write(
           DocumentsCompanion(
-            workflowStatusKey: const Value('classified'),
+            workflowStatusKey: const Value(WorkflowStatusKey.classified),
             updatedAt: Value(ts),
           ),
         );
@@ -615,7 +619,7 @@ class DriftManagedCopyRepository implements ManagedCopyRepository {
   Future<List<ManagedFileRef>> loadAllManagedCopyFiles() async {
     final rows = await (_db.select(
       _db.documentFiles,
-    )..where((f) => f.fileRoleKey.equals('managed_copy'))).get();
+    )..where((f) => f.fileRoleKey.equals(FileRoleKey.managedCopy))).get();
     return rows
         .map(
           (r) => ManagedFileRef(
@@ -642,7 +646,7 @@ class DriftManagedCopyRepository implements ManagedCopyRepository {
       _db.documentFiles,
     )..where((f) => f.id.equals(fileId))).write(
       DocumentFilesCompanion(
-        fileHealthKey: const Value('corrupted'),
+        fileHealthKey: const Value(FileHealthKey.corrupted),
         updatedAt: Value(ts),
       ),
     );
@@ -666,7 +670,9 @@ class DriftManagedCopyRepository implements ManagedCopyRepository {
         await (_db.selectOnly(_db.documents)
               ..addColumns([_db.documents.id])
               ..where(
-                _db.documents.workflowStatusKey.equals('copied_to_library'),
+                _db.documents.workflowStatusKey.equals(
+                  WorkflowStatusKey.copiedToLibrary,
+                ),
               ))
             .get();
     return rows
@@ -688,8 +694,12 @@ class DriftManagedCopyRepository implements ManagedCopyRepository {
         await (_db.selectOnly(_db.documentFiles)
               ..addColumns([_db.documentFiles.documentId])
               ..where(
-                _db.documentFiles.fileRoleKey.equals('managed_copy') &
-                    _db.documentFiles.fileHealthKey.equals('healthy'),
+                _db.documentFiles.fileRoleKey.equals(
+                      FileRoleKey.managedCopy,
+                    ) &
+                    _db.documentFiles.fileHealthKey.equals(
+                      FileHealthKey.healthy,
+                    ),
               ))
             .get();
     final healthyDocIds = healthyRows

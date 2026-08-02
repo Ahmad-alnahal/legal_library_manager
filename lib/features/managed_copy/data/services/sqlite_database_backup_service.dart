@@ -71,10 +71,38 @@ class SqliteDatabaseBackupService implements DatabaseBackupService {
         return const BackupFailure(safeMessage: 'Backup verification failed.');
       }
 
+      _pruneOldBackups(backupRoot, keep: 3);
       return BackupSuccess(backupPath: backupPath);
     } catch (_) {
       return const BackupFailure(safeMessage: 'Backup creation failed.');
     }
+  }
+
+  /// Deletes all but the [keep] most recent owned backup files in
+  /// [backupRoot]. Never touches non-owned files. Any failure here is
+  /// swallowed — pruning must never fail the backup operation itself.
+  void _pruneOldBackups(String backupRoot, {required int keep}) {
+    try {
+      final dir = Directory(backupRoot);
+      if (!dir.existsSync()) return;
+      final files = dir
+          .listSync()
+          .whereType<File>()
+          .where((f) => _isOwnedBackup(f.path))
+          .toList()
+        ..sort((a, b) => a.path.compareTo(b.path));
+      if (files.length <= keep) return;
+      for (final f in files.sublist(0, files.length - keep)) {
+        try {
+          f.deleteSync();
+        } catch (_) {}
+      }
+    } catch (_) {}
+  }
+
+  bool _isOwnedBackup(String path) {
+    final name = path.split(r'\').last.split('/').last;
+    return name.startsWith('legal_library_backup_') && name.endsWith('.sqlite');
   }
 
   /// Verifies a backup file by:

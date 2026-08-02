@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:legal_library_manager/core/constants/domain_keys.dart';
 import 'package:legal_library_manager/core/time/clock.dart';
 import 'package:legal_library_manager/core/validation/validation_error.dart';
 import 'package:legal_library_manager/core/validation/validation_result.dart';
@@ -26,7 +27,7 @@ void main() {
 
   DocumentAggregate makeAgg(
     int id, {
-    String status = 'in_progress',
+    String status = WorkflowStatusKey.inProgress,
     String? title = 'عنوان',
     String? fileName,
   }) => DocumentAggregate(
@@ -43,7 +44,11 @@ void main() {
   );
 
   ReviewQueueItem qItem(int id) =>
-      ReviewQueueItem(id: id, workflowStatusKey: 'imported', updatedAt: now);
+      ReviewQueueItem(
+        id: id,
+        workflowStatusKey: WorkflowStatusKey.imported,
+        updatedAt: now,
+      );
 
   ReviewQueuePage qPage(List<int> ids, int total, {int offset = 0}) =>
       ReviewQueuePage(
@@ -338,8 +343,12 @@ void main() {
     var returned = false;
     final queue = FakeReviewQueueRepository((q) async => qPage([1], 1));
     final load = FakeLoad()
-      ..handler = (id) async =>
-          makeAgg(id, status: returned ? 'in_progress' : 'classified');
+      ..handler = (id) async => makeAgg(
+        id,
+        status: returned
+            ? WorkflowStatusKey.inProgress
+            : WorkflowStatusKey.classified,
+      );
     final ret = FakeReturn()
       ..handler = (_) async {
         returned = true;
@@ -352,10 +361,13 @@ void main() {
     await waitFor(bloc, (s) => s.scope == ReviewQueueScope.classified);
     bloc.add(const ReviewDocumentSelected(1));
     await waitFor(bloc, (s) => s.documentStatus == ReviewDocumentStatus.loaded);
-    expect(bloc.state.aggregate!.workflowStatusKey, 'classified');
+    expect(bloc.state.aggregate!.workflowStatusKey, WorkflowStatusKey.classified);
 
     bloc.add(const ReviewReturnedToInProgress());
-    await waitFor(bloc, (s) => s.aggregate?.workflowStatusKey == 'in_progress');
+    await waitFor(
+      bloc,
+      (s) => s.aggregate?.workflowStatusKey == WorkflowStatusKey.inProgress,
+    );
     expect(ret.callCount, 1);
     expect(bloc.state.selectedDocumentId, 1);
     expect(bloc.state.documentStatus, ReviewDocumentStatus.loaded);
@@ -367,8 +379,12 @@ void main() {
       var copied = false;
       final queue = FakeReviewQueueRepository((q) async => qPage([1], 1));
       final load = FakeLoad()
-        ..handler = (id) async =>
-            makeAgg(id, status: copied ? 'copied_to_library' : 'classified');
+        ..handler = (id) async => makeAgg(
+          id,
+          status: copied
+              ? WorkflowStatusKey.copiedToLibrary
+              : WorkflowStatusKey.classified,
+        );
       final bloc = build(queue: queue, load: load);
       addTearDown(bloc.close);
 
@@ -379,18 +395,23 @@ void main() {
         bloc,
         (s) => s.documentStatus == ReviewDocumentStatus.loaded,
       );
-      expect(bloc.state.queueItems.single.workflowStatusKey, 'classified');
+      expect(
+        bloc.state.queueItems.single.workflowStatusKey,
+        WorkflowStatusKey.classified,
+      );
 
       copied = true;
       bloc.add(const ReviewRefreshRequested());
       await waitFor(
         bloc,
-        (s) => s.aggregate?.workflowStatusKey == 'copied_to_library',
+        (s) =>
+            s.aggregate?.workflowStatusKey ==
+            WorkflowStatusKey.copiedToLibrary,
       );
 
       expect(
         bloc.state.queueItems.single.workflowStatusKey,
-        'copied_to_library',
+        WorkflowStatusKey.copiedToLibrary,
       );
     },
   );

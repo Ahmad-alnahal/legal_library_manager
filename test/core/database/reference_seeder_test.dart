@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:legal_library_manager/core/constants/domain_keys.dart';
 import 'package:legal_library_manager/core/database/app_database.dart';
 import 'package:legal_library_manager/core/database/seeding/reference_seeder.dart';
 
@@ -45,14 +46,14 @@ void main() {
       expect(publicLaw.nameEn, 'Public Law');
 
       final copied = (await db.select(db.workflowStatuses).get()).firstWhere(
-        (r) => r.key == 'copied_to_library',
+        (r) => r.key == WorkflowStatusKey.copiedToLibrary,
       );
       // Copy-only policy: status must never use move ("نقل") wording.
       expect(copied.nameAr, 'نُسخ إلى المكتبة');
       expect(copied.nameAr, isNot(contains('نقل')));
 
       final unverified = (await db.select(db.trustLevels).get()).firstWhere(
-        (r) => r.key == 'unverified',
+        (r) => r.key == TrustLevelKey.unverified,
       );
       expect(unverified.nameEn, 'Unverified');
     });
@@ -88,7 +89,7 @@ void main() {
           .into(db.trustLevels)
           .insert(
             TrustLevelsCompanion.insert(
-              key: 'trusted',
+              key: TrustLevelKey.trusted,
               nameAr: 'قديم',
               nameEn: 'Old',
               sortOrder: 99,
@@ -109,7 +110,7 @@ void main() {
       expect(books.single.sortOrder, 1);
 
       final trusted = (await db.select(db.trustLevels).get()).firstWhere(
-        (r) => r.key == 'trusted',
+        (r) => r.key == TrustLevelKey.trusted,
       );
       expect(trusted.nameAr, 'موثوق');
       expect(trusted.isActive, isTrue);

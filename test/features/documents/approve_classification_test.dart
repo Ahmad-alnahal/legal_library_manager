@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:legal_library_manager/core/constants/domain_keys.dart';
 import 'package:legal_library_manager/core/database/app_database.dart';
 import 'package:legal_library_manager/core/database/seeding/reference_seeder.dart';
 import 'package:legal_library_manager/features/documents/data/repositories/drift_document_metadata_repository.dart';
@@ -48,9 +49,9 @@ void main() {
         documentTypeId: await typeId(db, typeKey),
         title: 'عنوان',
         languageKey: 'ar',
-        trustLevelKey: 'trusted',
-        usageRightsKey: 'open_access',
-        metadataQualityKey: 'high',
+        trustLevelKey: TrustLevelKey.trusted,
+        usageRightsKey: UsageRightsKey.openAccess,
+        metadataQualityKey: MetadataQualityKey.high,
       );
 
   Future<DocumentClassificationInput> publicLawConstitutional() async =>
@@ -79,7 +80,7 @@ void main() {
         ),
       );
       expect((await approve.call(id)).isValid, isTrue);
-      expect(await statusOf(id), 'classified');
+      expect(await statusOf(id), WorkflowStatusKey.classified);
 
       // Without author.
       final int id2 = await insertDocument(db);
@@ -95,7 +96,7 @@ void main() {
       final r = await approve.call(id2);
       expect(r.isInvalid, isTrue);
       expect(r.hasError('book.author'), isTrue);
-      expect(await statusOf(id2), 'in_progress');
+      expect(await statusOf(id2), WorkflowStatusKey.inProgress);
     });
 
     test('thesis: requires researcher, degree, university', () async {
@@ -381,7 +382,12 @@ void main() {
 
     test('corrupted source does not satisfy approval', () async {
       final int id = await approvableBookWithoutFile();
-      await addFile(db, id, role: 'source_original', health: 'corrupted');
+      await addFile(
+        db,
+        id,
+        role: FileRoleKey.sourceOriginal,
+        health: FileHealthKey.corrupted,
+      );
       expect((await approve.call(id)).hasCode('no_acceptable_file'), isTrue);
     });
 
@@ -396,8 +402,8 @@ void main() {
       final int conv = await addFile(
         db,
         id,
-        role: 'converted_pdf',
-        health: 'healthy',
+        role: FileRoleKey.convertedPdf,
+        health: FileHealthKey.healthy,
       );
       await addConversion(
         db,
@@ -414,8 +420,8 @@ void main() {
       final int conv = await addFile(
         db,
         id,
-        role: 'converted_pdf',
-        health: 'healthy',
+        role: FileRoleKey.convertedPdf,
+        health: FileHealthKey.healthy,
       );
       // quality_approved alone must never make a failed conversion acceptable.
       await addConversion(
@@ -433,8 +439,8 @@ void main() {
       final int conv = await addFile(
         db,
         id,
-        role: 'converted_pdf',
-        health: 'healthy',
+        role: FileRoleKey.convertedPdf,
+        health: FileHealthKey.healthy,
       );
       await addConversion(db, id, conv, statusKey: 'needs_conversion_review');
       expect((await approve.call(id)).hasCode('no_acceptable_file'), isTrue);
@@ -445,8 +451,8 @@ void main() {
       final int conv = await addFile(
         db,
         id,
-        role: 'converted_pdf',
-        health: 'corrupted',
+        role: FileRoleKey.convertedPdf,
+        health: FileHealthKey.corrupted,
       );
       await addConversion(
         db,
@@ -480,7 +486,7 @@ void main() {
       final doc = await (db.select(
         db.documents,
       )..where((d) => d.id.equals(id))).getSingle();
-      expect(doc.workflowStatusKey, 'classified');
+      expect(doc.workflowStatusKey, WorkflowStatusKey.classified);
       expect(doc.classifiedAt, '2026-06-07T00:00:00.000Z');
       expect(doc.updatedAt, '2026-06-07T00:00:00.000Z');
     });
@@ -503,7 +509,7 @@ void main() {
       final after = await (db.select(
         db.documents,
       )..where((d) => d.id.equals(id))).getSingle();
-      expect(after.workflowStatusKey, 'in_progress');
+      expect(after.workflowStatusKey, WorkflowStatusKey.inProgress);
       expect(after.classifiedAt, isNull);
       expect(after.updatedAt, before.updatedAt);
     });

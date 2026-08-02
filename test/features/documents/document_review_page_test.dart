@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:legal_library_manager/core/constants/domain_keys.dart';
 import 'package:legal_library_manager/core/di/injection.dart';
 import 'package:legal_library_manager/core/time/clock.dart';
 import 'package:legal_library_manager/core/validation/validation_error.dart';
@@ -56,7 +57,7 @@ void main() {
 
   DocumentAggregate agg(
     int id, {
-    String status = 'in_progress',
+    String status = WorkflowStatusKey.inProgress,
     String title = 'مستند',
     DocumentClassificationInput? primary,
   }) => DocumentAggregate(
@@ -71,7 +72,7 @@ void main() {
     conversions: const [],
   );
 
-  ReviewQueueItem qItem(int id, {String status = 'imported'}) =>
+  ReviewQueueItem qItem(int id, {String status = WorkflowStatusKey.imported}) =>
       ReviewQueueItem(
         id: id,
         workflowStatusKey: status,
@@ -349,7 +350,7 @@ void main() {
   testWidgets('return to in_progress requires confirmation and succeeds', (
     tester,
   ) async {
-    load.handler = (id) async => agg(id, status: 'classified');
+    load.handler = (id) async => agg(id, status: WorkflowStatusKey.classified);
     ret.handler = (_) async => const ValidationResult.valid();
     await _pump(tester);
     await tester.tap(find.byKey(const Key('review_queue_tile_1')));
@@ -582,7 +583,7 @@ void main() {
   testWidgets(
     'corrupted file hides Open File button but shows Open Folder button',
     (tester) async {
-      docListRepo.sourceFileHealthKey = 'corrupted';
+      docListRepo.sourceFileHealthKey = FileHealthKey.corrupted;
       await _pump(tester);
       await tester.tap(find.byKey(const Key('review_queue_tile_1')));
       await tester.pumpAndSettle();
@@ -595,7 +596,7 @@ void main() {
   testWidgets(
     'unreadable file hides Open File button but shows Open Folder button',
     (tester) async {
-      docListRepo.sourceFileHealthKey = 'unreadable';
+      docListRepo.sourceFileHealthKey = FileHealthKey.unreadable;
       await _pump(tester);
       await tester.tap(find.byKey(const Key('review_queue_tile_1')));
       await tester.pumpAndSettle();
@@ -606,7 +607,7 @@ void main() {
   );
 
   testWidgets('missing health hides Open File button', (tester) async {
-    docListRepo.sourceFileHealthKey = 'missing';
+    docListRepo.sourceFileHealthKey = FileHealthKey.missing;
     await _pump(tester);
     await tester.tap(find.byKey(const Key('review_queue_tile_1')));
     await tester.pumpAndSettle();
@@ -632,7 +633,7 @@ void main() {
   testWidgets(
     'shows the mark-ready-for-export button for a copied_to_library document',
     (tester) async {
-      load.handler = (id) async => agg(id, status: 'copied_to_library');
+      load.handler = (id) async => agg(id, status: WorkflowStatusKey.copiedToLibrary);
       await _pump(tester);
       await tester.tap(find.byKey(const Key('review_queue_tile_1')));
       await tester.pumpAndSettle();
@@ -647,7 +648,7 @@ void main() {
   testWidgets(
     'hides the mark-ready-for-export button for a ready_for_export document',
     (tester) async {
-      load.handler = (id) async => agg(id, status: 'ready_for_export');
+      load.handler = (id) async => agg(id, status: WorkflowStatusKey.readyForExport);
       await _pump(tester);
       await tester.tap(find.byKey(const Key('review_queue_tile_1')));
       await tester.pumpAndSettle();
@@ -667,7 +668,7 @@ void main() {
   testWidgets(
     'disables the mark-ready-for-export button while ReviewBloc is busy',
     (tester) async {
-      load.handler = (id) async => agg(id, status: 'copied_to_library');
+      load.handler = (id) async => agg(id, status: WorkflowStatusKey.copiedToLibrary);
       save.handler = (_) async {
         await Future<void>.delayed(const Duration(milliseconds: 50));
         return const ValidationResult.valid();
@@ -863,7 +864,7 @@ class FakeReturn extends ReturnToInProgress {
 
 class FakeDocumentListRepo implements DocumentListRepository {
   /// Override per-test to exercise non-healthy health visibility.
-  String sourceFileHealthKey = 'healthy';
+  String sourceFileHealthKey = FileHealthKey.healthy;
 
   @override
   Future<DocumentListPage> getDocuments(DocumentListQuery query) async =>
@@ -875,7 +876,7 @@ class FakeDocumentListRepo implements DocumentListRepository {
       id: 1,
       fileName: 'source.pdf',
       absolutePath: r'D:\source\source.pdf',
-      fileRoleKey: 'source_original',
+      fileRoleKey: FileRoleKey.sourceOriginal,
       fileHealthKey: sourceFileHealthKey,
       fileSizeBytes: 2048,
       isReadOnlySource: true,
@@ -954,7 +955,7 @@ class FakeReferenceRepository implements ReferenceRepository {
   @override
   Future<List<ReferenceItem>> getTrustLevels() async => const [
     ReferenceItem(
-      key: 'trusted',
+      key: TrustLevelKey.trusted,
       nameAr: 'موثوق',
       nameEn: 'Trusted',
       sortOrder: 1,
@@ -964,7 +965,7 @@ class FakeReferenceRepository implements ReferenceRepository {
   @override
   Future<List<ReferenceItem>> getUsageRights() async => const [
     ReferenceItem(
-      key: 'open_access',
+      key: UsageRightsKey.openAccess,
       nameAr: 'وصول مفتوح',
       nameEn: 'Open Access',
       sortOrder: 1,
@@ -973,13 +974,18 @@ class FakeReferenceRepository implements ReferenceRepository {
 
   @override
   Future<List<ReferenceItem>> getMetadataQualities() async => const [
-    ReferenceItem(key: 'high', nameAr: 'عالية', nameEn: 'High', sortOrder: 1),
+    ReferenceItem(
+      key: MetadataQualityKey.high,
+      nameAr: 'عالية',
+      nameEn: 'High',
+      sortOrder: 1,
+    ),
   ];
 
   @override
   Future<List<ReferenceItem>> getWorkflowStatuses() async => const [
     ReferenceItem(
-      key: 'in_progress',
+      key: WorkflowStatusKey.inProgress,
       nameAr: 'قيد التصنيف',
       nameEn: 'In Progress',
       sortOrder: 1,

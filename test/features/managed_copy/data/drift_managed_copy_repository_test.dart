@@ -2,6 +2,7 @@
 
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:legal_library_manager/core/constants/domain_keys.dart';
 import 'package:legal_library_manager/core/database/app_database.dart';
 import 'package:legal_library_manager/core/time/clock.dart';
 import 'package:legal_library_manager/features/managed_copy/data/repositories/drift_managed_copy_repository.dart';
@@ -21,9 +22,9 @@ const _kHash =
 Future<void> _seedReferenceData(AppDatabase db) async {
   // Workflow statuses required by the documents table.
   for (final entry in [
-    ('imported', 'مستورد', 'Imported'),
-    ('classified', 'مصنف', 'Classified'),
-    ('copied_to_library', 'منسوخ إلى المكتبة', 'Copied to Library'),
+    (WorkflowStatusKey.imported, 'مستورد', 'Imported'),
+    (WorkflowStatusKey.classified, 'مصنف', 'Classified'),
+    (WorkflowStatusKey.copiedToLibrary, 'منسوخ إلى المكتبة', 'Copied to Library'),
   ]) {
     await db
         .into(db.workflowStatuses)
@@ -39,8 +40,8 @@ Future<void> _seedReferenceData(AppDatabase db) async {
   }
   // File roles.
   for (final entry in [
-    ('source_original', 'المصدر الأصلي', 'Source Original'),
-    ('managed_copy', 'نسخة مدارة', 'Managed Copy'),
+    (FileRoleKey.sourceOriginal, 'المصدر الأصلي', 'Source Original'),
+    (FileRoleKey.managedCopy, 'نسخة مدارة', 'Managed Copy'),
   ]) {
     await db
         .into(db.fileRoles)
@@ -56,10 +57,10 @@ Future<void> _seedReferenceData(AppDatabase db) async {
   }
   // File health statuses.
   for (final entry in [
-    ('unknown', 'غير معروف', 'Unknown'),
-    ('healthy', 'سليم', 'Healthy'),
-    ('corrupted', 'تالف', 'Corrupted'),
-    ('missing', 'مفقود', 'Missing'),
+    (FileHealthKey.unknown, 'غير معروف', 'Unknown'),
+    (FileHealthKey.healthy, 'سليم', 'Healthy'),
+    (FileHealthKey.corrupted, 'تالف', 'Corrupted'),
+    (FileHealthKey.missing, 'مفقود', 'Missing'),
   ]) {
     await db
         .into(db.fileHealthStatuses)
@@ -74,7 +75,9 @@ Future<void> _seedReferenceData(AppDatabase db) async {
         );
   }
   // Trust / usage / quality defaults.
-  for (final entry in [('unverified', 'غير موثق', 'Unverified')]) {
+  for (final entry in [
+    (TrustLevelKey.unverified, 'غير موثق', 'Unverified'),
+  ]) {
     await db
         .into(db.trustLevels)
         .insertOnConflictUpdate(
@@ -87,7 +90,9 @@ Future<void> _seedReferenceData(AppDatabase db) async {
           ),
         );
   }
-  for (final entry in [('unknown', 'غير معروف', 'Unknown')]) {
+  for (final entry in [
+    (UsageRightsKey.unknown, 'غير معروف', 'Unknown'),
+  ]) {
     await db
         .into(db.usageRights)
         .insertOnConflictUpdate(
@@ -100,7 +105,7 @@ Future<void> _seedReferenceData(AppDatabase db) async {
           ),
         );
   }
-  for (final entry in [('low', 'منخفض', 'Low')]) {
+  for (final entry in [(MetadataQualityKey.low, 'منخفض', 'Low')]) {
     await db
         .into(db.metadataQualities)
         .insertOnConflictUpdate(
@@ -117,7 +122,7 @@ Future<void> _seedReferenceData(AppDatabase db) async {
 
 Future<int> _insertDocument(
   AppDatabase db, {
-  String status = 'classified',
+  String status = WorkflowStatusKey.classified,
   String? code,
 }) async {
   return db
@@ -144,13 +149,13 @@ Future<int> _insertSourceFile(
       .insert(
         DocumentFilesCompanion.insert(
           documentId: documentId,
-          fileRoleKey: 'source_original',
+          fileRoleKey: FileRoleKey.sourceOriginal,
           fileName: 'doc.pdf',
           absolutePath: path,
           extension: '.pdf',
           fileSizeBytes: 1024,
           sha256Hash: Value(hash),
-          fileHealthKey: const Value('healthy'),
+          fileHealthKey: const Value(FileHealthKey.healthy),
           isReadOnlySource: const Value(true),
           isPreferred: Value(isPreferred),
           createdAt: DateTime.utc(2026, 1, 1).toIso8601String(),
@@ -163,14 +168,14 @@ Future<int> _insertManagedCopyFile(
   AppDatabase db,
   int documentId, {
   String path = r'C:\Library\files\DOC-0000001.pdf',
-  String healthKey = 'healthy',
+  String healthKey = FileHealthKey.healthy,
 }) async {
   return db
       .into(db.documentFiles)
       .insert(
         DocumentFilesCompanion.insert(
           documentId: documentId,
-          fileRoleKey: 'managed_copy',
+          fileRoleKey: FileRoleKey.managedCopy,
           fileName: 'DOC-0000001.pdf',
           absolutePath: path,
           extension: '.pdf',
@@ -210,7 +215,7 @@ void main() {
       final docId = await _insertDocument(db);
       final state = await repo.loadDocumentState(docId);
       expect(state, isNotNull);
-      expect(state!.workflowStatusKey, 'classified');
+      expect(state!.workflowStatusKey, WorkflowStatusKey.classified);
       expect(state.hasManagedCopy, isFalse);
     });
 
@@ -221,12 +226,12 @@ void main() {
           .insert(
             DocumentFilesCompanion.insert(
               documentId: docId,
-              fileRoleKey: 'managed_copy',
+              fileRoleKey: FileRoleKey.managedCopy,
               fileName: 'DOC-0000001.pdf',
               absolutePath: r'C:\Library\files\DOC-0000001.pdf',
               extension: '.pdf',
               fileSizeBytes: 1024,
-              fileHealthKey: const Value('healthy'),
+              fileHealthKey: const Value(FileHealthKey.healthy),
               createdAt: DateTime.utc(2026, 1, 1).toIso8601String(),
               updatedAt: DateTime.utc(2026, 1, 1).toIso8601String(),
             ),
@@ -245,7 +250,7 @@ void main() {
           .insert(
             DocumentFilesCompanion.insert(
               documentId: docId,
-              fileRoleKey: 'managed_copy',
+              fileRoleKey: FileRoleKey.managedCopy,
               fileName: 'DOC-0000001.pdf',
               absolutePath: r'C:\Library\files\DOC-0000001.pdf',
               extension: '.pdf',
@@ -259,7 +264,7 @@ void main() {
 
     test('hasHealthyManagedCopy is true when the row is healthy', () async {
       final docId = await _insertDocument(db);
-      await insertManagedCopy(db, docId, health: 'healthy');
+      await insertManagedCopy(db, docId, health: FileHealthKey.healthy);
       final state = await repo.loadDocumentState(docId);
       expect(state!.hasHealthyManagedCopy, isTrue);
     });
@@ -267,7 +272,7 @@ void main() {
     test('hasHealthyManagedCopy is false when the only row is corrupted '
         '(bug 4: corrupted must not count as healthy)', () async {
       final docId = await _insertDocument(db);
-      await insertManagedCopy(db, docId, health: 'corrupted');
+      await insertManagedCopy(db, docId, health: FileHealthKey.corrupted);
       final state = await repo.loadDocumentState(docId);
       expect(state!.hasHealthyManagedCopy, isFalse);
     });
@@ -276,7 +281,7 @@ void main() {
       'hasHealthyManagedCopy is false when the only row is missing',
       () async {
         final docId = await _insertDocument(db);
-        await insertManagedCopy(db, docId, health: 'missing');
+        await insertManagedCopy(db, docId, health: FileHealthKey.missing);
         final state = await repo.loadDocumentState(docId);
         expect(state!.hasHealthyManagedCopy, isFalse);
       },
@@ -289,7 +294,7 @@ void main() {
     test(
       'returns empty list when no documents are copied_to_library',
       () async {
-        await _insertDocument(db, status: 'classified');
+        await _insertDocument(db, status: WorkflowStatusKey.classified);
         final ids = await repo.loadCopiedToLibraryDocumentIds();
         expect(ids, isEmpty);
       },
@@ -297,15 +302,15 @@ void main() {
 
     test('returns document ids with workflow_status_key = copied_to_library, '
         'including ones with zero managed_copy rows', () async {
-      final orphanId = await _insertDocument(db, status: 'copied_to_library');
-      await _insertDocument(db, status: 'classified');
+      final orphanId = await _insertDocument(db, status: WorkflowStatusKey.copiedToLibrary);
+      await _insertDocument(db, status: WorkflowStatusKey.classified);
       final ids = await repo.loadCopiedToLibraryDocumentIds();
       expect(ids, [orphanId]);
     });
 
     test('does not return classified or imported documents', () async {
-      await _insertDocument(db, status: 'imported');
-      await _insertDocument(db, status: 'classified');
+      await _insertDocument(db, status: WorkflowStatusKey.imported);
+      await _insertDocument(db, status: WorkflowStatusKey.classified);
       final ids = await repo.loadCopiedToLibraryDocumentIds();
       expect(ids, isEmpty);
     });
@@ -319,11 +324,11 @@ void main() {
       () async {
         final docId = await _insertDocument(
           db,
-          status: 'classified',
+          status: WorkflowStatusKey.classified,
           code: 'DOC-0000002',
         );
         final entries = await repo.loadDocumentsWithStaleDocumentCode();
-        expect(entries, [(documentId: docId, workflowStatusKey: 'classified')]);
+        expect(entries, [(documentId: docId, workflowStatusKey: WorkflowStatusKey.classified)]);
       },
     );
 
@@ -331,29 +336,29 @@ void main() {
         'missing', () async {
       final docId = await _insertDocument(
         db,
-        status: 'copied_to_library',
+        status: WorkflowStatusKey.copiedToLibrary,
         code: 'DOC-0000003',
       );
-      await _insertManagedCopyFile(db, docId, healthKey: 'missing');
+      await _insertManagedCopyFile(db, docId, healthKey: FileHealthKey.missing);
       final entries = await repo.loadDocumentsWithStaleDocumentCode();
       expect(entries, [
-        (documentId: docId, workflowStatusKey: 'copied_to_library'),
+        (documentId: docId, workflowStatusKey: WorkflowStatusKey.copiedToLibrary),
       ]);
     });
 
     test('excludes a document with a healthy managed_copy row', () async {
       final docId = await _insertDocument(
         db,
-        status: 'copied_to_library',
+        status: WorkflowStatusKey.copiedToLibrary,
         code: 'DOC-0000004',
       );
-      await _insertManagedCopyFile(db, docId, healthKey: 'healthy');
+      await _insertManagedCopyFile(db, docId, healthKey: FileHealthKey.healthy);
       final entries = await repo.loadDocumentsWithStaleDocumentCode();
       expect(entries, isEmpty);
     });
 
     test('excludes a document with no document_code', () async {
-      await _insertDocument(db, status: 'classified');
+      await _insertDocument(db, status: WorkflowStatusKey.classified);
       final entries = await repo.loadDocumentsWithStaleDocumentCode();
       expect(entries, isEmpty);
     });
@@ -362,15 +367,15 @@ void main() {
         'excluded (at least one healthy row is enough)', () async {
       final docId = await _insertDocument(
         db,
-        status: 'copied_to_library',
+        status: WorkflowStatusKey.copiedToLibrary,
         code: 'DOC-0000005',
       );
-      await _insertManagedCopyFile(db, docId, healthKey: 'healthy');
+      await _insertManagedCopyFile(db, docId, healthKey: FileHealthKey.healthy);
       await _insertManagedCopyFile(
         db,
         docId,
         path: r'C:\Library\files\DOC-0000005-old.pdf',
-        healthKey: 'missing',
+        healthKey: FileHealthKey.missing,
       );
       final entries = await repo.loadDocumentsWithStaleDocumentCode();
       expect(entries, isEmpty);
@@ -389,12 +394,12 @@ void main() {
           .insert(
             DocumentFilesCompanion.insert(
               documentId: docId,
-              fileRoleKey: 'managed_copy',
+              fileRoleKey: FileRoleKey.managedCopy,
               fileName: 'DOC-0000001.pdf',
               absolutePath: r'C:\Library\files\DOC-0000001.pdf',
               extension: '.pdf',
               fileSizeBytes: 1024,
-              fileHealthKey: const Value('healthy'),
+              fileHealthKey: const Value(FileHealthKey.healthy),
               createdAt: DateTime.utc(2026, 1, 1).toIso8601String(),
               updatedAt: DateTime.utc(2026, 1, 1).toIso8601String(),
             ),
@@ -485,9 +490,9 @@ void main() {
         db.documentFiles,
       )..where((f) => f.id.equals(newId))).get();
       expect(files.length, 1);
-      expect(files.first.fileRoleKey, 'managed_copy');
+      expect(files.first.fileRoleKey, FileRoleKey.managedCopy);
       expect(files.first.sha256Hash, _kHash);
-      expect(files.first.fileHealthKey, 'healthy');
+      expect(files.first.fileHealthKey, FileHealthKey.healthy);
       expect(files.first.isReadOnlySource, isFalse);
       expect(files.first.isPreferred, isFalse);
     });
@@ -515,7 +520,7 @@ void main() {
       final doc = await (db.select(
         db.documents,
       )..where((d) => d.id.equals(docId))).getSingle();
-      expect(doc.workflowStatusKey, 'copied_to_library');
+      expect(doc.workflowStatusKey, WorkflowStatusKey.copiedToLibrary);
       expect(doc.copiedToLibraryAt, isNotNull);
     });
 
@@ -567,12 +572,12 @@ void main() {
             .insert(
               DocumentFilesCompanion.insert(
                 documentId: otherDocId,
-                fileRoleKey: 'managed_copy',
+                fileRoleKey: FileRoleKey.managedCopy,
                 fileName: 'DOC-0000001.pdf',
                 absolutePath: r'C:\Library\files\DOC-0000001.pdf',
                 extension: '.pdf',
                 fileSizeBytes: 512,
-                fileHealthKey: const Value('healthy'),
+                fileHealthKey: const Value(FileHealthKey.healthy),
                 createdAt: DateTime.utc(2026, 1, 1).toIso8601String(),
                 updatedAt: DateTime.utc(2026, 1, 1).toIso8601String(),
               ),
@@ -600,7 +605,7 @@ void main() {
         final doc = await (db.select(
           db.documents,
         )..where((d) => d.id.equals(docId))).getSingle();
-        expect(doc.workflowStatusKey, 'classified');
+        expect(doc.workflowStatusKey, WorkflowStatusKey.classified);
       },
     );
 
@@ -612,7 +617,7 @@ void main() {
         db,
         docId,
         path: r'C:\Library\files\DOC-0000001-stale.pdf',
-        healthKey: 'healthy',
+        healthKey: FileHealthKey.healthy,
       );
       final now = DateTime.utc(2026, 6, 11, 10, 0, 0);
 
@@ -635,11 +640,11 @@ void main() {
       final staleRow = await (db.select(
         db.documentFiles,
       )..where((f) => f.id.equals(staleId))).getSingle();
-      expect(staleRow.fileHealthKey, 'missing');
+      expect(staleRow.fileHealthKey, FileHealthKey.missing);
       final newRow = await (db.select(
         db.documentFiles,
       )..where((f) => f.id.equals(newId))).getSingle();
-      expect(newRow.fileHealthKey, 'healthy');
+      expect(newRow.fileHealthKey, FileHealthKey.healthy);
     });
 
     test('source file record is not modified by success persistence', () async {
@@ -671,7 +676,7 @@ void main() {
       final srcRow = await (db.select(
         db.documentFiles,
       )..where((f) => f.id.equals(srcId))).getSingle();
-      expect(srcRow.fileRoleKey, 'source_original');
+      expect(srcRow.fileRoleKey, FileRoleKey.sourceOriginal);
       expect(srcRow.isReadOnlySource, isTrue);
       expect(srcRow.isPreferred, isTrue); // preference not displaced
     });
@@ -740,7 +745,7 @@ void main() {
         // Race: change status to copied_to_library before the transaction.
         await (db.update(db.documents)..where((d) => d.id.equals(docId))).write(
           DocumentsCompanion(
-            workflowStatusKey: const Value('copied_to_library'),
+            workflowStatusKey: const Value(WorkflowStatusKey.copiedToLibrary),
           ),
         );
         await expectLater(
@@ -761,12 +766,12 @@ void main() {
           .insert(
             DocumentFilesCompanion.insert(
               documentId: docId,
-              fileRoleKey: 'managed_copy',
+              fileRoleKey: FileRoleKey.managedCopy,
               fileName: 'DOC-0000001.pdf',
               absolutePath: r'C:\Library\files\DOC-0000001-existing.pdf',
               extension: '.pdf',
               fileSizeBytes: 512,
-              fileHealthKey: const Value('healthy'),
+              fileHealthKey: const Value(FileHealthKey.healthy),
               createdAt: DateTime.utc(2026, 1, 1).toIso8601String(),
               updatedAt: DateTime.utc(2026, 1, 1).toIso8601String(),
             ),
@@ -777,11 +782,11 @@ void main() {
       final raceRow = await (db.select(
         db.documentFiles,
       )..where((f) => f.id.equals(raceRowId))).getSingle();
-      expect(raceRow.fileHealthKey, 'missing');
+      expect(raceRow.fileHealthKey, FileHealthKey.missing);
       final newRow = await (db.select(
         db.documentFiles,
       )..where((f) => f.id.equals(newId))).getSingle();
-      expect(newRow.fileHealthKey, 'healthy');
+      expect(newRow.fileHealthKey, FileHealthKey.healthy);
     });
 
     test('throws when document code does not match persistence data', () async {

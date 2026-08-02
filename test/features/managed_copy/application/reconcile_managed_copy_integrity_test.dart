@@ -1,6 +1,7 @@
 // test/features/managed_copy/application/reconcile_managed_copy_integrity_test.dart
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:legal_library_manager/core/constants/domain_keys.dart';
 import 'package:legal_library_manager/core/time/clock.dart';
 import 'package:legal_library_manager/features/import/domain/entities/import_error.dart';
 import 'package:legal_library_manager/features/import/domain/entities/sha256_result.dart';
@@ -155,7 +156,7 @@ ManagedFileRef _ref({
   int fileId = 1,
   int documentId = kDocId,
   String path = kPath,
-  String health = 'healthy',
+  String health = FileHealthKey.healthy,
   int size = kSize,
   String? hash = kHash,
 }) => ManagedFileRef(
@@ -283,7 +284,7 @@ void main() {
     );
 
     test('does not re-mark a file already recorded as missing', () async {
-      final repo = _StubRepo([_ref(health: 'missing')]);
+      final repo = _StubRepo([_ref(health: FileHealthKey.missing)]);
       final fs = _StubFs({}); // still absent
       await _build(repo: repo, fs: fs).call();
       expect(repo.markedMissing, isEmpty);
@@ -373,7 +374,7 @@ void main() {
         const path2 = r'C:\Library\files\DOC-0000001-v2.pdf';
         final repo = _StubRepo([
           _ref(fileId: 10, size: kSize), // healthy
-          _ref(fileId: 11, path: path2, health: 'missing'), // still missing
+          _ref(fileId: 11, path: path2, health: FileHealthKey.missing), // still missing
         ]);
         final fs = _StubFs(
           {kPath},
@@ -389,7 +390,7 @@ void main() {
       'does not downgrade when previously-missing file is restored',
       () async {
         final repo = _StubRepo([
-          _ref(fileId: 12, health: 'missing', size: kSize),
+          _ref(fileId: 12, health: FileHealthKey.missing, size: kSize),
         ]);
         final fs = _StubFs({kPath}, sizes: {kPath: kSize}); // file came back
         final result = await _build(repo: repo, fs: fs).call();
@@ -499,7 +500,7 @@ void main() {
       'restores corrupted file to healthy when content now matches',
       () async {
         final repo = _StubRepo([
-          _ref(fileId: 40, health: 'corrupted', size: kSize),
+          _ref(fileId: 40, health: FileHealthKey.corrupted, size: kSize),
         ]);
         final fs = _StubFs(
           {kPath},
@@ -518,7 +519,7 @@ void main() {
     test(
       'corrupted-in-DB file that is now absent on disk is marked missing',
       () async {
-        final repo = _StubRepo([_ref(fileId: 50, health: 'corrupted')]);
+        final repo = _StubRepo([_ref(fileId: 50, health: FileHealthKey.corrupted)]);
         final fs = _StubFs({}); // now missing from disk
         await _build(repo: repo, fs: fs).call();
         expect(repo.markedMissing, [50]);
@@ -581,7 +582,7 @@ void main() {
       'rows is reported as a problem, not downgraded (nothing to downgrade)',
       () async {
         final repo = _StubRepo([])
-          ..staleCodeDocs = [(documentId: 5, workflowStatusKey: 'classified')];
+          ..staleCodeDocs = [(documentId: 5, workflowStatusKey: WorkflowStatusKey.classified)];
         final fs = _StubFs({});
         final result = await _build(repo: repo, fs: fs).call();
         expect(repo.downgradedDocIds, isEmpty);
@@ -596,7 +597,7 @@ void main() {
       () async {
         final repo = _StubRepo([])
           ..staleCodeDocs = [
-            (documentId: 6, workflowStatusKey: 'copied_to_library'),
+            (documentId: 6, workflowStatusKey: WorkflowStatusKey.copiedToLibrary),
           ];
         final fs = _StubFs({});
         final result = await _build(repo: repo, fs: fs).call();
@@ -611,7 +612,7 @@ void main() {
       () async {
         final repo = _StubRepo([])
           ..staleCodeDocs = [
-            (documentId: 7, workflowStatusKey: 'ready_for_export'),
+            (documentId: 7, workflowStatusKey: WorkflowStatusKey.readyForExport),
           ];
         final fs = _StubFs({});
         final result = await _build(repo: repo, fs: fs).call();
@@ -629,7 +630,7 @@ void main() {
       final repo =
           _StubRepo([_ref(fileId: 9)]) // absent from disk
             ..staleCodeDocs = [
-              (documentId: kDocId, workflowStatusKey: 'classified'),
+              (documentId: kDocId, workflowStatusKey: WorkflowStatusKey.classified),
             ];
       final fs = _StubFs({});
       final result = await _build(repo: repo, fs: fs).call();
@@ -642,7 +643,7 @@ void main() {
       final repo = _StubRepo([])
         ..copiedToLibraryDocIds = [11]
         ..staleCodeDocs = [
-          (documentId: 11, workflowStatusKey: 'copied_to_library'),
+          (documentId: 11, workflowStatusKey: WorkflowStatusKey.copiedToLibrary),
         ];
       final fs = _StubFs({});
       final result = await _build(repo: repo, fs: fs).call();

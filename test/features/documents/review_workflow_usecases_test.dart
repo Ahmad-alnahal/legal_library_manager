@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:drift/drift.dart' as drift;
+import 'package:legal_library_manager/core/constants/domain_keys.dart';
 import 'package:legal_library_manager/core/database/app_database.dart';
 import 'package:legal_library_manager/core/database/seeding/reference_seeder.dart';
 import 'package:legal_library_manager/features/documents/data/repositories/drift_document_metadata_repository.dart';
@@ -54,9 +55,9 @@ void main() {
         documentTypeId: await typeId(db, 'book'),
         title: 'عنوان',
         languageKey: 'ar',
-        trustLevelKey: 'trusted',
-        usageRightsKey: 'open_access',
-        metadataQualityKey: 'high',
+        trustLevelKey: TrustLevelKey.trusted,
+        usageRightsKey: UsageRightsKey.openAccess,
+        metadataQualityKey: MetadataQualityKey.high,
       );
 
   Future<DocumentClassificationInput> publicLawConstitutional() async =>
@@ -90,7 +91,7 @@ void main() {
 
       expect(agg, isNotNull);
       expect(agg!.documentId, id);
-      expect(agg.workflowStatusKey, 'classified');
+      expect(agg.workflowStatusKey, WorkflowStatusKey.classified);
       expect(agg.common.title, 'عنوان');
       expect(agg.common.languageKey, 'ar');
       expect(agg.details, isA<BookDetailsData>());
@@ -161,7 +162,7 @@ void main() {
       final doc = await (db.select(
         db.documents,
       )..where((d) => d.id.equals(id))).getSingle();
-      expect(doc.workflowStatusKey, 'in_progress');
+      expect(doc.workflowStatusKey, WorkflowStatusKey.inProgress);
       expect(doc.classifiedAt, isNull);
       expect(doc.updatedAt, '2026-06-09T00:00:00.000Z');
       // No managed copy / file mutation: file rows are unchanged.
@@ -177,7 +178,7 @@ void main() {
       final doc = await (db.select(
         db.documents,
       )..where((d) => d.id.equals(id))).getSingle();
-      expect(doc.workflowStatusKey, 'imported');
+      expect(doc.workflowStatusKey, WorkflowStatusKey.imported);
     });
 
     test('returns not_found for a missing document', () async {

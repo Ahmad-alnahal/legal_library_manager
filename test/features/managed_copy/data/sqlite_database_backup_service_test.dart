@@ -135,4 +135,118 @@ void main() {
       },
     );
   });
+
+  group('SqliteDatabaseBackupService.createBackup — rolling pruning', () {
+    late AppDatabase db;
+
+    setUp(() {
+      db = AppDatabase.inMemory();
+    });
+
+    tearDown(() async {
+      await db.close();
+    });
+
+    File makeOldBackup(String dateStr, String opId) {
+      final name = 'legal_library_backup_${dateStr}_$opId.sqlite';
+      final f = File('${tempDir.path}\\$name');
+      f.writeAsBytesSync(Uint8List(200));
+      return f;
+    }
+
+    List<String> ownedBackupNames() => tempDir
+        .listSync()
+        .whereType<File>()
+        .map((f) => f.path.split(r'\').last)
+        .where(
+          (name) =>
+              name.startsWith('legal_library_backup_') &&
+              name.endsWith('.sqlite'),
+        )
+        .toList();
+
+    test('no pruning when total stays at 3 or fewer', () async {
+      makeOldBackup('2020-01-01_000000', 'op-a');
+      makeOldBackup('2020-01-02_000000', 'op-b');
+
+      final service = SqliteDatabaseBackupService(db);
+      final result = await service.createBackup(
+        backupRoot: tempDir.path,
+        operationId: 'op-new',
+        timestamp: DateTime.utc(2026, 1, 1),
+      );
+
+      expect(result, isA<BackupSuccess>());
+      expect(ownedBackupNames(), hasLength(3));
+    });
+
+    test('oldest file pruned when 4th backup is created', () async {
+      makeOldBackup('2020-01-01_000000', 'op-a');
+      makeOldBackup('2020-01-02_000000', 'op-b');
+      makeOldBackup('2020-01-03_000000', 'op-c');
+
+      final service = SqliteDatabaseBackupService(db);
+      final result = await service.createBackup(
+        backupRoot: tempDir.path,
+        operationId: 'op-new',
+        timestamp: DateTime.utc(2026, 1, 1),
+      );
+
+      expect(result, isA<BackupSuccess>());
+      final names = ownedBackupNames();
+      expect(names, hasLength(3));
+      expect(
+        names.any((n) => n.contains('2020-01-01')),
+        isFalse,
+        reason: 'oldest backup should have been pruned',
+      );
+      expect(names.any((n) => n.contains('2020-01-02')), isTrue);
+      expect(names.any((n) => n.contains('2020-01-03')), isTrue);
+      expect(names.any((n) => n.contains('2026-01-01')), isTrue);
+    });
+
+    test('multiple old files pruned (more than 1 over the limit)', () async {
+      makeOldBackup('2019-01-01_000000', 'op-a');
+      makeOldBackup('2020-01-01_000000', 'op-b');
+      makeOldBackup('2021-01-01_000000', 'op-c');
+      makeOldBackup('2022-01-01_000000', 'op-d');
+      makeOldBackup('2023-01-01_000000', 'op-e');
+
+      final service = SqliteDatabaseBackupService(db);
+      final result = await service.createBackup(
+        backupRoot: tempDir.path,
+        operationId: 'op-new',
+        timestamp: DateTime.utc(2026, 1, 1),
+      );
+
+      expect(result, isA<BackupSuccess>());
+      final names = ownedBackupNames();
+      expect(names, hasLength(3));
+      expect(names.any((n) => n.contains('2019-01-01')), isFalse);
+      expect(names.any((n) => n.contains('2020-01-01')), isFalse);
+      expect(names.any((n) => n.contains('2021-01-01')), isFalse);
+      expect(names.any((n) => n.contains('2022-01-01')), isTrue);
+      expect(names.any((n) => n.contains('2023-01-01')), isTrue);
+      expect(names.any((n) => n.contains('2026-01-01')), isTrue);
+    });
+
+    test('non-owned files in the same folder are never touched', () async {
+      makeOldBackup('2020-01-01_000000', 'op-a');
+      makeOldBackup('2020-01-02_000000', 'op-b');
+      makeOldBackup('2020-01-03_000000', 'op-c');
+      final readme = File('${tempDir.path}\\readme.txt');
+      readme.writeAsStringSync('not a backup');
+
+      final service = SqliteDatabaseBackupService(db);
+      final result = await service.createBackup(
+        backupRoot: tempDir.path,
+        operationId: 'op-new',
+        timestamp: DateTime.utc(2026, 1, 1),
+      );
+
+      expect(result, isA<BackupSuccess>());
+      expect(readme.existsSync(), isTrue);
+      expect(ownedBackupNames(), hasLength(3));
+    });
+  });
 }

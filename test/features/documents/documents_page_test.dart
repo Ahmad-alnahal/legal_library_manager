@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:legal_library_manager/core/constants/domain_keys.dart';
 import 'package:legal_library_manager/core/di/injection.dart';
 import 'package:legal_library_manager/features/documents/domain/entities/document_list_item.dart';
 import 'package:legal_library_manager/features/documents/domain/entities/document_list_query.dart';
@@ -73,7 +74,10 @@ void main() {
     await tester.pumpAndSettle();
     await tester.tap(find.text('مصنف').last);
     await tester.pumpAndSettle();
-    expect(documents.queries.last.filters.workflowStatusKey, 'classified');
+    expect(
+      documents.queries.last.filters.workflowStatusKey,
+      WorkflowStatusKey.classified,
+    );
 
     await tester.tap(find.text('مسح الكل'));
     await tester.pumpAndSettle();
@@ -242,7 +246,7 @@ void main() {
   testWidgets(
     'corrupted file hides Open File button but shows Open Folder button',
     (tester) async {
-      documents.sourceFileHealthKey = 'corrupted';
+      documents.sourceFileHealthKey = FileHealthKey.corrupted;
       await pumpDocuments(tester);
       await tester.tap(find.byKey(const Key('document_row_1')));
       await tester.pumpAndSettle();
@@ -255,7 +259,7 @@ void main() {
   testWidgets(
     'unreadable file hides Open File button but shows Open Folder button',
     (tester) async {
-      documents.sourceFileHealthKey = 'unreadable';
+      documents.sourceFileHealthKey = FileHealthKey.unreadable;
       await pumpDocuments(tester);
       await tester.tap(find.byKey(const Key('document_row_1')));
       await tester.pumpAndSettle();
@@ -266,7 +270,7 @@ void main() {
   );
 
   testWidgets('missing health hides Open File button', (tester) async {
-    documents.sourceFileHealthKey = 'missing';
+    documents.sourceFileHealthKey = FileHealthKey.missing;
     await pumpDocuments(tester);
     await tester.tap(find.byKey(const Key('document_row_1')));
     await tester.pumpAndSettle();
@@ -276,7 +280,7 @@ void main() {
   });
 
   testWidgets('unknown health hides Open File button', (tester) async {
-    documents.sourceFileHealthKey = 'unknown';
+    documents.sourceFileHealthKey = FileHealthKey.unknown;
     await pumpDocuments(tester);
     await tester.tap(find.byKey(const Key('document_row_1')));
     await tester.pumpAndSettle();
@@ -323,7 +327,7 @@ class FakeDocumentRepository implements DocumentListRepository {
   final queries = <DocumentListQuery>[];
 
   /// Override per-test to exercise non-healthy health visibility.
-  String sourceFileHealthKey = 'healthy';
+  String sourceFileHealthKey = FileHealthKey.healthy;
 
   final allItems = const [
     DocumentListItem(
@@ -337,9 +341,9 @@ class FakeDocumentRepository implements DocumentListRepository {
       primarySubCategoryId: 10,
       primarySubCategoryNameAr: 'القانون الدستوري',
       countryKey: 'ps',
-      workflowStatusKey: 'classified',
-      trustLevelKey: 'trusted',
-      metadataQualityKey: 'verified',
+      workflowStatusKey: WorkflowStatusKey.classified,
+      trustLevelKey: TrustLevelKey.trusted,
+      metadataQualityKey: MetadataQualityKey.verified,
       fileCount: 1,
       hasDuplicate: true,
       hasCorruptedFile: false,
@@ -349,9 +353,9 @@ class FakeDocumentRepository implements DocumentListRepository {
     DocumentListItem(
       id: 2,
       sourceFileName: 'الوثيقة الثانية.pdf',
-      workflowStatusKey: 'needs_review',
-      trustLevelKey: 'unverified',
-      metadataQualityKey: 'low',
+      workflowStatusKey: WorkflowStatusKey.needsReview,
+      trustLevelKey: TrustLevelKey.unverified,
+      metadataQualityKey: MetadataQualityKey.low,
       fileCount: 1,
       hasDuplicate: false,
       hasCorruptedFile: true,
@@ -361,9 +365,9 @@ class FakeDocumentRepository implements DocumentListRepository {
     DocumentListItem(
       id: 3,
       title: 'الوثيقة الثالثة',
-      workflowStatusKey: 'imported',
-      trustLevelKey: 'unverified',
-      metadataQualityKey: 'low',
+      workflowStatusKey: WorkflowStatusKey.imported,
+      trustLevelKey: TrustLevelKey.unverified,
+      metadataQualityKey: MetadataQualityKey.low,
       fileCount: 1,
       hasDuplicate: false,
       hasCorruptedFile: false,
@@ -391,7 +395,7 @@ class FakeDocumentRepository implements DocumentListRepository {
         id: 1,
         fileName: 'source.pdf',
         absolutePath: r'D:\source\source.pdf',
-        fileRoleKey: 'source_original',
+        fileRoleKey: FileRoleKey.sourceOriginal,
         fileHealthKey: sourceFileHealthKey,
         fileSizeBytes: 2048,
         isReadOnlySource: true,

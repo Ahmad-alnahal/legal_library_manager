@@ -2,6 +2,7 @@
 
 import 'dart:convert';
 
+import '../../../../core/constants/domain_keys.dart';
 import '../../../../core/time/clock.dart';
 import '../../../documents/domain/repositories/document_metadata_repository.dart';
 import '../../../import/domain/entities/sha256_result.dart';
@@ -398,7 +399,7 @@ class GenerateExportBatch {
     final DateTime completedAt = clock.nowUtc();
     await batchRepository.finalizeBatch(
       batchId: batchId,
-      statusKey: 'verified',
+      statusKey: ExportBatchStatusKey.verified,
       documentCount: successList.length,
       totalSizeBytes: totalSizeBytes,
       completedAt: completedAt,
@@ -438,7 +439,7 @@ class GenerateExportBatch {
       final List<ManagedFileRef> files = await copyRepository
           .loadManagedCopyFiles(doc.id);
       final Iterable<ManagedFileRef> healthy = files.where(
-        (f) => f.fileHealthKey == 'healthy',
+        (f) => f.fileHealthKey == FileHealthKey.healthy,
       );
       if (healthy.isEmpty) {
         skipped.add(
@@ -521,7 +522,7 @@ class GenerateExportBatch {
   ) async {
     await batchRepository.finalizeBatch(
       batchId: batchId,
-      statusKey: 'failed',
+      statusKey: ExportBatchStatusKey.failed,
       documentCount: 0,
       totalSizeBytes: 0,
       completedAt: clock.nowUtc(),

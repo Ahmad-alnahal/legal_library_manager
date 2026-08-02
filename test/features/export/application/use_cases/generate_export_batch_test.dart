@@ -4,6 +4,7 @@ import 'dart:convert';
 
 import 'package:crypto/crypto.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:legal_library_manager/core/constants/domain_keys.dart';
 import 'package:legal_library_manager/core/time/clock.dart';
 import 'package:legal_library_manager/features/documents/domain/entities/document_aggregate.dart';
 import 'package:legal_library_manager/features/documents/domain/entities/normalized_draft.dart';
@@ -547,7 +548,10 @@ void main() {
     expect(batchRepository.createBatchCalls, hasLength(1));
     expect(batchRepository.insertBatchDocumentsCalls.single, hasLength(2));
     expect(batchRepository.finalizeBatchCalls, hasLength(1));
-    expect(batchRepository.finalizeBatchCalls.single['statusKey'], 'verified');
+    expect(
+      batchRepository.finalizeBatchCalls.single['statusKey'],
+      ExportBatchStatusKey.verified,
+    );
     expect(batchRepository.finalizeBatchCalls.single['documentCount'], 2);
 
     expect(filesystem.copiedDestPaths, [
@@ -751,7 +755,10 @@ void main() {
       expect(failed.batchCode, batchCode);
       expect(failed.exportPath, exportPath);
       expect(batchRepository.finalizeBatchCalls, hasLength(1));
-      expect(batchRepository.finalizeBatchCalls.single['statusKey'], 'failed');
+      expect(
+        batchRepository.finalizeBatchCalls.single['statusKey'],
+        ExportBatchStatusKey.failed,
+      );
     },
   );
 }

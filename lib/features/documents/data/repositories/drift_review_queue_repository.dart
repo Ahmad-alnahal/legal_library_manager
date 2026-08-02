@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 
+import '../../../../core/constants/domain_keys.dart';
 import '../../../../core/database/app_database.dart';
 import '../../domain/entities/review_queue_item.dart';
 import '../../domain/entities/review_queue_query.dart';
@@ -29,7 +30,8 @@ class DriftReviewQueueRepository implements ReviewQueueRepository {
   static const String _reviewableFileExists =
       "EXISTS (SELECT 1 FROM document_files df "
       "WHERE df.document_id = d.id "
-      "AND df.file_health_key IN ('healthy', 'unknown'))";
+      "AND df.file_health_key IN ('${FileHealthKey.healthy}', "
+      "'${FileHealthKey.unknown}'))";
 
   @override
   Future<ReviewQueuePage> getQueue(ReviewQueueQuery query) async {
@@ -64,7 +66,7 @@ SELECT
   (
     SELECT df.file_name
     FROM document_files df
-    WHERE df.document_id = d.id AND df.file_role_key = 'source_original'
+    WHERE df.document_id = d.id AND df.file_role_key = '${FileRoleKey.sourceOriginal}'
     ORDER BY df.is_preferred DESC, df.id ASC
     LIMIT 1
   ) AS source_file_name,
@@ -77,7 +79,7 @@ WHERE d.workflow_status_key IN ($placeholders)
   AND $_reviewableFileExists
 ORDER BY
   CASE d.workflow_status_key
-    WHEN 'ready_for_export' THEN 1
+    WHEN '${WorkflowStatusKey.readyForExport}' THEN 1
     ELSE 0
   END ASC,
   d.id ASC

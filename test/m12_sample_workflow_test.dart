@@ -13,6 +13,7 @@ import 'dart:io';
 
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:legal_library_manager/core/constants/domain_keys.dart';
 import 'package:legal_library_manager/core/database/app_database.dart';
 import 'package:legal_library_manager/core/database/seeding/reference_seeder.dart';
 import 'package:legal_library_manager/core/time/clock.dart';
@@ -229,7 +230,11 @@ void main() {
         final betaDocId = betaFileRows.first.documentId;
 
         await (db.update(db.documents)..where((d) => d.id.equals(betaDocId)))
-            .write(DocumentsCompanion(workflowStatusKey: Value('classified')));
+            .write(
+              DocumentsCompanion(
+                workflowStatusKey: Value(WorkflowStatusKey.classified),
+              ),
+            );
 
         // Configure managed/backup roots in settings.
         await repo.saveCopyRoots(
@@ -368,7 +373,10 @@ void main() {
         final docAfterCopy = await (db.select(
           db.documents,
         )..where((d) => d.id.equals(betaDocId))).getSingle();
-        expect(docAfterCopy.workflowStatusKey, 'copied_to_library');
+        expect(
+          docAfterCopy.workflowStatusKey,
+          WorkflowStatusKey.copiedToLibrary,
+        );
 
         // ── Phase 8: Simulate managed copy gone missing ─────────────────────────
 
@@ -405,7 +413,7 @@ void main() {
         )..where((d) => d.id.equals(betaDocId))).getSingle();
         expect(
           docAfterMissing.workflowStatusKey,
-          'classified',
+          WorkflowStatusKey.classified,
           reason:
               'A document with no healthy managed copy must revert to classified',
         );
@@ -437,7 +445,7 @@ void main() {
         )..where((d) => d.id.equals(betaDocId))).getSingle();
         expect(
           docAfterRestore.workflowStatusKey,
-          'copied_to_library',
+          WorkflowStatusKey.copiedToLibrary,
           reason:
               'Document must return to copied_to_library after its managed '
               'copy is restored',

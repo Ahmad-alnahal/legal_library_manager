@@ -1,6 +1,7 @@
 // test/features/related_files/drift_related_file_candidate_repository_test.dart
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:legal_library_manager/core/constants/domain_keys.dart';
 import 'package:legal_library_manager/core/database/app_database.dart';
 import 'package:legal_library_manager/core/database/seeding/reference_seeder.dart';
 import 'package:legal_library_manager/features/related_files/data/repositories/drift_related_file_candidate_repository.dart';
@@ -33,7 +34,7 @@ void main() {
       .insert(
         DocumentFilesCompanion.insert(
           documentId: docId,
-          fileRoleKey: 'source_original',
+          fileRoleKey: FileRoleKey.sourceOriginal,
           fileName: path.split(r'\').last,
           absolutePath: path,
           extension: ext,

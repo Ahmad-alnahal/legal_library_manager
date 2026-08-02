@@ -1,5 +1,6 @@
 // Shared fixtures for document metadata tests.
 import 'package:drift/drift.dart';
+import 'package:legal_library_manager/core/constants/domain_keys.dart';
 import 'package:legal_library_manager/core/database/app_database.dart';
 import 'package:legal_library_manager/core/time/clock.dart';
 
@@ -49,8 +50,12 @@ Future<int> addFile(
       );
 }
 
-Future<int> addHealthySource(AppDatabase db, int docId) =>
-    addFile(db, docId, role: 'source_original', health: 'healthy');
+Future<int> addHealthySource(AppDatabase db, int docId) => addFile(
+  db,
+  docId,
+  role: FileRoleKey.sourceOriginal,
+  health: FileHealthKey.healthy,
+);
 
 /// Inserts a conversion record for a converted_pdf output file.
 Future<void> addConversion(

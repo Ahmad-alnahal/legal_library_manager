@@ -2,6 +2,7 @@
 
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:legal_library_manager/core/constants/domain_keys.dart';
 import 'package:legal_library_manager/core/database/app_database.dart';
 import 'package:legal_library_manager/core/database/seeding/reference_seeder.dart';
 import 'package:legal_library_manager/features/documents/data/repositories/drift_document_metadata_repository.dart';
@@ -24,9 +25,9 @@ void main() {
   tearDown(() => db.close());
 
   Future<int> addEligibleDocument({
-    String workflowStatusKey = 'copied_to_library',
-    String metadataQualityKey = 'high',
-    String usageRightsKey = 'open_access',
+    String workflowStatusKey = WorkflowStatusKey.copiedToLibrary,
+    String metadataQualityKey = MetadataQualityKey.high,
+    String usageRightsKey = UsageRightsKey.openAccess,
     bool addHealthyManagedCopy = true,
   }) async {
     final int mainCategory = await mainId(db, 'public_law');
@@ -44,7 +45,12 @@ void main() {
           ),
         );
     if (addHealthyManagedCopy) {
-      await addFile(db, id, role: 'managed_copy', health: 'healthy');
+      await addFile(
+        db,
+        id,
+        role: FileRoleKey.managedCopy,
+        health: FileHealthKey.healthy,
+      );
     }
     return id;
   }
@@ -64,7 +70,9 @@ void main() {
     });
 
     test('wrong workflow status is reported ineligible', () async {
-      final id = await addEligibleDocument(workflowStatusKey: 'classified');
+      final id = await addEligibleDocument(
+        workflowStatusKey: WorkflowStatusKey.classified,
+      );
       final result = await repo.checkExportEligibility(id);
       expect(result, isA<ExportIneligible>());
       expect(
@@ -108,14 +116,19 @@ void main() {
               title: const Value('doc'),
               primaryMainCategoryId: Value(mainCategory),
               primarySubCategoryId: Value(subCategory),
-              metadataQualityKey: const Value('high'),
-              usageRightsKey: const Value('open_access'),
-              workflowStatusKey: const Value('copied_to_library'),
+              metadataQualityKey: const Value(MetadataQualityKey.high),
+              usageRightsKey: const Value(UsageRightsKey.openAccess),
+              workflowStatusKey: const Value(WorkflowStatusKey.copiedToLibrary),
               createdAt: now,
               updatedAt: now,
             ),
           );
-      await addFile(db, id, role: 'managed_copy', health: 'healthy');
+      await addFile(
+        db,
+        id,
+        role: FileRoleKey.managedCopy,
+        health: FileHealthKey.healthy,
+      );
       await (db.update(db.subCategories)
             ..where((s) => s.id.equals(subCategory)))
           .write(const SubCategoriesCompanion(isActive: Value(false)));
@@ -128,13 +141,17 @@ void main() {
     });
 
     test('medium metadata quality is reported eligible', () async {
-      final id = await addEligibleDocument(metadataQualityKey: 'medium');
+      final id = await addEligibleDocument(
+        metadataQualityKey: MetadataQualityKey.medium,
+      );
       final result = await repo.checkExportEligibility(id);
       expect(result, isA<ExportEligible>());
     });
 
     test('low metadata quality is reported ineligible', () async {
-      final id = await addEligibleDocument(metadataQualityKey: 'low');
+      final id = await addEligibleDocument(
+        metadataQualityKey: MetadataQualityKey.low,
+      );
       final result = await repo.checkExportEligibility(id);
       expect(
         (result as ExportIneligible).reasons,
@@ -145,7 +162,9 @@ void main() {
     });
 
     test('unknown usage rights is reported ineligible', () async {
-      final id = await addEligibleDocument(usageRightsKey: 'unknown');
+      final id = await addEligibleDocument(
+        usageRightsKey: UsageRightsKey.unknown,
+      );
       final result = await repo.checkExportEligibility(id);
       expect(
         (result as ExportIneligible).reasons,
@@ -164,7 +183,7 @@ void main() {
       final doc = await (db.select(
         db.documents,
       )..where((d) => d.id.equals(id))).getSingle();
-      expect(doc.workflowStatusKey, 'ready_for_export');
+      expect(doc.workflowStatusKey, WorkflowStatusKey.readyForExport);
       expect(doc.readyForExportAt, '2026-07-18T13:30:00.000Z');
       expect(doc.updatedAt, '2026-07-18T13:30:00.000Z');
     });
@@ -172,7 +191,7 @@ void main() {
     test('throws StateError when the document is not copied_to_library '
         '(race condition)', () async {
       final id = await addEligibleDocument(
-        workflowStatusKey: 'ready_for_export',
+        workflowStatusKey: WorkflowStatusKey.readyForExport,
       );
 
       expect(
@@ -183,7 +202,7 @@ void main() {
       final doc = await (db.select(
         db.documents,
       )..where((d) => d.id.equals(id))).getSingle();
-      expect(doc.workflowStatusKey, 'ready_for_export');
+      expect(doc.workflowStatusKey, WorkflowStatusKey.readyForExport);
     });
 
     test('throws StateError for a missing document', () async {
@@ -201,7 +220,7 @@ void main() {
       await (db.update(db.documents)..where((d) => d.id.equals(earlier))).write(
         const DocumentsCompanion(
           documentCode: Value('DOC-0000001'),
-          workflowStatusKey: Value('ready_for_export'),
+          workflowStatusKey: Value(WorkflowStatusKey.readyForExport),
           readyForExportAt: Value('2026-07-18T09:00:00.000Z'),
         ),
       );
@@ -210,13 +229,15 @@ void main() {
       await (db.update(db.documents)..where((d) => d.id.equals(later))).write(
         const DocumentsCompanion(
           documentCode: Value('DOC-0000002'),
-          workflowStatusKey: Value('ready_for_export'),
+          workflowStatusKey: Value(WorkflowStatusKey.readyForExport),
           readyForExportAt: Value('2026-07-18T10:00:00.000Z'),
         ),
       );
 
       // Not ready_for_export: must be excluded.
-      await addEligibleDocument(workflowStatusKey: 'copied_to_library');
+      await addEligibleDocument(
+        workflowStatusKey: WorkflowStatusKey.copiedToLibrary,
+      );
 
       final refs = await repo.listReadyForExport();
 
@@ -224,5 +245,45 @@ void main() {
       expect(refs[0].documentCode, 'DOC-0000001');
       expect(refs[1].documentCode, 'DOC-0000002');
     });
+
+    test('excludes a ready_for_export document with no managed copy', () async {
+      final id = await addEligibleDocument(addHealthyManagedCopy: false);
+      await (db.update(db.documents)..where((d) => d.id.equals(id))).write(
+        const DocumentsCompanion(
+          documentCode: Value('DOC-0000001'),
+          workflowStatusKey: Value(WorkflowStatusKey.readyForExport),
+          readyForExportAt: Value('2026-07-18T09:00:00.000Z'),
+        ),
+      );
+
+      final refs = await repo.listReadyForExport();
+
+      expect(refs, isEmpty);
+    });
+
+    test(
+      'excludes a ready_for_export document whose managed copy is missing',
+      () async {
+        final id = await addEligibleDocument();
+        await (db.update(db.documents)..where((d) => d.id.equals(id))).write(
+          const DocumentsCompanion(
+            documentCode: Value('DOC-0000001'),
+            workflowStatusKey: Value(WorkflowStatusKey.readyForExport),
+            readyForExportAt: Value('2026-07-18T09:00:00.000Z'),
+          ),
+        );
+        await (db.update(db.documentFiles)
+              ..where((f) => f.documentId.equals(id)))
+            .write(
+              const DocumentFilesCompanion(
+                fileHealthKey: Value(FileHealthKey.missing),
+              ),
+            );
+
+        final refs = await repo.listReadyForExport();
+
+        expect(refs, isEmpty);
+      },
+    );
   });
 }

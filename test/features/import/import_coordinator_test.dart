@@ -1,6 +1,7 @@
 // test/features/import/import_coordinator_test.dart
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:legal_library_manager/core/constants/domain_keys.dart';
 import 'package:legal_library_manager/core/database/app_database.dart';
 import 'package:legal_library_manager/core/database/seeding/reference_seeder.dart';
 import 'package:legal_library_manager/core/time/clock.dart';
@@ -163,7 +164,7 @@ void main() {
         db.documentFiles,
       )..where((f) => f.absolutePath.equals(r'C:\src\brief.doc'))).getSingle();
       expect(file.extension, '.doc');
-      expect(file.fileRoleKey, 'source_original');
+      expect(file.fileRoleKey, FileRoleKey.sourceOriginal);
       expect(file.mimeType, 'application/msword');
       expect(file.isReadOnlySource, isTrue);
       // No conversion is launched at import time: conversion happens inside

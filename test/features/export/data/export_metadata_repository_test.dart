@@ -2,6 +2,7 @@
 
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:legal_library_manager/core/constants/domain_keys.dart';
 import 'package:legal_library_manager/core/database/app_database.dart';
 import 'package:legal_library_manager/core/database/seeding/reference_seeder.dart';
 import 'package:legal_library_manager/features/documents/data/repositories/drift_document_metadata_repository.dart';
@@ -25,7 +26,7 @@ void main() {
   Future<int> addBaseDocument({
     required String documentCode,
     required String typeKey,
-    String usageRightsKey = 'open_access',
+    String usageRightsKey = UsageRightsKey.openAccess,
     String? summary = 'ملخص',
   }) async {
     final mainCategory = await mainId(db, 'public_law');
@@ -42,11 +43,11 @@ void main() {
             primarySubCategoryId: Value(subCategory),
             languageKey: const Value('ar'),
             countryKey: const Value('ps'),
-            trustLevelKey: const Value('trusted'),
+            trustLevelKey: const Value(TrustLevelKey.trusted),
             usageRightsKey: Value(usageRightsKey),
-            metadataQualityKey: const Value('high'),
+            metadataQualityKey: const Value(MetadataQualityKey.high),
             summary: Value(summary),
-            workflowStatusKey: const Value('ready_for_export'),
+            workflowStatusKey: const Value(WorkflowStatusKey.readyForExport),
             readyForExportAt: const Value(now),
             createdAt: now,
             updatedAt: now,
@@ -73,10 +74,10 @@ void main() {
       expect(m.primarySubcategoryKey, 'constitutional_law');
       expect(m.countryCode, 'ps');
       expect(m.languageKey, 'ar');
-      expect(m.trustLevelKey, 'trusted');
-      expect(m.usageRightsKey, 'open_access');
+      expect(m.trustLevelKey, TrustLevelKey.trusted);
+      expect(m.usageRightsKey, UsageRightsKey.openAccess);
       expect(m.isUsageRightsFlagged, isFalse);
-      expect(m.metadataQualityKey, 'high');
+      expect(m.metadataQualityKey, MetadataQualityKey.high);
       expect(m.summaryAr, 'ملخص');
       expect(m.legislationDetails, isNull);
       expect(m.legislationRelations, isEmpty);
@@ -149,17 +150,17 @@ void main() {
       final personal = await addBaseDocument(
         documentCode: 'DOC-0000003',
         typeKey: 'book',
-        usageRightsKey: 'personal_use_only',
+        usageRightsKey: UsageRightsKey.personalUseOnly,
       );
       final permission = await addBaseDocument(
         documentCode: 'DOC-0000004',
         typeKey: 'book',
-        usageRightsKey: 'permission_required',
+        usageRightsKey: UsageRightsKey.permissionRequired,
       );
       final open = await addBaseDocument(
         documentCode: 'DOC-0000005',
         typeKey: 'book',
-        usageRightsKey: 'open_access',
+        usageRightsKey: UsageRightsKey.openAccess,
       );
 
       final result = await repo.loadExportMetadata([
@@ -179,7 +180,12 @@ void main() {
         documentCode: 'DOC-0000006',
         typeKey: 'book',
       );
-      await addFile(db, id, role: 'managed_copy', health: 'healthy');
+      await addFile(
+        db,
+        id,
+        role: FileRoleKey.managedCopy,
+        health: FileHealthKey.healthy,
+      );
 
       final result = await repo.loadExportMetadata([id]);
       final m = result.single;

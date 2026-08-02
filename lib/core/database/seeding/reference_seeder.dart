@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart';
 
+import '../../constants/domain_keys.dart';
 import '../../validation/category_name.dart';
 import '../app_database.dart';
 import 'country_seed_data.dart';
@@ -351,21 +352,33 @@ class ReferenceSeeder {
 
   Future<void> _seedWorkflowStatuses() async {
     const List<_Ref> data = [
-      (key: 'imported', nameAr: 'مستورد', nameEn: 'Imported'),
-      (key: 'needs_review', nameAr: 'يحتاج مراجعة', nameEn: 'Needs Review'),
-      (key: 'in_progress', nameAr: 'قيد التصنيف', nameEn: 'In Progress'),
-      (key: 'classified', nameAr: 'مصنف', nameEn: 'Classified'),
+      (key: WorkflowStatusKey.imported, nameAr: 'مستورد', nameEn: 'Imported'),
       (
-        key: 'copied_to_library',
+        key: WorkflowStatusKey.needsReview,
+        nameAr: 'يحتاج مراجعة',
+        nameEn: 'Needs Review',
+      ),
+      (
+        key: WorkflowStatusKey.inProgress,
+        nameAr: 'قيد التصنيف',
+        nameEn: 'In Progress',
+      ),
+      (
+        key: WorkflowStatusKey.classified,
+        nameAr: 'مصنف',
+        nameEn: 'Classified',
+      ),
+      (
+        key: WorkflowStatusKey.copiedToLibrary,
         nameAr: 'نُسخ إلى المكتبة',
         nameEn: 'Copied to Library',
       ),
       (
-        key: 'ready_for_export',
+        key: WorkflowStatusKey.readyForExport,
         nameAr: 'جاهز للتصدير',
         nameEn: 'Ready for Export',
       ),
-      (key: 'archived', nameAr: 'مؤرشف', nameEn: 'Archived'),
+      (key: WorkflowStatusKey.archived, nameAr: 'مؤرشف', nameEn: 'Archived'),
     ];
     for (int i = 0; i < data.length; i++) {
       final _Ref r = data[i];
@@ -385,10 +398,26 @@ class ReferenceSeeder {
 
   Future<void> _seedFileRoles() async {
     const List<_Ref> data = [
-      (key: 'source_original', nameAr: 'ملف أصلي', nameEn: 'Source Original'),
-      (key: 'managed_copy', nameAr: 'نسخة مُدارة', nameEn: 'Managed Copy'),
-      (key: 'converted_pdf', nameAr: 'PDF محوّل', nameEn: 'Converted PDF'),
-      (key: 'export_copy', nameAr: 'نسخة تصدير', nameEn: 'Export Copy'),
+      (
+        key: FileRoleKey.sourceOriginal,
+        nameAr: 'ملف أصلي',
+        nameEn: 'Source Original',
+      ),
+      (
+        key: FileRoleKey.managedCopy,
+        nameAr: 'نسخة مُدارة',
+        nameEn: 'Managed Copy',
+      ),
+      (
+        key: FileRoleKey.convertedPdf,
+        nameAr: 'PDF محوّل',
+        nameEn: 'Converted PDF',
+      ),
+      (
+        key: FileRoleKey.exportCopy,
+        nameAr: 'نسخة تصدير',
+        nameEn: 'Export Copy',
+      ),
     ];
     for (int i = 0; i < data.length; i++) {
       final _Ref r = data[i];
@@ -408,11 +437,15 @@ class ReferenceSeeder {
 
   Future<void> _seedFileHealthStatuses() async {
     const List<_Ref> data = [
-      (key: 'unknown', nameAr: 'غير معروف', nameEn: 'Unknown'),
-      (key: 'healthy', nameAr: 'سليم', nameEn: 'Healthy'),
-      (key: 'corrupted', nameAr: 'تالف', nameEn: 'Corrupted'),
-      (key: 'unreadable', nameAr: 'غير قابل للقراءة', nameEn: 'Unreadable'),
-      (key: 'missing', nameAr: 'مفقود', nameEn: 'Missing'),
+      (key: FileHealthKey.unknown, nameAr: 'غير معروف', nameEn: 'Unknown'),
+      (key: FileHealthKey.healthy, nameAr: 'سليم', nameEn: 'Healthy'),
+      (key: FileHealthKey.corrupted, nameAr: 'تالف', nameEn: 'Corrupted'),
+      (
+        key: FileHealthKey.unreadable,
+        nameAr: 'غير قابل للقراءة',
+        nameEn: 'Unreadable',
+      ),
+      (key: FileHealthKey.missing, nameAr: 'مفقود', nameEn: 'Missing'),
     ];
     for (int i = 0; i < data.length; i++) {
       final _Ref r = data[i];
@@ -432,9 +465,13 @@ class ReferenceSeeder {
 
   Future<void> _seedTrustLevels() async {
     const List<_Ref> data = [
-      (key: 'trusted', nameAr: 'موثوق', nameEn: 'Trusted'),
-      (key: 'medium', nameAr: 'متوسط', nameEn: 'Medium'),
-      (key: 'unverified', nameAr: 'غير موثق', nameEn: 'Unverified'),
+      (key: TrustLevelKey.trusted, nameAr: 'موثوق', nameEn: 'Trusted'),
+      (key: TrustLevelKey.medium, nameAr: 'متوسط', nameEn: 'Medium'),
+      (
+        key: TrustLevelKey.unverified,
+        nameAr: 'غير موثق',
+        nameEn: 'Unverified',
+      ),
     ];
     for (int i = 0; i < data.length; i++) {
       final _Ref r = data[i];
@@ -454,16 +491,24 @@ class ReferenceSeeder {
 
   Future<void> _seedUsageRights() async {
     const List<_Ref> data = [
-      (key: 'unknown', nameAr: 'غير معروف', nameEn: 'Unknown'),
+      (key: UsageRightsKey.unknown, nameAr: 'غير معروف', nameEn: 'Unknown'),
       (
-        key: 'personal_use_only',
+        key: UsageRightsKey.personalUseOnly,
         nameAr: 'للاستخدام الشخصي فقط',
         nameEn: 'Personal Use Only',
       ),
-      (key: 'publishable', nameAr: 'قابل للنشر', nameEn: 'Publishable'),
-      (key: 'open_access', nameAr: 'وصول مفتوح', nameEn: 'Open Access'),
       (
-        key: 'permission_required',
+        key: UsageRightsKey.publishable,
+        nameAr: 'قابل للنشر',
+        nameEn: 'Publishable',
+      ),
+      (
+        key: UsageRightsKey.openAccess,
+        nameAr: 'وصول مفتوح',
+        nameEn: 'Open Access',
+      ),
+      (
+        key: UsageRightsKey.permissionRequired,
         nameAr: 'يحتاج إذن',
         nameEn: 'Permission Required',
       ),
@@ -486,10 +531,10 @@ class ReferenceSeeder {
 
   Future<void> _seedMetadataQualities() async {
     const List<_Ref> data = [
-      (key: 'low', nameAr: 'منخفضة', nameEn: 'Low'),
-      (key: 'medium', nameAr: 'متوسطة', nameEn: 'Medium'),
-      (key: 'high', nameAr: 'عالية', nameEn: 'High'),
-      (key: 'verified', nameAr: 'موثقة', nameEn: 'Verified'),
+      (key: MetadataQualityKey.low, nameAr: 'منخفضة', nameEn: 'Low'),
+      (key: MetadataQualityKey.medium, nameAr: 'متوسطة', nameEn: 'Medium'),
+      (key: MetadataQualityKey.high, nameAr: 'عالية', nameEn: 'High'),
+      (key: MetadataQualityKey.verified, nameAr: 'موثقة', nameEn: 'Verified'),
     ];
     for (int i = 0; i < data.length; i++) {
       final _Ref r = data[i];

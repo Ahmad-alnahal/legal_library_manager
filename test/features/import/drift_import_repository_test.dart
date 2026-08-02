@@ -3,6 +3,7 @@
 import 'package:drift/drift.dart' show Value;
 import 'package:legal_library_manager/features/import/domain/entities/import_batch_report.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:legal_library_manager/core/constants/domain_keys.dart';
 import 'package:legal_library_manager/core/database/app_database.dart';
 import 'package:legal_library_manager/core/database/seeding/reference_seeder.dart';
 import 'package:legal_library_manager/features/import/data/repositories/drift_import_repository.dart';
@@ -67,17 +68,20 @@ void main() {
       final files = await allFiles();
       expect(files.length, 1);
       final f = files.single;
-      expect(f.fileRoleKey, 'source_original');
+      expect(f.fileRoleKey, FileRoleKey.sourceOriginal);
       expect(f.isReadOnlySource, isTrue);
       expect(f.sha256Hash, shaA);
       expect(f.fileName, 'a.pdf');
       expect(f.extension, '.pdf');
-      expect(f.fileHealthKey, 'healthy');
+      expect(f.fileHealthKey, FileHealthKey.healthy);
       expect(f.pageCount, 1);
       expect(f.mimeType, 'application/pdf');
 
       // No managed copy populated.
-      expect(files.where((x) => x.fileRoleKey == 'managed_copy'), isEmpty);
+      expect(
+        files.where((x) => x.fileRoleKey == FileRoleKey.managedCopy),
+        isEmpty,
+      );
     },
   );
 
@@ -212,7 +216,7 @@ void main() {
       final files = await allFiles();
       expect(files.length, 1);
       expect(files.single.sha256Hash, isNull);
-      expect(files.single.fileHealthKey, 'unreadable');
+      expect(files.single.fileHealthKey, FileHealthKey.unreadable);
       // Not added to any duplicate group.
       expect((await db.select(db.duplicateGroups).get()), isEmpty);
       expect((await db.select(db.duplicateGroupMembers).get()), isEmpty);
@@ -417,7 +421,7 @@ void main() {
       expect(files.length, 1);
       expect(files.single.id, before.id);
       expect(files.single.sha256Hash, shaA);
-      expect(files.single.fileHealthKey, 'healthy');
+      expect(files.single.fileHealthKey, FileHealthKey.healthy);
       expect(files.single.fileSizeBytes, 999);
       expect(files.single.pageCount, 1);
     });
@@ -594,13 +598,17 @@ void main() {
 
     test('placeholder with a non-default trust level is preserved', () async {
       await expectPlaceholderPreservedFor(
-        const DocumentsCompanion(trustLevelKey: Value('trusted')),
+        const DocumentsCompanion(
+          trustLevelKey: Value(TrustLevelKey.trusted),
+        ),
       );
     });
 
     test('placeholder with non-default usage rights is preserved', () async {
       await expectPlaceholderPreservedFor(
-        const DocumentsCompanion(usageRightsKey: Value('publishable')),
+        const DocumentsCompanion(
+          usageRightsKey: Value(UsageRightsKey.publishable),
+        ),
       );
     });
 
@@ -608,7 +616,9 @@ void main() {
       'placeholder with non-default metadata quality is preserved',
       () async {
         await expectPlaceholderPreservedFor(
-          const DocumentsCompanion(metadataQualityKey: Value('high')),
+          const DocumentsCompanion(
+            metadataQualityKey: Value(MetadataQualityKey.high),
+          ),
         );
       },
     );

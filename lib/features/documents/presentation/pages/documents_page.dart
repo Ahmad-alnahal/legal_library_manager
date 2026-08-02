@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/constants/domain_keys.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
@@ -905,7 +906,16 @@ class _FilterReferences {
   final List<ReferenceItem> fileHealthStatuses;
 
   static Future<_FilterReferences> load(ReferenceRepository repo) async {
-    final values = await Future.wait<Object>([
+    final (
+      documentTypes,
+      mainCategories,
+      subcategories,
+      countries,
+      languages,
+      trustLevels,
+      workflowStatuses,
+      fileHealthStatuses,
+    ) = await (
       repo.getDocumentTypes(),
       repo.getMainCategories(),
       repo.getSubCategories(),
@@ -914,16 +924,16 @@ class _FilterReferences {
       repo.getTrustLevels(),
       repo.getWorkflowStatuses(),
       repo.getFileHealthStatuses(),
-    ]);
+    ).wait;
     return _FilterReferences(
-      documentTypes: values[0] as List<DocumentTypeRef>,
-      mainCategories: values[1] as List<MainCategoryRef>,
-      subcategories: values[2] as List<SubCategoryRef>,
-      countries: values[3] as List<ReferenceItem>,
-      languages: values[4] as List<ReferenceItem>,
-      trustLevels: values[5] as List<ReferenceItem>,
-      workflowStatuses: values[6] as List<ReferenceItem>,
-      fileHealthStatuses: values[7] as List<ReferenceItem>,
+      documentTypes: documentTypes,
+      mainCategories: mainCategories,
+      subcategories: subcategories,
+      countries: countries,
+      languages: languages,
+      trustLevels: trustLevels,
+      workflowStatuses: workflowStatuses,
+      fileHealthStatuses: fileHealthStatuses,
     );
   }
 }
@@ -952,37 +962,38 @@ String _sortLabel(DocumentListSort sort) => switch (sort) {
 };
 
 String _workflowLabel(String key) => switch (key) {
-  'imported' => 'مستورد',
-  'needs_review' => 'يحتاج مراجعة',
-  'in_progress' => 'قيد التصنيف',
-  'classified' => 'مصنف',
-  'copied_to_library' => 'نُسخ إلى المكتبة',
-  'ready_for_export' => 'جاهز للتصدير',
-  'archived' => 'مؤرشف',
+  WorkflowStatusKey.imported => 'مستورد',
+  WorkflowStatusKey.needsReview => 'يحتاج مراجعة',
+  WorkflowStatusKey.inProgress => 'قيد التصنيف',
+  WorkflowStatusKey.classified => 'مصنف',
+  WorkflowStatusKey.copiedToLibrary => 'نُسخ إلى المكتبة',
+  WorkflowStatusKey.readyForExport => 'جاهز للتصدير',
+  WorkflowStatusKey.archived => 'مؤرشف',
   _ => key,
 };
 
 StatusColor _workflowColor(String key) => switch (key) {
-  'classified' || 'copied_to_library' => AppStatusColors.success,
-  'needs_review' => AppStatusColors.warning,
-  'in_progress' => AppStatusColors.info,
-  'ready_for_export' => AppStatusColors.teal,
+  WorkflowStatusKey.classified ||
+  WorkflowStatusKey.copiedToLibrary => AppStatusColors.success,
+  WorkflowStatusKey.needsReview => AppStatusColors.warning,
+  WorkflowStatusKey.inProgress => AppStatusColors.info,
+  WorkflowStatusKey.readyForExport => AppStatusColors.teal,
   _ => AppStatusColors.neutral,
 };
 
 String _fileRoleLabel(String key) => switch (key) {
-  'source_original' => 'ملف أصلي',
-  'managed_copy' => 'نسخة مُدارة',
-  'converted_pdf' => 'PDF محوّل',
-  'export_copy' => 'نسخة تصدير',
+  FileRoleKey.sourceOriginal => 'ملف أصلي',
+  FileRoleKey.managedCopy => 'نسخة مُدارة',
+  FileRoleKey.convertedPdf => 'PDF محوّل',
+  FileRoleKey.exportCopy => 'نسخة تصدير',
   _ => key,
 };
 
 String _fileHealthLabel(String key) => switch (key) {
-  'healthy' => 'سليم',
-  'corrupted' => 'تالف',
-  'unreadable' => 'غير قابل للقراءة',
-  'missing' => 'مفقود',
+  FileHealthKey.healthy => 'سليم',
+  FileHealthKey.corrupted => 'تالف',
+  FileHealthKey.unreadable => 'غير قابل للقراءة',
+  FileHealthKey.missing => 'مفقود',
   _ => 'غير معروف',
 };
 

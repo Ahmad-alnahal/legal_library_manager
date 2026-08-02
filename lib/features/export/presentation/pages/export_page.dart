@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart' show DateFormat;
 
+import '../../../../core/constants/domain_keys.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radii.dart';
@@ -312,11 +313,14 @@ class _StatusChip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final (label, color) = switch (statusKey) {
-      'preparing' => ('قيد الإنشاء', AppStatusColors.info),
-      'completed' => ('مكتملة', AppStatusColors.success),
-      'failed' => ('فاشلة', AppStatusColors.danger),
-      'verified' => ('مُتحقق منها', AppStatusColors.success),
-      'uploaded' => ('مرفوعة', AppStatusColors.teal),
+      ExportBatchStatusKey.preparing => ('قيد الإنشاء', AppStatusColors.info),
+      ExportBatchStatusKey.completed => ('مكتملة', AppStatusColors.success),
+      ExportBatchStatusKey.failed => ('فاشلة', AppStatusColors.danger),
+      ExportBatchStatusKey.verified => (
+        'مُتحقق منها',
+        AppStatusColors.success,
+      ),
+      ExportBatchStatusKey.uploaded => ('مرفوعة', AppStatusColors.teal),
       _ => (statusKey, AppStatusColors.neutral),
     };
     return Container(

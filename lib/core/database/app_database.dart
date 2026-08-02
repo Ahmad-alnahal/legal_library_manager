@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
 
+import '../constants/domain_keys.dart';
 import '../validation/category_name.dart';
 import 'database_connection.dart';
 import 'tables/account_security_state.dart';
@@ -466,7 +467,7 @@ class AppDatabase extends _$AppDatabase {
           SELECT GROUP_CONCAT(df.file_name, ' ')
           FROM document_files df
           WHERE df.document_id = d.id
-            AND df.file_role_key = 'source_original'
+            AND df.file_role_key = '${FileRoleKey.sourceOriginal}'
         ), '')
       FROM documents d
     """);
@@ -501,7 +502,7 @@ class AppDatabase extends _$AppDatabase {
           SELECT GROUP_CONCAT(df.file_name, ' ')
           FROM document_files df
           WHERE df.document_id = d.id
-            AND df.file_role_key = 'source_original'
+            AND df.file_role_key = '${FileRoleKey.sourceOriginal}'
         ), '')
       FROM documents d
       WHERE d.id = ?

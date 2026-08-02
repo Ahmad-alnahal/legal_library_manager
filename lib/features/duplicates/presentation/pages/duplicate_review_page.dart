@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../../core/constants/domain_keys.dart';
 import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_radii.dart';
@@ -891,10 +892,10 @@ class _MemberTile extends StatelessWidget {
   }
 
   static StatusColor _healthColor(String key) => switch (key) {
-    'healthy' => AppStatusColors.success,
-    'corrupted' => AppStatusColors.danger,
-    'unreadable' => AppStatusColors.danger,
-    'missing' => AppStatusColors.warning,
+    FileHealthKey.healthy => AppStatusColors.success,
+    FileHealthKey.corrupted => AppStatusColors.danger,
+    FileHealthKey.unreadable => AppStatusColors.danger,
+    FileHealthKey.missing => AppStatusColors.warning,
     _ => AppStatusColors.neutral,
   };
 

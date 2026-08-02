@@ -1,20 +1,21 @@
 // test/features/export/domain/export_eligibility_test.dart
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:legal_library_manager/core/constants/domain_keys.dart';
 import 'package:legal_library_manager/features/export/domain/entities/export_eligibility_input.dart';
 import 'package:legal_library_manager/features/export/domain/entities/export_eligibility_result.dart';
 import 'package:legal_library_manager/features/export/domain/export_eligibility.dart';
 
 void main() {
   ExportEligibilityInput eligible({
-    String workflowStatusKey = 'copied_to_library',
+    String workflowStatusKey = WorkflowStatusKey.copiedToLibrary,
     bool hasHealthyManagedCopy = true,
     int? primaryMainCategoryId = 1,
     bool? primaryMainCategoryActive = true,
     int? primarySubCategoryId,
     bool? primarySubCategoryActive,
-    String metadataQualityKey = 'high',
-    String? usageRightsKey = 'open_access',
+    String metadataQualityKey = MetadataQualityKey.high,
+    String? usageRightsKey = UsageRightsKey.openAccess,
   }) => ExportEligibilityInput(
     workflowStatusKey: workflowStatusKey,
     hasHealthyManagedCopy: hasHealthyManagedCopy,
@@ -33,7 +34,7 @@ void main() {
 
   test('wrong workflow status is ineligible', () {
     final result = checkExportEligibility(
-      eligible(workflowStatusKey: 'classified'),
+      eligible(workflowStatusKey: WorkflowStatusKey.classified),
     );
     expect(result, isA<ExportIneligible>());
     expect((result as ExportIneligible).reasons, [
@@ -43,7 +44,7 @@ void main() {
 
   test('archived document reports the archived reason only', () {
     final result = checkExportEligibility(
-      eligible(workflowStatusKey: 'archived'),
+      eligible(workflowStatusKey: WorkflowStatusKey.archived),
     );
     expect(result, isA<ExportIneligible>());
     expect((result as ExportIneligible).reasons, [
@@ -95,7 +96,9 @@ void main() {
   });
 
   test('low metadata quality is ineligible', () {
-    final result = checkExportEligibility(eligible(metadataQualityKey: 'low'));
+    final result = checkExportEligibility(
+      eligible(metadataQualityKey: MetadataQualityKey.low),
+    );
     expect((result as ExportIneligible).reasons, [
       'جودة البيانات الوصفية منخفضة جداً — يُشترط مستوى متوسط على الأقل.',
     ]);
@@ -103,14 +106,14 @@ void main() {
 
   test('medium metadata quality is accepted', () {
     final result = checkExportEligibility(
-      eligible(metadataQualityKey: 'medium'),
+      eligible(metadataQualityKey: MetadataQualityKey.medium),
     );
     expect(result, isA<ExportEligible>());
   });
 
   test('verified metadata quality is accepted', () {
     final result = checkExportEligibility(
-      eligible(metadataQualityKey: 'verified'),
+      eligible(metadataQualityKey: MetadataQualityKey.verified),
     );
     expect(result, isA<ExportEligible>());
   });
@@ -123,7 +126,9 @@ void main() {
   });
 
   test('unknown usage rights is ineligible', () {
-    final result = checkExportEligibility(eligible(usageRightsKey: 'unknown'));
+    final result = checkExportEligibility(
+      eligible(usageRightsKey: UsageRightsKey.unknown),
+    );
     expect((result as ExportIneligible).reasons, [
       'يجب تحديد حقوق الاستخدام قبل التصدير.',
     ]);
@@ -131,7 +136,10 @@ void main() {
 
   test('personal_use_only and permission_required usage rights are eligible '
       '(local export allowed but must be flagged elsewhere)', () {
-    for (final rights in ['personal_use_only', 'permission_required']) {
+    for (final rights in [
+      UsageRightsKey.personalUseOnly,
+      UsageRightsKey.permissionRequired,
+    ]) {
       final result = checkExportEligibility(eligible(usageRightsKey: rights));
       expect(result, isA<ExportEligible>());
     }
@@ -140,10 +148,10 @@ void main() {
   test('multiple violated rules all appear in reasons', () {
     final result = checkExportEligibility(
       eligible(
-        workflowStatusKey: 'classified',
+        workflowStatusKey: WorkflowStatusKey.classified,
         hasHealthyManagedCopy: false,
-        metadataQualityKey: 'low',
-        usageRightsKey: 'unknown',
+        metadataQualityKey: MetadataQualityKey.low,
+        usageRightsKey: UsageRightsKey.unknown,
       ),
     );
     expect((result as ExportIneligible).reasons, [

@@ -1,6 +1,7 @@
 // `isNull` is exported by both drift and matcher; keep matcher's for tests.
 import 'package:drift/drift.dart' hide isNull;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:legal_library_manager/core/constants/domain_keys.dart';
 import 'package:legal_library_manager/core/database/app_database.dart';
 import 'package:legal_library_manager/core/database/seeding/reference_seeder.dart';
 import 'package:sqlite3/common.dart';
@@ -42,7 +43,7 @@ void main() {
       required int documentId,
       String absolutePath = r'C:\src\a.pdf',
       int fileSizeBytes = 1024,
-      String fileRoleKey = 'source_original',
+      String fileRoleKey = FileRoleKey.sourceOriginal,
     }) {
       return db
           .into(db.documentFiles)
@@ -104,17 +105,17 @@ void main() {
       final Document doc = await (db.select(
         db.documents,
       )..where((d) => d.id.equals(docId))).getSingle();
-      expect(doc.trustLevelKey, 'unverified');
-      expect(doc.usageRightsKey, 'unknown');
-      expect(doc.metadataQualityKey, 'low');
-      expect(doc.workflowStatusKey, 'imported');
+      expect(doc.trustLevelKey, TrustLevelKey.unverified);
+      expect(doc.usageRightsKey, UsageRightsKey.unknown);
+      expect(doc.metadataQualityKey, MetadataQualityKey.low);
+      expect(doc.workflowStatusKey, WorkflowStatusKey.imported);
       expect(doc.documentCode, isNull);
 
       await insertFile(documentId: docId);
       final DocumentFile file = await (db.select(
         db.documentFiles,
       )..where((f) => f.documentId.equals(docId))).getSingle();
-      expect(file.fileHealthKey, 'unknown');
+      expect(file.fileHealthKey, FileHealthKey.unknown);
       expect(file.isReadOnlySource, isFalse);
       expect(file.isPreferred, isFalse);
     });

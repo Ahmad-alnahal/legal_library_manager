@@ -2,6 +2,7 @@
 
 import 'package:drift/drift.dart';
 
+import '../../../../core/constants/domain_keys.dart';
 import '../../../../core/database/app_database.dart';
 import '../../../export/domain/entities/export_category_entry.dart';
 import '../../../export/domain/entities/export_document_metadata.dart';
@@ -95,7 +96,7 @@ class DriftDocumentMetadataRepository implements DocumentMetadataRepository {
     // managed_copy / converted_pdf files must always appear in the aggregate
     // so that copy-health checks (hasMissingManagedCopy etc.) remain correct.
     final List<int> sourceFileIds = allFiles
-        .where((f) => f.fileRoleKey == 'source_original')
+        .where((f) => f.fileRoleKey == FileRoleKey.sourceOriginal)
         .map((f) => f.id)
         .toList(growable: false);
     final Set<int> hiddenSourceFileIds = await _hiddenDuplicateFileIds(
@@ -104,7 +105,7 @@ class DriftDocumentMetadataRepository implements DocumentMetadataRepository {
     final List<DocumentFile> files = allFiles
         .where(
           (f) =>
-              f.fileRoleKey != 'source_original' ||
+              f.fileRoleKey != FileRoleKey.sourceOriginal ||
               !hiddenSourceFileIds.contains(f.id),
         )
         .toList(growable: false);
@@ -123,7 +124,7 @@ class DriftDocumentMetadataRepository implements DocumentMetadataRepository {
     // fallback for data predating the is_preferred sync), then the lowest id,
     // among `source_original` files. Read-only projection.
     final List<DocumentFile> sourceFiles = files
-        .where((f) => f.fileRoleKey == 'source_original')
+        .where((f) => f.fileRoleKey == FileRoleKey.sourceOriginal)
         .toList();
     final Set<int> groupPreferredIds = await _groupPreferredFileIds(
       sourceFiles.map((f) => f.id).toList(),
@@ -259,7 +260,7 @@ class DriftDocumentMetadataRepository implements DocumentMetadataRepository {
         DocumentsCompanion(
           primaryMainCategoryId: Value(primary?.mainCategoryId),
           primarySubCategoryId: Value(primary?.subCategoryId),
-          workflowStatusKey: const Value('classified'),
+          workflowStatusKey: const Value(WorkflowStatusKey.classified),
           classifiedAt: Value(nowIso),
           updatedAt: Value(nowIso),
         ),
@@ -276,7 +277,7 @@ class DriftDocumentMetadataRepository implements DocumentMetadataRepository {
         _db.documents,
       )..where((d) => d.id.equals(documentId))).write(
         DocumentsCompanion(
-          workflowStatusKey: const Value('in_progress'),
+          workflowStatusKey: const Value(WorkflowStatusKey.inProgress),
           classifiedAt: const Value(null),
           updatedAt: Value(nowIso),
         ),
@@ -298,8 +299,8 @@ class DriftDocumentMetadataRepository implements DocumentMetadataRepository {
         await (_db.select(_db.documentFiles)..where(
               (f) =>
                   f.documentId.equals(documentId) &
-                  f.fileRoleKey.equals('managed_copy') &
-                  f.fileHealthKey.equals('healthy'),
+                  f.fileRoleKey.equals(FileRoleKey.managedCopy) &
+                  f.fileHealthKey.equals(FileHealthKey.healthy),
             ))
             .getSingleOrNull() !=
         null;
@@ -344,11 +345,15 @@ class DriftDocumentMetadataRepository implements DocumentMetadataRepository {
           await (_db.update(_db.documents)..where(
                 (d) =>
                     d.id.equals(documentId) &
-                    d.workflowStatusKey.equals('copied_to_library'),
+                    d.workflowStatusKey.equals(
+                      WorkflowStatusKey.copiedToLibrary,
+                    ),
               ))
               .write(
                 DocumentsCompanion(
-                  workflowStatusKey: const Value('ready_for_export'),
+                  workflowStatusKey: const Value(
+                    WorkflowStatusKey.readyForExport,
+                  ),
                   readyForExportAt: Value(nowIso),
                   updatedAt: Value(nowIso),
                 ),
@@ -363,9 +368,22 @@ class DriftDocumentMetadataRepository implements DocumentMetadataRepository {
 
   @override
   Future<List<ExportableDocumentRef>> listReadyForExport() async {
+    final healthyCopies = _db.selectOnly(_db.documentFiles)
+      ..addColumns([_db.documentFiles.documentId])
+      ..where(
+        _db.documentFiles.fileRoleKey.equals(FileRoleKey.managedCopy) &
+            _db.documentFiles.fileHealthKey.equals(FileHealthKey.healthy),
+      );
+
     final List<Document> rows =
         await (_db.select(_db.documents)
-              ..where((d) => d.workflowStatusKey.equals('ready_for_export'))
+              ..where(
+                (d) =>
+                    d.workflowStatusKey.equals(
+                      WorkflowStatusKey.readyForExport,
+                    ) &
+                    d.id.isInQuery(healthyCopies),
+              )
               ..orderBy([(d) => OrderingTerm.asc(d.readyForExportAt)]))
             .get();
     return rows
@@ -495,8 +513,8 @@ WHERE d.id IN ($placeholders)
           trustLevelKey: row.read<String>('trust_level_key'),
           usageRightsKey: usageRightsKey,
           isUsageRightsFlagged:
-              usageRightsKey == 'personal_use_only' ||
-              usageRightsKey == 'permission_required',
+              usageRightsKey == UsageRightsKey.personalUseOnly ||
+              usageRightsKey == UsageRightsKey.permissionRequired,
           metadataQualityKey: row.read<String>('metadata_quality_key'),
           summaryAr: row.readNullable<String>('summary_ar'),
           readyForExportAt: DateTime.parse(

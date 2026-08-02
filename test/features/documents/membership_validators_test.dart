@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:legal_library_manager/core/constants/domain_keys.dart';
 import 'package:legal_library_manager/features/documents/domain/validation/membership_validators.dart';
 import 'package:legal_library_manager/features/reference/domain/entities/sub_category_ref.dart';
 
@@ -69,7 +70,7 @@ void main() {
           MembershipValidators.exportManagedFileIsValid(
             snapshotDocumentId: 1,
             fileDocumentId: 1,
-            fileRoleKey: 'managed_copy',
+            fileRoleKey: FileRoleKey.managedCopy,
           ),
           isTrue,
         );
@@ -78,7 +79,7 @@ void main() {
           MembershipValidators.exportManagedFileIsValid(
             snapshotDocumentId: 1,
             fileDocumentId: 2,
-            fileRoleKey: 'managed_copy',
+            fileRoleKey: FileRoleKey.managedCopy,
           ),
           isFalse,
         );
@@ -87,7 +88,7 @@ void main() {
           MembershipValidators.exportManagedFileIsValid(
             snapshotDocumentId: 1,
             fileDocumentId: 1,
-            fileRoleKey: 'source_original',
+            fileRoleKey: FileRoleKey.sourceOriginal,
           ),
           isFalse,
         );

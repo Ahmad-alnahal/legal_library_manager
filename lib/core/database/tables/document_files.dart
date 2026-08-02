@@ -3,6 +3,7 @@
 // ignore_for_file: recursive_getters
 import 'package:drift/drift.dart';
 
+import '../../constants/domain_keys.dart';
 import 'documents.dart';
 import 'reference_tables.dart';
 
@@ -46,7 +47,7 @@ class DocumentFiles extends Table {
   IntColumn get pageCount => integer().nullable()();
   TextColumn get fileHealthKey => text()
       .references(FileHealthStatuses, #key, onDelete: KeyAction.restrict)
-      .withDefault(const Constant('unknown'))();
+      .withDefault(const Constant(FileHealthKey.unknown))();
   BoolColumn get isReadOnlySource =>
       boolean().withDefault(const Constant(false))();
   BoolColumn get isPreferred => boolean().withDefault(const Constant(false))();

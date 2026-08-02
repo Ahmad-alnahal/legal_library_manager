@@ -1,5 +1,6 @@
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:legal_library_manager/core/constants/domain_keys.dart';
 import 'package:legal_library_manager/core/database/app_database.dart';
 import 'package:legal_library_manager/core/database/seeding/reference_seeder.dart';
 import 'package:legal_library_manager/features/documents/data/repositories/drift_document_metadata_repository.dart';
@@ -64,7 +65,7 @@ void main() {
       final doc = await (db.select(
         db.documents,
       )..where((d) => d.id.equals(docId))).getSingle();
-      expect(doc.workflowStatusKey, 'in_progress');
+      expect(doc.workflowStatusKey, WorkflowStatusKey.inProgress);
       expect(doc.updatedAt, '2026-06-07T00:00:00.000Z');
       expect(doc.documentCode, isNull);
     });
@@ -82,7 +83,7 @@ void main() {
         db.documents,
       )..where((d) => d.id.equals(docId))).getSingle();
       // Untouched: still the imported default, title still null.
-      expect(doc.workflowStatusKey, 'imported');
+      expect(doc.workflowStatusKey, WorkflowStatusKey.imported);
       expect(doc.title, isNull);
     });
 
@@ -108,7 +109,7 @@ void main() {
           metaRepo.saveDraft(
             bad,
             now: DateTime.utc(2026, 6, 7),
-            workflowStatusKey: 'in_progress',
+            workflowStatusKey: WorkflowStatusKey.inProgress,
             clearClassifiedAt: true,
           ),
           throwsA(anything),
@@ -118,7 +119,7 @@ void main() {
           db.documents,
         )..where((d) => d.id.equals(docId))).getSingle();
         expect(doc.title, isNull, reason: 'documents update must roll back');
-        expect(doc.workflowStatusKey, 'imported');
+        expect(doc.workflowStatusKey, WorkflowStatusKey.imported);
         expect(await db.select(db.documentClassifications).get(), isEmpty);
       },
     );
@@ -306,9 +307,9 @@ void main() {
         documentTypeId: await typeId(db, 'book'),
         title: title,
         languageKey: 'ar',
-        trustLevelKey: 'trusted',
-        usageRightsKey: 'open_access',
-        metadataQualityKey: 'high',
+        trustLevelKey: TrustLevelKey.trusted,
+        usageRightsKey: UsageRightsKey.openAccess,
+        metadataQualityKey: MetadataQualityKey.high,
       ),
       primaryClassification: DocumentClassificationInput(
         mainCategoryId: await mainId(db, 'public_law'),
@@ -325,7 +326,7 @@ void main() {
       await saveDraft.call(await approvableBookDraft(id));
       await (db.update(db.documents)..where((d) => d.id.equals(id))).write(
         const DocumentsCompanion(
-          workflowStatusKey: Value('classified'),
+          workflowStatusKey: Value(WorkflowStatusKey.classified),
           classifiedAt: Value('2026-01-01T00:00:00.000Z'),
         ),
       );
@@ -341,7 +342,7 @@ void main() {
       final doc = await (db.select(
         db.documents,
       )..where((d) => d.id.equals(docId))).getSingle();
-      expect(doc.workflowStatusKey, 'in_progress');
+      expect(doc.workflowStatusKey, WorkflowStatusKey.inProgress);
       expect(doc.classifiedAt, isNull);
     });
 
@@ -354,7 +355,7 @@ void main() {
       final doc = await (db.select(
         db.documents,
       )..where((d) => d.id.equals(id))).getSingle();
-      expect(doc.workflowStatusKey, 'classified');
+      expect(doc.workflowStatusKey, WorkflowStatusKey.classified);
       // classified_at preserved; only updated_at advances.
       expect(doc.classifiedAt, '2026-01-01T00:00:00.000Z');
       expect(doc.title, 'عنوان محدث');
@@ -365,7 +366,7 @@ void main() {
       final int id = await classifiedBook();
       await (db.update(db.documents)..where((d) => d.id.equals(id))).write(
         const DocumentsCompanion(
-          workflowStatusKey: Value('copied_to_library'),
+          workflowStatusKey: Value(WorkflowStatusKey.copiedToLibrary),
           copiedToLibraryAt: Value('2026-01-02T00:00:00.000Z'),
         ),
       );
@@ -378,7 +379,7 @@ void main() {
       final doc = await (db.select(
         db.documents,
       )..where((d) => d.id.equals(id))).getSingle();
-      expect(doc.workflowStatusKey, 'copied_to_library');
+      expect(doc.workflowStatusKey, WorkflowStatusKey.copiedToLibrary);
       expect(doc.classifiedAt, '2026-01-01T00:00:00.000Z');
       expect(doc.copiedToLibraryAt, '2026-01-02T00:00:00.000Z');
       expect(doc.title, 'عنوان محدث بعد النسخ');
@@ -397,7 +398,7 @@ void main() {
         final doc = await (db.select(
           db.documents,
         )..where((d) => d.id.equals(id))).getSingle();
-        expect(doc.workflowStatusKey, 'in_progress');
+        expect(doc.workflowStatusKey, WorkflowStatusKey.inProgress);
         expect(doc.classifiedAt, isNull);
       },
     );

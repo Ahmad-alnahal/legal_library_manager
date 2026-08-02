@@ -2,6 +2,7 @@
 
 import 'package:drift/drift.dart' hide isNull;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:legal_library_manager/core/constants/domain_keys.dart';
 import 'package:legal_library_manager/core/database/app_database.dart';
 import 'package:legal_library_manager/core/database/seeding/reference_seeder.dart';
 import 'package:legal_library_manager/features/dashboard/data/repositories/drift_dashboard_repository.dart';
@@ -26,7 +27,8 @@ void main() {
 
     // ── helpers ───────────────────────────────────────────────────────────
 
-    Future<int> addDocument({String status = 'imported'}) => db
+    Future<int> addDocument({String status = WorkflowStatusKey.imported}) =>
+        db
         .into(db.documents)
         .insert(
           DocumentsCompanion.insert(
@@ -38,8 +40,8 @@ void main() {
 
     Future<int> addFile(
       int docId, {
-      String role = 'source_original',
-      String health = 'healthy',
+      String role = FileRoleKey.sourceOriginal,
+      String health = FileHealthKey.healthy,
       String path = '/tmp/file.pdf',
     }) => db
         .into(db.documentFiles)
@@ -149,8 +151,8 @@ void main() {
 
     test('counts total imported files (source_original only)', () async {
       final docId = await addDocument();
-      await addFile(docId, role: 'source_original', path: '/a.pdf');
-      await addFile(docId, role: 'managed_copy', path: '/m.pdf');
+      await addFile(docId, role: FileRoleKey.sourceOriginal, path: '/a.pdf');
+      await addFile(docId, role: FileRoleKey.managedCopy, path: '/m.pdf');
 
       final m = await repository.getMetrics();
       expect(m.totalImportedFiles, 1);
@@ -158,13 +160,13 @@ void main() {
     });
 
     test('counts workflow status buckets correctly', () async {
-      await addDocument(status: 'needs_review');
-      await addDocument(status: 'needs_review');
-      await addDocument(status: 'in_progress');
-      await addDocument(status: 'classified');
-      await addDocument(status: 'copied_to_library');
-      await addDocument(status: 'ready_for_export');
-      await addDocument(status: 'imported');
+      await addDocument(status: WorkflowStatusKey.needsReview);
+      await addDocument(status: WorkflowStatusKey.needsReview);
+      await addDocument(status: WorkflowStatusKey.inProgress);
+      await addDocument(status: WorkflowStatusKey.classified);
+      await addDocument(status: WorkflowStatusKey.copiedToLibrary);
+      await addDocument(status: WorkflowStatusKey.readyForExport);
+      await addDocument(status: WorkflowStatusKey.imported);
 
       final m = await repository.getMetrics();
       expect(m.totalDocuments, 7);
@@ -177,9 +179,9 @@ void main() {
 
     test('counts corrupted files', () async {
       final docId = await addDocument();
-      await addFile(docId, health: 'corrupted', path: '/c1.pdf');
-      await addFile(docId, health: 'corrupted', path: '/c2.pdf');
-      await addFile(docId, health: 'healthy', path: '/h.pdf');
+      await addFile(docId, health: FileHealthKey.corrupted, path: '/c1.pdf');
+      await addFile(docId, health: FileHealthKey.corrupted, path: '/c2.pdf');
+      await addFile(docId, health: FileHealthKey.healthy, path: '/h.pdf');
 
       final m = await repository.getMetrics();
       expect(m.corruptedFiles, 2);
@@ -205,10 +207,10 @@ void main() {
     });
 
     test('completionPercent formula: (copied + ready) / total', () async {
-      await addDocument(status: 'copied_to_library');
-      await addDocument(status: 'ready_for_export');
-      await addDocument(status: 'imported');
-      await addDocument(status: 'imported');
+      await addDocument(status: WorkflowStatusKey.copiedToLibrary);
+      await addDocument(status: WorkflowStatusKey.readyForExport);
+      await addDocument(status: WorkflowStatusKey.imported);
+      await addDocument(status: WorkflowStatusKey.imported);
 
       final m = await repository.getMetrics();
       expect(m.totalDocuments, 4);

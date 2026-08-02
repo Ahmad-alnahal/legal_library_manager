@@ -2,6 +2,7 @@
 
 import 'package:drift/drift.dart' hide isNull;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:legal_library_manager/core/constants/domain_keys.dart';
 import 'package:legal_library_manager/core/database/app_database.dart';
 import 'package:legal_library_manager/core/database/seeding/reference_seeder.dart';
 import 'package:legal_library_manager/features/duplicates/data/repositories/drift_duplicate_review_repository.dart';
@@ -26,7 +27,7 @@ void main() {
     Future<int> addDocument({
       String? title,
       String? code,
-      String status = 'imported',
+      String status = WorkflowStatusKey.imported,
     }) => db
         .into(db.documents)
         .insert(
@@ -43,14 +44,14 @@ void main() {
       int documentId, {
       String name = 'file.pdf',
       String path = '/tmp/file.pdf',
-      String health = 'healthy',
+      String health = FileHealthKey.healthy,
       bool isPreferred = false,
     }) => db
         .into(db.documentFiles)
         .insert(
           DocumentFilesCompanion.insert(
             documentId: documentId,
-            fileRoleKey: 'source_original',
+            fileRoleKey: FileRoleKey.sourceOriginal,
             fileName: name,
             absolutePath: path,
             extension: '.pdf',
@@ -132,11 +133,11 @@ void main() {
     test('includes groups whose documents are classified or copied', () async {
       final classified = await addDocument(
         code: 'DOC-CLASSIFIED',
-        status: 'classified',
+        status: WorkflowStatusKey.classified,
       );
       final copied = await addDocument(
         code: 'DOC-COPIED',
-        status: 'copied_to_library',
+        status: WorkflowStatusKey.copiedToLibrary,
       );
       final f1 = await addFile(classified, path: '/classified.pdf');
       final f2 = await addFile(copied, path: '/copied.pdf', name: 'copied.pdf');
@@ -150,7 +151,10 @@ void main() {
       expect(page.groups.map((g) => g.id), contains(groupId));
       expect(
         details.members.map((m) => m.workflowStatusKey),
-        containsAll(['classified', 'copied_to_library']),
+        containsAll([
+          WorkflowStatusKey.classified,
+          WorkflowStatusKey.copiedToLibrary,
+        ]),
       );
     });
 
@@ -451,7 +455,7 @@ void main() {
           doc,
           path: '/corrupted.pdf',
           name: 'corrupted.pdf',
-          health: 'corrupted',
+          health: FileHealthKey.corrupted,
         );
         final fHealthy = await addFile(
           doc,

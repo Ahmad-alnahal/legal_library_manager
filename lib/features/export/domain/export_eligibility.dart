@@ -1,5 +1,6 @@
 // lib/features/export/domain/export_eligibility.dart
 
+import '../../../core/constants/domain_keys.dart';
 import 'entities/export_eligibility_input.dart';
 import 'entities/export_eligibility_result.dart';
 
@@ -20,9 +21,9 @@ import 'entities/export_eligibility_result.dart';
 ExportEligibilityResult checkExportEligibility(ExportEligibilityInput input) {
   final List<String> reasons = [];
 
-  if (input.workflowStatusKey == 'archived') {
+  if (input.workflowStatusKey == WorkflowStatusKey.archived) {
     reasons.add('المستند محفوظ في الأرشيف.');
-  } else if (input.workflowStatusKey != 'copied_to_library') {
+  } else if (input.workflowStatusKey != WorkflowStatusKey.copiedToLibrary) {
     reasons.add(
       'يجب نسخ المستند إلى المكتبة أولاً قبل تعيينه جاهزاً للتصدير.',
     );
@@ -40,13 +41,14 @@ ExportEligibilityResult checkExportEligibility(ExportEligibilityInput input) {
     reasons.add('التصنيف الفرعي الرئيسي للمستند غير نشط.');
   }
 
-  if (input.metadataQualityKey == 'low') {
+  if (input.metadataQualityKey == MetadataQualityKey.low) {
     reasons.add(
       'جودة البيانات الوصفية منخفضة جداً — يُشترط مستوى متوسط على الأقل.',
     );
   }
 
-  if (input.usageRightsKey == null || input.usageRightsKey == 'unknown') {
+  if (input.usageRightsKey == null ||
+      input.usageRightsKey == UsageRightsKey.unknown) {
     reasons.add('يجب تحديد حقوق الاستخدام قبل التصدير.');
   }
 

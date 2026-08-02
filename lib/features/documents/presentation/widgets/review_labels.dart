@@ -1,5 +1,6 @@
 // lib/features/documents/presentation/widgets/review_labels.dart
 
+import '../../../../core/constants/domain_keys.dart';
 import '../../../../core/validation/validation_error.dart';
 import '../../../categories/domain/repositories/category_management_repository.dart';
 import '../../../reference/domain/entities/document_type_ref.dart';
@@ -127,7 +128,17 @@ class ReviewReferences {
     ReferenceRepository repo,
     CategoryManagementRepository categories,
   ) async {
-    final values = await Future.wait<Object>([
+    final (
+      documentTypes,
+      mainCategories,
+      subCategories,
+      languages,
+      countries,
+      trustLevels,
+      usageRights,
+      metadataQualities,
+      workflowStatuses,
+    ) = await (
       repo.getDocumentTypes(),
       repo.getMainCategories(),
       repo.getSubCategories(),
@@ -137,21 +148,21 @@ class ReviewReferences {
       repo.getUsageRights(),
       repo.getMetadataQualities(),
       repo.getWorkflowStatuses(),
-    ]);
+    ).wait;
     // Full (active + inactive) name maps, so a document that references a
     // deactivated category still renders its saved name.
     final allMains = await categories.getMainCategories();
     final allSubs = await categories.getSubCategories();
     return ReviewReferences(
-      documentTypes: values[0] as List<DocumentTypeRef>,
-      mainCategories: values[1] as List<MainCategoryRef>,
-      subCategories: values[2] as List<SubCategoryRef>,
-      languages: values[3] as List<ReferenceItem>,
-      countries: values[4] as List<ReferenceItem>,
-      trustLevels: values[5] as List<ReferenceItem>,
-      usageRights: values[6] as List<ReferenceItem>,
-      metadataQualities: values[7] as List<ReferenceItem>,
-      workflowStatuses: values[8] as List<ReferenceItem>,
+      documentTypes: documentTypes,
+      mainCategories: mainCategories,
+      subCategories: subCategories,
+      languages: languages,
+      countries: countries,
+      trustLevels: trustLevels,
+      usageRights: usageRights,
+      metadataQualities: metadataQualities,
+      workflowStatuses: workflowStatuses,
       allMainNames: {for (final m in allMains) m.id: m.nameAr},
       allSubNames: {for (final s in allSubs) s.id: s.nameAr},
     );
@@ -160,13 +171,13 @@ class ReviewReferences {
 
 /// Arabic label for a workflow-status key.
 String reviewWorkflowLabel(String key) => switch (key) {
-  'imported' => 'مستورد',
-  'needs_review' => 'يحتاج مراجعة',
-  'in_progress' => 'قيد التصنيف',
-  'classified' => 'مصنّف',
-  'copied_to_library' => 'نُسخ إلى المكتبة',
-  'ready_for_export' => 'جاهز للتصدير',
-  'archived' => 'مؤرشف',
+  WorkflowStatusKey.imported => 'مستورد',
+  WorkflowStatusKey.needsReview => 'يحتاج مراجعة',
+  WorkflowStatusKey.inProgress => 'قيد التصنيف',
+  WorkflowStatusKey.classified => 'مصنّف',
+  WorkflowStatusKey.copiedToLibrary => 'نُسخ إلى المكتبة',
+  WorkflowStatusKey.readyForExport => 'جاهز للتصدير',
+  WorkflowStatusKey.archived => 'مؤرشف',
   _ => key,
 };
 
@@ -196,19 +207,19 @@ const Map<String, String> kEffectiveStatusLabels = {
 
 /// Arabic label for a file-role key.
 String reviewFileRoleLabel(String key) => switch (key) {
-  'source_original' => 'ملف أصلي',
-  'managed_copy' => 'نسخة مُدارة',
-  'converted_pdf' => 'PDF محوّل',
-  'export_copy' => 'نسخة تصدير',
+  FileRoleKey.sourceOriginal => 'ملف أصلي',
+  FileRoleKey.managedCopy => 'نسخة مُدارة',
+  FileRoleKey.convertedPdf => 'PDF محوّل',
+  FileRoleKey.exportCopy => 'نسخة تصدير',
   _ => key,
 };
 
 /// Arabic label for a file-health key.
 String reviewFileHealthLabel(String key) => switch (key) {
-  'healthy' => 'سليم',
-  'corrupted' => 'تالف',
-  'unreadable' => 'غير قابل للقراءة',
-  'missing' => 'مفقود',
+  FileHealthKey.healthy => 'سليم',
+  FileHealthKey.corrupted => 'تالف',
+  FileHealthKey.unreadable => 'غير قابل للقراءة',
+  FileHealthKey.missing => 'مفقود',
   _ => 'غير معروف',
 };
 

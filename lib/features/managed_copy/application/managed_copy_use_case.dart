@@ -1,6 +1,7 @@
 // lib/features/managed_copy/application/managed_copy_use_case.dart
 // ignore_for_file: prefer_initializing_formals
 
+import '../../../core/constants/domain_keys.dart';
 import '../../../core/time/clock.dart';
 import '../../import/domain/services/file_hasher.dart';
 import '../domain/entities/copy_roots.dart';
@@ -93,7 +94,7 @@ class ManagedCopyUseCase {
     }
 
     if (docState.hasHealthyManagedCopy &&
-        docState.workflowStatusKey == 'copied_to_library') {
+        docState.workflowStatusKey == WorkflowStatusKey.copiedToLibrary) {
       // Differentiate: file was just restored from disk by reconciliation above
       // (user moved it back) vs it was already healthy before this call.
       if (reconciliation.anyRestored) {
@@ -107,7 +108,7 @@ class ManagedCopyUseCase {
         safeMessage: 'Document already has a managed copy.',
       );
     }
-    if (docState.workflowStatusKey != 'classified') {
+    if (docState.workflowStatusKey != WorkflowStatusKey.classified) {
       return const ManagedCopyBlocked(
         error: ManagedCopyError.notClassified,
         safeMessage:
@@ -985,7 +986,8 @@ class ManagedCopyUseCase {
 
   bool _isEligibleCandidate(SourceFileCandidate c) {
     final ext = c.storedExtension.toLowerCase();
-    return c.fileHealthKey == 'healthy' && (ext == '.pdf' || ext == '.doc');
+    return c.fileHealthKey == FileHealthKey.healthy &&
+        (ext == '.pdf' || ext == '.doc');
   }
 
   SourceFileCandidate? _selectSource(List<SourceFileCandidate> eligible) {
@@ -1018,12 +1020,12 @@ class ManagedCopyUseCase {
     }
 
     final nonMissing = managedFiles
-        .where((file) => file.fileHealthKey != 'missing')
+        .where((file) => file.fileHealthKey != FileHealthKey.missing)
         .toList();
 
     var anyRestored = false;
     for (final missing in managedFiles.where(
-      (file) => file.fileHealthKey == 'missing',
+      (file) => file.fileHealthKey == FileHealthKey.missing,
     )) {
       final restored = await _tryRestoreMissingManagedFile(
         documentId: documentId,
@@ -1149,7 +1151,7 @@ class ManagedCopyUseCase {
     final matchingMissingRows = managedFiles
         .where(
           (file) =>
-              file.fileHealthKey == 'missing' &&
+              file.fileHealthKey == FileHealthKey.missing &&
               _samePath(file.absolutePath, finalPath),
         )
         .toList(growable: false);

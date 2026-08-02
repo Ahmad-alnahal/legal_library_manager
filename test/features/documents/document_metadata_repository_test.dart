@@ -2,6 +2,7 @@
 
 import 'package:drift/drift.dart' hide isNull, isNotNull;
 import 'package:flutter_test/flutter_test.dart';
+import 'package:legal_library_manager/core/constants/domain_keys.dart';
 import 'package:legal_library_manager/core/database/app_database.dart';
 import 'package:legal_library_manager/core/database/seeding/reference_seeder.dart';
 import 'package:legal_library_manager/features/documents/data/repositories/drift_document_metadata_repository.dart';
@@ -42,7 +43,7 @@ void main() {
       int documentId, {
       required String name,
       required String path,
-      String health = 'healthy',
+      String health = FileHealthKey.healthy,
       String extension = '.pdf',
       bool isPreferred = false,
     }) => db
@@ -50,7 +51,7 @@ void main() {
         .insert(
           DocumentFilesCompanion.insert(
             documentId: documentId,
-            fileRoleKey: 'source_original',
+            fileRoleKey: FileRoleKey.sourceOriginal,
             fileName: name,
             absolutePath: path,
             extension: extension,
@@ -167,7 +168,7 @@ void main() {
       final agg = await metaRepo.loadAggregate(docId);
 
       final sourceIds = agg!.files
-          .where((f) => f.fileRoleKey == 'source_original')
+          .where((f) => f.fileRoleKey == FileRoleKey.sourceOriginal)
           .map((f) => f.id)
           .toList();
       expect(sourceIds, contains(favorite));
@@ -212,7 +213,7 @@ void main() {
           reason: 'favorite member must be the preferred source',
         );
         final sourceIds = agg.files
-            .where((f) => f.fileRoleKey == 'source_original')
+            .where((f) => f.fileRoleKey == FileRoleKey.sourceOriginal)
             .map((f) => f.id)
             .toList();
         expect(

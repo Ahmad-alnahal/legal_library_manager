@@ -3,6 +3,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:legal_library_manager/core/constants/domain_keys.dart';
 import 'package:legal_library_manager/core/di/injection.dart';
 import 'package:legal_library_manager/features/duplicates/domain/entities/duplicate_group_details.dart';
 import 'package:legal_library_manager/features/duplicates/domain/entities/duplicate_group_file_item.dart';
@@ -93,10 +94,10 @@ DuplicateGroupFileItem _member({
   documentTitle: title,
   fileName: 'test-$fileId.pdf',
   absolutePath: r'C:\source\test.pdf',
-  fileRoleKey: 'source_original',
-  fileHealthKey: 'healthy',
+  fileRoleKey: FileRoleKey.sourceOriginal,
+  fileHealthKey: FileHealthKey.healthy,
   fileSizeBytes: 2048,
-  workflowStatusKey: 'imported',
+  workflowStatusKey: WorkflowStatusKey.imported,
   isHiddenFromSearch: false,
   isPreferred: preferred,
   addedAt: '2026-06-20T10:00:00.000Z',

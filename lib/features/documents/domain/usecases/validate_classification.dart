@@ -1,5 +1,6 @@
 // lib/features/documents/domain/usecases/validate_classification.dart
 
+import '../../../../core/constants/domain_keys.dart';
 import '../../../../core/time/clock.dart';
 import '../../../../core/validation/validation_result.dart';
 import '../../../reference/domain/repositories/reference_repository.dart';
@@ -166,7 +167,9 @@ class ValidateClassification {
   /// `converted_pdf` whose conversion is approved.
   bool _hasAcceptableFile(DocumentAggregate agg) {
     final bool hasHealthySource = agg.files.any(
-      (f) => f.fileRoleKey == 'source_original' && f.fileHealthKey == 'healthy',
+      (f) =>
+          f.fileRoleKey == FileRoleKey.sourceOriginal &&
+          f.fileHealthKey == FileHealthKey.healthy,
     );
     if (hasHealthySource) return true;
 
@@ -176,8 +179,8 @@ class ValidateClassification {
     };
     return agg.files.any(
       (f) =>
-          f.fileRoleKey == 'converted_pdf' &&
-          f.fileHealthKey == 'healthy' &&
+          f.fileRoleKey == FileRoleKey.convertedPdf &&
+          f.fileHealthKey == FileHealthKey.healthy &&
           approvedOutputs.contains(f.id),
     );
   }

@@ -2,6 +2,7 @@
 
 import 'package:drift/drift.dart';
 
+import '../../../../core/constants/domain_keys.dart';
 import '../../../../core/database/app_database.dart';
 import '../../domain/entities/activity_source.dart';
 import '../../domain/entities/dashboard_activity_item.dart';
@@ -35,20 +36,20 @@ class DriftDashboardRepository implements DashboardRepository {
           '''
 SELECT
   (SELECT COUNT(*) FROM document_files
-    WHERE file_role_key = 'source_original')        AS total_imported_files,
+    WHERE file_role_key = '${FileRoleKey.sourceOriginal}')        AS total_imported_files,
   (SELECT COUNT(*) FROM documents
-    WHERE workflow_status_key = 'needs_review')     AS needs_review,
+    WHERE workflow_status_key = '${WorkflowStatusKey.needsReview}')     AS needs_review,
   (SELECT COUNT(*) FROM documents
-    WHERE workflow_status_key = 'in_progress')      AS in_progress,
+    WHERE workflow_status_key = '${WorkflowStatusKey.inProgress}')      AS in_progress,
   (SELECT COUNT(*) FROM documents
-    WHERE workflow_status_key = 'classified')       AS classified,
+    WHERE workflow_status_key = '${WorkflowStatusKey.classified}')       AS classified,
   (SELECT COUNT(*) FROM documents
-    WHERE workflow_status_key = 'copied_to_library') AS copied_to_library,
+    WHERE workflow_status_key = '${WorkflowStatusKey.copiedToLibrary}') AS copied_to_library,
   (SELECT COUNT(*) FROM documents
-    WHERE workflow_status_key = 'ready_for_export') AS ready_for_export,
+    WHERE workflow_status_key = '${WorkflowStatusKey.readyForExport}') AS ready_for_export,
   (SELECT COUNT(*) FROM documents)                  AS total_documents,
   (SELECT COUNT(*) FROM document_files
-    WHERE file_health_key = 'corrupted')            AS corrupted_files,
+    WHERE file_health_key = '${FileHealthKey.corrupted}')            AS corrupted_files,
   (SELECT COUNT(*)
     FROM (
       SELECT dg.id

@@ -1,6 +1,7 @@
 // lib/features/managed_copy/application/reconcile_managed_copy_integrity.dart
 // ignore_for_file: prefer_initializing_formals
 
+import '../../../core/constants/domain_keys.dart';
 import '../../../core/time/clock.dart';
 import '../../import/domain/services/file_hasher.dart';
 import '../../security/application/session_manager.dart';
@@ -156,7 +157,10 @@ class ReconcileManagedCopyIntegrity {
     // copied_to_library/ready_for_export that need downgrading, and (b)
     // documents already classified with a stale code — nothing to downgrade,
     // but the scan must still report the problem instead of "all healthy".
-    const downgradableStatuses = {'copied_to_library', 'ready_for_export'};
+    const downgradableStatuses = {
+      WorkflowStatusKey.copiedToLibrary,
+      WorkflowStatusKey.readyForExport,
+    };
     final coveredDocIds = <int>{...byDocument.keys, ...copiedToLibraryDocIds};
     for (final entry in staleCodeDocs) {
       if (coveredDocIds.contains(entry.documentId)) continue;
@@ -188,10 +192,11 @@ class ReconcileManagedCopyIntegrity {
 
   Future<_Outcome> _checkFile(ManagedFileRef file) async {
     final isCurrentlyUnhealthy =
-        file.fileHealthKey == 'missing' || file.fileHealthKey == 'corrupted';
+        file.fileHealthKey == FileHealthKey.missing ||
+        file.fileHealthKey == FileHealthKey.corrupted;
 
     if (!_filesystem.isExistingFile(file.absolutePath)) {
-      if (file.fileHealthKey == 'missing') {
+      if (file.fileHealthKey == FileHealthKey.missing) {
         // Already correctly recorded as missing; no DB update needed.
         return _Outcome.alreadyUnhealthy;
       }
@@ -208,7 +213,7 @@ class ReconcileManagedCopyIntegrity {
     }
 
     if (!contentOk) {
-      if (file.fileHealthKey == 'corrupted') {
+      if (file.fileHealthKey == FileHealthKey.corrupted) {
         // Content still mismatches; no change needed.
         return _Outcome.alreadyUnhealthy;
       }
